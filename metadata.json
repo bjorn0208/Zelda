@@ -1,0 +1,6 @@
+{
+  "name": "A Lenda do Herói",
+  "description": "RPG de ação retrô em pixel art com introdução animada, prólogo sob tempestade, mundo de 56 telas, cavernas, missões e minijogos.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

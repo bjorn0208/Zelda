@@ -1,0 +1,270 @@
+import { OutfitId, ShieldTier, ShopItem, SwordTier } from './types';
+
+export const W = 240;
+export const H = 160;
+export const T = 16;
+export const FONT = '8px "Press Start 2P", monospace';
+export const SAVE_KEY = 'lh_save';
+
+export const DX = [0, 1, 0, -1] as const;
+export const DY = [-1, 0, 1, 0] as const;
+
+// Solid tiles including walls, trees, houses, grand stores (U, V), stalls (Y), water, lamps ('L'), cracked rocks ('R'), torches ('t'), pedestals ('S'), TV+PS2 ('y')
+export const SOLID_TILES = new Set('TbH~#WCkPKGeuqzvwmxjJASLRtyUVY'.split(''));
+
+// HP per monster kind: 0:slime, 1:bat, 2:scorpion, 3:skeleton, 4:boss, 5:golem, 6:dark_mage
+export const HPT = [2, 2, 3, 4, 18, 6, 3] as const;
+
+export const ENEMY_PALETTES: readonly [string, string, string, string][] = [
+  ['#1a2a80', '#3a5ae0', '#5f82ff', '#2a3fb0'], // Slime
+  ['#2a1040', '#6e34a8', '#a868e0', '#4a2070'], // Bat
+  ['#5a1a0a', '#d86a2a', '#ff9a5a', '#a04010'], // Scorpion
+  ['#3a4458', '#d8dde8', '#ffffff', '#8c96ac'], // Skeleton
+  ['#3a0a0a', '#c0262e', '#ff5a5a', '#801018'], // Boss Vorak
+  ['#2c3846', '#6882a0', '#a8c8e8', '#465870'], // Golem
+  ['#2a0844', '#6c229a', '#b668ff', '#441068'], // Dark Mage
+];
+
+export const WALL_PALETTES: readonly [string, string, string][] = [
+  ['#1d3a2a', '#2f5c3f', '#10241a'],
+  ['#8a6a3a', '#b08a50', '#5a4220'],
+  ['#4a6a90', '#8ab4e0', '#2a4060'],
+  ['#221c44', '#3a3270', '#171233'],
+  ['#2a1038', '#4a2a60', '#14081c'],
+  ['#221c44', '#3a3270', '#171233'],
+];
+
+export const FLOOR_TILES = ['g', 's', 'i', 'c', 'c', 'c'] as const;
+export const OBSTACLE_TILES = ['m', 'J', 'j', 'm', 'J', 'm'] as const;
+
+export const CHEST_ITEMS: Record<number, string> = {
+  200: 'minerio',
+  210: 'pocao',
+  220: 'ursinho',
+  250: 'anel',
+  251: 'rp',
+  252: 'bomba_kit',
+  253: 'escudo_tesouro',
+};
+
+export const VILLAGES: Record<string, number> = {
+  '3,6': 1, // Vila Inicial
+  '3,4': 1, // Vila Central (Praça & Lojas)
+  '4,4': 1, // Vila Central Leste
+  '1,2': 1,
+  '6,2': 1,
+  '1,5': 1,
+  '6,5': 1,
+};
+
+export const CAVES: Record<string, number> = {
+  '7,4': 0,
+  '7,1': 1,
+  '0,0': 2,
+};
+
+export const BONUS_CAVES: Record<string, number> = {
+  '0,6': 250,
+  '4,3': 251,
+  '2,4': 252,
+  '5,5': 253,
+};
+
+export const SPECIAL_HOUSE_NPCS: Record<number, string> = {
+  151: 'marta',
+  351: 'maria',
+  122: 'ferreiro',
+  117: 'crianca',
+};
+
+export const SWORD_STATS: Record<SwordTier, { name: string; dmg: number; blade: string; edge: string }> = {
+  none: { name: 'SEM ESPADA', dmg: 0, blade: '#888', edge: '#555' },
+  lendaria: { name: 'ESPADA LENDARIA', dmg: 1, blade: '#dff0ff', edge: '#8fa8d8' },
+  aco: { name: 'ESPADA DE ACO', dmg: 2, blade: '#ffe98a', edge: '#d49020' },
+  runica: { name: 'ESPADA RUNICA', dmg: 3, blade: '#8ce8ff', edge: '#2a90d8' },
+  solar: { name: 'LAMINA SOLAR', dmg: 4, blade: '#ffd060', edge: '#ff6a2a' },
+};
+
+export const SHIELD_STATS: Record<ShieldTier, { name: string; color: string; trim: string; def: number }> = {
+  none: { name: 'SEM ESCUDO', color: '#555', trim: '#333', def: 0 },
+  madeira: { name: 'ESCUDO MADEIRA', color: '#8a5a2a', trim: '#c98b3c', def: 1 },
+  ferro: { name: 'ESCUDO DE FERRO', color: '#7a8ea8', trim: '#d8e4f4', def: 2 },
+  real: { name: 'ESCUDO REAL', color: '#3a66c8', trim: '#ffd84a', def: 3 },
+  espelhado: { name: 'ESCUDO ESPELHO', color: '#c8ecff', trim: '#ffffff', def: 4 },
+};
+
+export const OUTFIT_COLORS: Record<
+  OutfitId,
+  { name: string; dark: string; main: string; light: string; shade: string; cap: string }
+> = {
+  verde: {
+    name: 'TUNICA VERDE',
+    dark: '#14502a',
+    main: '#2fa84a',
+    light: '#52d46a',
+    shade: '#1f7d36',
+    cap: '#3dbb4f',
+  },
+  carmesim: {
+    name: 'TUNICA CARMESIM',
+    dark: '#5a141c',
+    main: '#c8323c',
+    light: '#ff6670',
+    shade: '#901c26',
+    cap: '#df424c',
+  },
+  safira: {
+    name: 'TUNICA SAFIRA',
+    dark: '#14285a',
+    main: '#2e62c8',
+    light: '#68a2ff',
+    shade: '#1e4290',
+    cap: '#3c78e0',
+  },
+  dourada: {
+    name: 'ARMADURA REAL',
+    dark: '#5c420c',
+    main: '#d49e26',
+    light: '#ffe478',
+    shade: '#a47214',
+    cap: '#f0bc3a',
+  },
+};
+
+export const SHOPS: Record<'items' | 'weapons' | 'tailor' | 'bazaar', { title: string; items: ShopItem[] }> = {
+  items: {
+    title: 'MERCADO CENTRAL',
+    items: [
+      { id: 'pot1', name: 'POCAO DE VIDA', desc: 'Restaura toda a energia', price: 20, kind: 'pot', amount: 1 },
+      { id: 'arr15', name: '15 FLECHAS', desc: 'Municao para o arco', price: 25, kind: 'arrows', amount: 15 },
+      { id: 'bmb5', name: '5 BOMBAS', desc: 'Explode pedras e monstros', price: 30, kind: 'bombs', amount: 5 },
+      { id: 'tch3', name: '3 TOCHAS', desc: 'Ilumina cavernas escuras', price: 18, kind: 'torch', amount: 3 },
+    ],
+  },
+  weapons: {
+    title: 'FORJA REAL',
+    items: [
+      { id: 'sh_mad', name: 'ESCUDO MADEIRA', desc: 'Bloqueia ataques com B (DEF 1)', price: 35, kind: 'shield', tier: 'madeira' },
+      { id: 'sh_fer', name: 'ESCUDO DE FERRO', desc: 'Alta resistencia fisica (DEF 2)', price: 55, kind: 'shield', tier: 'ferro' },
+      { id: 'sh_real', name: 'ESCUDO REAL', desc: 'Reflete magia sombria (DEF 3)', price: 85, kind: 'shield', tier: 'real' },
+      { id: 'sw_runica', name: 'ESPADA RUNICA', desc: 'Dano 3 e brilho azul', price: 95, kind: 'sword', tier: 'runica' },
+      { id: 'sw_solar', name: 'LAMINA SOLAR', desc: 'Dano 4! Forja suprema', price: 160, kind: 'sword', tier: 'solar' },
+    ],
+  },
+  tailor: {
+    title: 'ALFAIATARIA REAL',
+    items: [
+      { id: 'out_car', name: 'TUNICA CARMESIM', desc: 'Manto rubi dos campeoes', price: 50, kind: 'outfit', tier: 'carmesim' },
+      { id: 'out_saf', name: 'TUNICA SAFIRA', desc: 'Veste noturna azulada', price: 65, kind: 'outfit', tier: 'safira' },
+      { id: 'out_dou', name: 'ARMADURA REAL', desc: 'Armadura dourada de elite', price: 120, kind: 'outfit', tier: 'dourada' },
+      { id: 'sh_esp', name: 'ESCUDO ESPELHO', desc: 'Escudo lendario brilhante (DEF 4)', price: 130, kind: 'shield', tier: 'espelhado' },
+    ],
+  },
+  bazaar: {
+    title: 'MERCADOR DA VILA',
+    items: [
+      { id: 'baz_pot', name: 'POCAO DE VIDA', desc: 'Restaura todos os coracoes', price: 20, kind: 'pot', amount: 1 },
+      { id: 'baz_tch', name: '3 TOCHAS', desc: 'Halos de luz em cavernas', price: 18, kind: 'torch', amount: 3 },
+      { id: 'baz_mad', name: 'ESCUDO MADEIRA', desc: 'Defesa inicial com B (DEF 1)', price: 35, kind: 'shield', tier: 'madeira' },
+      { id: 'baz_fer', name: 'ESCUDO DE FERRO', desc: 'Escudo resistente (DEF 2)', price: 55, kind: 'shield', tier: 'ferro' },
+      { id: 'baz_arr', name: '15 FLECHAS', desc: 'Municao para o arco', price: 25, kind: 'arrows', amount: 15 },
+    ],
+  },
+};
+
+export const COMMON_LINES = [
+  'O Cristal de Luz se partiu em tres fragmentos! Dizem que a Vila Central tem tudo para a jornada.',
+  'Vorak, o feiticeiro, vive no castelo ao norte. Leve tochas e bombas para as cavernas!',
+  'Corte arbustos: as vezes caem cogumelos e rupias.',
+  'Nas cavernas a escuridao e total! Acenda uma tocha ou siga as tochas da parede.',
+  'Use B para erguer o escudo e X para atirar flechas ou jogar bombas!',
+  'Na Vila Central ha lojas de pocoes, armas, escudos e roupas novas.',
+];
+
+export const BIOME_LINES: Record<'n' | 's' | 'g', string[]> = {
+  n: [
+    'Brrr! O frio vem do castelo de Vorak. A noite aqui e congelante!',
+    'A caverna de gelo fica no canto noroeste. Golems protegem o cristal!',
+    'Esqueletos e slimes gelados rondam a neve a noite.',
+  ],
+  s: [
+    'De dia o sol castiga, mas a noite os escorpioes saem das sombras!',
+    'As ruinas a nordeste guardam um fragmento e varios baus.',
+    'Leve um bom escudo antes de enfrentar os magos sombrios.',
+  ],
+  g: [
+    'Ha cavernas secretas com tesouros e rochas rachadas para explodir!',
+    'A Vila Central fica bem no coracao do reino, ao norte daqui.',
+    'Os guardas patrulham a praca quando cai a noite.',
+  ],
+};
+
+export const HOUSE_LINES = [
+  'Seja bem-vindo a minha casa! Sinta o calor da lareira.',
+  'Descanse, heroi. Quando a noite cai, monstros ficam mais agitados.',
+  'Meu avo lutou contra Vorak ha cem anos usando um Escudo Real.',
+  'Dizem que o alfaiate da Vila Central faz tunicas incriveis!',
+  'Esta sopa aquecera seu corpo antes de entrar nas cavernas.',
+];
+
+export interface QuestDef {
+  need: string;
+  n: number;
+  ask: string;
+  ok: string;
+  done: string;
+  rew: { rp?: number; pot?: number; mh?: number; dmg?: number; arrows?: number; bombs?: number };
+}
+
+export const QUESTS: Record<string, QuestDef> = {
+  marta: {
+    need: 'cogumelo',
+    n: 5,
+    ask: 'Preciso de 5 cogumelos para a sopa! Corte arbustos la fora.',
+    ok: 'Que delicia! Tome uma pocao, 30 rupias e 3 tochas!',
+    done: 'A sopa ficou otima, obrigada!',
+    rew: { rp: 30, pot: 1 },
+  },
+  maria: {
+    need: 'anel',
+    n: 1,
+    ask: 'Perdi meu anel na caverna do lago, ao sudoeste. Ajude-me!',
+    ok: 'Meu anel! Voce ganha um coracao extra!',
+    done: 'Obrigada por tudo, heroi.',
+    rew: { mh: 1 },
+  },
+  ferreiro: {
+    need: 'minerio',
+    n: 1,
+    ask: 'Preciso de minerio da caverna da floresta, a leste.',
+    ok: 'Perfeito! Forjei a ESPADA DE ACO para voce!',
+    done: 'Aquela espada e minha obra-prima.',
+    rew: { dmg: 2 },
+  },
+  crianca: {
+    need: 'ursinho',
+    n: 1,
+    ask: 'Perdi meu ursinho na caverna de gelo... Voce busca para mim?',
+    ok: 'Meu ursinho! Ganhe um coracao extra e flechas!',
+    done: 'Eu amo meu ursinho!',
+    rew: { mh: 1, arrows: 10 },
+  },
+};
+
+export const STORY_PAGES = [
+  'Ha muito tempo, o reino de Aurora vivia em paz, protegido pelo Cristal de Luz.',
+  'Mas o feiticeiro Vorak partiu o cristal em tres fragmentos e mergulhou o reino nas trevas.',
+  'Resta uma esperanca: um heroi adormecido, escondido em um simples vilarejo.',
+  'Sem a espada lendaria ele e so um jovem comum. Com ela, torna-se o heroi capaz de vencer o vilao.',
+  'Desperte, {N}! O destino do reino esta em suas maos.',
+];
+
+export const STORY_TONES = [0.22, 0.85, 0.95, 0.72, 0.48] as const;
+
+export const NAME_ROWS = ['ABCDEFGHI', 'JKLMNOPQR', 'STUVWXYZ '] as const;
+
+export const INTRO_LOGO_FRAMES = 180;
+export const INTRO_FADE_FRAMES = 100;
+export const INTRO_RISE_FRAMES = 135;
+
+export const DAY_CYCLE_FRAMES = 4200; // ~70s full day/dusk/night/dawn cycle
