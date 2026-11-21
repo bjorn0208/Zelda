@@ -122,6 +122,7 @@ export class GameEngine {
   private swingHitEnemies = new Set<Enemy>();
   private swingHitClanged = false;
   private shakeFrames = 0;
+  private shakeMag = 1.4;
 
   private stars: Star[] = Array.from({ length: 40 }, () => [rnd(W), rnd(120), rnd(3)]);
   private dust: DustMote[] = Array.from({ length: 28 }, (_, i) => ({
@@ -508,6 +509,23 @@ export class GameEngine {
         this.menuSel = 0;
         this.audio.bp(700, 0.08);
       }
+      return;
+    }
+    if (this.st === 'game') {
+      if (this.G.dlg) {
+        this.G.dlg.i++;
+        this.audio.bp(700, 0.04);
+        if (this.G.dlg.i >= this.G.dlg.p.length) {
+          this.G.dlg = null;
+          if (this.V.fl.win && !this.victoryShown) {
+            this.victoryShown = true;
+            this.victorySel = 0;
+            this.st = 'victory';
+          }
+        }
+      } else if (this.G.sleeping && (this.G.wakeTimer ?? 0) === 0) {
+        this.startWakeAnimation();
+      }
     }
   }
 
@@ -686,22 +704,27 @@ export class GameEngine {
     const py = d === 0 ? this.G.y + 1 : d === 2 ? this.G.y + 13 : this.G.y + 8;
     const cols = this.getSwordEffectColors();
 
-    for (let i = 0; i < 3; i++) {
-      const ang = curAng + (Math.random() - 0.5) * 0.45;
-      const dist = 12 + Math.random() * 7;
+    for (let i = 0; i < 2; i++) {
+      const ang = curAng + (Math.random() - 0.5) * 0.4;
+      const dist = 12 + Math.random() * 6;
       this.particles.push({
         x: px + Math.cos(ang) * dist,
         y: py + Math.sin(ang) * dist,
-        vx: Math.cos(ang) * (0.6 + Math.random() * 0.8),
-        vy: Math.sin(ang) * (0.6 + Math.random() * 0.8) - 0.25,
-        l: 9 + rnd(7),
-        maxL: 16,
+        vx: Math.cos(ang) * (0.55 + Math.random() * 0.6),
+        vy: Math.sin(ang) * (0.55 + Math.random() * 0.6) - 0.2,
+        l: 6 + rnd(4),
+        maxL: 10,
         c: i === 0 ? cols.primary : cols.secondary,
-        glow: true,
-        size: i === 0 ? 2 : 1,
+        glow: false,
+        size: 1,
         kind: 'spark',
       });
     }
+  }
+
+  private startWakeAnimation(): void {
+    this.G.wakeTimer = 44;
+    this.audio.bp(580, 0.06, 'triangle');
   }
 
   private beginGameInsideHouse(): void {
@@ -714,9 +737,12 @@ export class GameEngine {
     this.particles = [];
     this.spawn();
     this.victoryShown = false;
-    this.sleepTimer = 95;
+    this.sleepTimer = 0;
     this.st = 'game';
     this.lastMapSaved = this.G.map;
+    this.talk(
+      'Você desperta com o som dos trovões lá fora... Hora de levantar, descer as escadas e ir à casa ao lado puxar a Espada Lendária!',
+    );
     saveGame(this.hn, this.G, this.V, this.world, this.worldTime);
   }
 
@@ -1078,17 +1104,17 @@ export class GameEngine {
     const ey = e.k === 4 ? e.y + 16 : e.y + 8;
     const cols = this.getSwordEffectColors();
 
-    // Shockwave ring + razor cross-slash + glowing spark burst
+    // Subtle shockwave ring + crisp slash cross + compact spark burst
     this.particles.push({
       x: ex,
       y: ey,
       vx: 0,
       vy: 0,
-      l: 11,
-      maxL: 11,
+      l: 9,
+      maxL: 9,
       c: cols.glow,
-      glow: true,
-      size: e.k === 4 ? 18 : 13,
+      glow: false,
+      size: e.k === 4 ? 13 : 9,
       kind: 'ring',
     });
     this.particles.push({
@@ -1096,23 +1122,23 @@ export class GameEngine {
       y: ey,
       vx: 0,
       vy: 0,
-      l: 8,
-      maxL: 8,
+      l: 7,
+      maxL: 7,
       c: '#ffffff',
-      glow: true,
-      size: e.k === 4 ? 12 : 9,
+      glow: false,
+      size: e.k === 4 ? 9 : 6,
       kind: 'slash',
       ang: (Math.random() - 0.5) * 1.1,
     });
-    this.burst(ex, ey, '#ffe98a', true, 7);
-    this.burst(ex, ey, cols.secondary, true, 5);
+    this.burst(ex, ey, '#ffe98a', false, 5);
+    this.burst(ex, ey, cols.secondary, false, 3);
 
     if ((knockDx || knockDy) && this.free(e.x + knockDx + 2, e.y + knockDy + 6, 12, 8, true)) {
       e.x += knockDx;
       e.y += knockDy;
     }
     if (e.hp <= 0) {
-      this.burst(ex, ey, '#ffffff', true, 12);
+      this.burst(ex, ey, '#ffffff', true, 7);
       this.G.it.push({ x: e.x + 4, y: e.y + 4, val: e.k >= 3 ? 5 : 1 });
     }
   }
@@ -1177,7 +1203,20 @@ export class GameEngine {
       if (hitFront || hitSweep) {
         this.swingHitEnemies.add(e);
         this.damageEnemy(e, this.V.dmg, DX[d] * 11, DY[d] * 11);
-        this.shakeFrames = 5;
+        // Stronger tactile screen shake on powerful monsters (Boss, Golem, Skeleton, Dark Mage)
+        if (e.k === 4) {
+          this.shakeFrames = 10;
+          this.shakeMag = 2.4;
+        } else if (e.k === 5) {
+          this.shakeFrames = 8;
+          this.shakeMag = 1.9;
+        } else if (e.k === 3 || e.k === 6) {
+          this.shakeFrames = 6;
+          this.shakeMag = 1.4;
+        } else if (e.hp <= 0) {
+          this.shakeFrames = 3;
+          this.shakeMag = 1.0;
+        }
         hitAnything = true;
       }
     }
@@ -1453,25 +1492,49 @@ export class GameEngine {
     }
 
     if (this.G.sleeping) {
-      this.sleepTimer--;
-      const wakeInput =
-        this.pressed.a ||
-        this.pressed.s ||
-        Math.hypot(this.analog.x, this.analog.y) > 0.35 ||
-        this.input.u ||
-        this.input.d ||
-        this.input.l ||
-        this.input.r;
-      if (this.sleepTimer <= 0 || wakeInput) {
-        this.G.sleeping = false;
-        this.G.x = 24;
-        this.G.y = 34;
-        this.G.dir = 2;
-        this.fixPos();
-        this.audio.bp(680, 0.08);
-        this.talk(
-          'Você acorda na sua cama! Lá fora a chuva não para... Desça as escadas e vá até a casa ao lado puxar a Espada Lendária!',
-        );
+      const wt = this.G.wakeTimer ?? 0;
+      if (wt === 0) {
+        // Wait in bed until the opening text finishes and player presses ANY button
+        const anyButtonPressed =
+          this.pressed.a ||
+          this.pressed.b ||
+          this.pressed.x ||
+          this.pressed.s ||
+          this.pressed.i ||
+          this.pressed.u ||
+          this.pressed.d ||
+          this.pressed.l ||
+          this.pressed.r ||
+          Math.hypot(this.analog.x, this.analog.y) > 0.35 ||
+          this.input.u ||
+          this.input.d ||
+          this.input.l ||
+          this.input.r;
+        if (anyButtonPressed) {
+          this.startWakeAnimation();
+        }
+      } else {
+        this.G.wakeTimer = wt - 1;
+        if (this.G.wakeTimer === 25) {
+          this.audio.bp(760, 0.08, 'triangle');
+        }
+        if (this.G.wakeTimer <= 25 && this.G.wakeTimer > 0) {
+          const tJump = (25 - this.G.wakeTimer) / 25;
+          this.G.x = 20 + (24 - 20) * tJump;
+          this.G.y = 14 + (34 - 14) * tJump;
+        }
+        if (this.G.wakeTimer <= 0) {
+          this.G.sleeping = false;
+          this.G.wakeTimer = 0;
+          this.G.x = 24;
+          this.G.y = 34;
+          this.G.dir = 2;
+          this.fixPos();
+          this.audio.bp(260, 0.06, 'triangle');
+          this.burst(32, 46, '#f4e7c8', false, 5);
+          this.V.msg = 'BOM DIA! BOA AVENTURA!';
+          this.V.mt = 80;
+        }
       }
       return;
     }
@@ -2279,8 +2342,9 @@ export class GameEngine {
     } else if (this.st === 'victory') {
       drawVictory(g, this.t, this.stars, this.hn, this.G, this.V, this.victorySel);
     } else {
-      const shx = this.shakeFrames > 0 ? ((this.shakeFrames & 1 ? 1 : -1) * Math.min(2, this.shakeFrames)) : 0;
-      const shy = this.shakeFrames > 0 ? ((this.shakeFrames & 2 ? 1 : -1) * 1) : 0;
+      const amp = this.shakeFrames > 0 ? this.shakeMag * Math.min(1, this.shakeFrames / 8 + 0.25) : 0;
+      const shx = this.shakeFrames > 0 ? Math.round(Math.sin(this.t * 2.9) * amp) : 0;
+      const shy = this.shakeFrames > 0 ? Math.round(Math.cos(this.t * 3.5) * amp) : 0;
       g.save();
       if (shx || shy) g.translate(shx, shy);
       drawGame(

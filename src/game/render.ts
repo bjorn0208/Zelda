@@ -1685,29 +1685,29 @@ function drawHeroSwordSwing(
           ? 'rgba(255, 210, 65, '
           : 'rgba(135, 230, 255, ';
 
-  const fade = Math.max(0.15, 1 - progress * 0.72);
+  const fade = Math.max(0.12, 1 - progress * 0.78);
 
-  // Luminous crescent slash wave trailing behind blade
+  // Sleek crescent slash trail behind blade
   g.save();
   g.lineCap = 'round';
-  g.strokeStyle = `${arcColor}${(0.42 * fade).toFixed(3)})`;
-  g.lineWidth = 6;
+  g.strokeStyle = `${arcColor}${(0.26 * fade).toFixed(3)})`;
+  g.lineWidth = 3.5;
   g.beginPath();
   g.arc(px, py, 14.5, trailFrom, curAng);
   g.stroke();
 
   g.strokeStyle = swDef.blade;
-  g.globalAlpha = 0.78 * fade;
-  g.lineWidth = 2.6;
+  g.globalAlpha = 0.54 * fade;
+  g.lineWidth = 1.8;
   g.beginPath();
-  g.arc(px, py, 15.5, Math.max(trailFrom, curAng - 0.85), curAng);
+  g.arc(px, py, 15.5, Math.max(trailFrom, curAng - 0.8), curAng);
   g.stroke();
 
   g.strokeStyle = '#ffffff';
-  g.globalAlpha = 0.9 * fade;
-  g.lineWidth = 1.25;
+  g.globalAlpha = 0.68 * fade;
+  g.lineWidth = 1;
   g.beginPath();
-  g.arc(px, py, 17, Math.max(trailFrom, curAng - 0.55), curAng);
+  g.arc(px, py, 16.5, Math.max(trailFrom, curAng - 0.5), curAng);
   g.stroke();
   g.restore();
 
@@ -1756,23 +1756,87 @@ function drawHero(
   const oc = OUTFIT_COLORS[V.outfit] || OUTFIT_COLORS.verde;
 
   if (G.sleeping) {
+    const wt = G.wakeTimer ?? 0;
     const breath = (t >> 4) & 1;
-    // Hero tucked horizontally into the corner bed
-    R(g, '#f5c99a', x + 1, y + 5, 6, 6);
-    R(g, oc.dark, x - 1, y + 4, 5, 6);
-    R(g, oc.cap, x, y + 5, 4, 4);
-    R(g, '#3a2410', x + 3, y + 7, 2, 1); // Closed peaceful eye
-    R(g, '#3a2410', x + 3, y + 9, 2, 1);
-    // Cozy blanket matching hero outfit
-    R(g, '#324ec0', x + 6, y + 6, 16, 8);
-    R(g, '#4f6ee6', x + 7, y + 7, 14, 6);
-    R(g, '#8aa4ff', x + 6, y + 6, 2, 8);
-    R(g, oc.main, x + 8, y + 8 + breath, 10, 4);
-    // Floating "Z" / "z" sleep bubbles
-    const z1 = (t >> 3) % 10;
-    const z2 = ((t + 16) >> 3) % 10;
-    tx(g, 'Z', x + 6, y - 2 - z1, '#ffe98a', 'left', '#1a1230');
-    tx(g, 'z', x + 12, y - 6 - z2, '#8fd0ff', 'left', '#1a1230');
+
+    if (wt === 0) {
+      // Hero tucked horizontally into the corner bed while text plays or waiting for button
+      R(g, '#f5c99a', x + 1, y + 5, 6, 6);
+      R(g, oc.dark, x - 1, y + 4, 5, 6);
+      R(g, oc.cap, x, y + 5, 4, 4);
+      if (G.dlg) {
+        // Closed peaceful eyes + Zzz while opening text plays
+        R(g, '#3a2410', x + 3, y + 7, 2, 1);
+        R(g, '#3a2410', x + 3, y + 9, 2, 1);
+        const z1 = (t >> 3) % 10;
+        const z2 = ((t + 16) >> 3) % 10;
+        tx(g, 'Z', x + 6, y - 2 - z1, '#ffe98a', 'left', '#1a1230');
+        tx(g, 'z', x + 12, y - 6 - z2, '#8fd0ff', 'left', '#1a1230');
+      } else {
+        // Text finished: eyes open awake in bed waiting for any button press!
+        R(g, '#222', x + 3, y + 6, 2, 2);
+        R(g, '#fff', x + 4, y + 6, 1, 1);
+        R(g, '#222', x + 3, y + 9, 2, 2);
+        R(g, '#fff', x + 4, y + 9, 1, 1);
+      }
+      // Cozy blanket matching hero outfit
+      R(g, '#324ec0', x + 6, y + 6, 16, 8);
+      R(g, '#4f6ee6', x + 7, y + 7, 14, 6);
+      R(g, '#8aa4ff', x + 6, y + 6, 2, 8);
+      R(g, oc.main, x + 8, y + 8 + breath, 10, 4);
+      return;
+    }
+
+    if (wt > 25) {
+      // Stage A: Sitting up & stretching awake in bed!
+      const stretch = ((44 - wt) >> 2) & 1;
+      // Blanket pushed back on right half of bed
+      R(g, '#324ec0', x + 11, y + 7, 11, 7);
+      R(g, '#4f6ee6', x + 12, y + 8, 9, 5);
+      // Hero sitting upright on bed
+      const sy = y - 1 - stretch;
+      R(g, oc.dark, x + 2, sy + 6, 12, 6);
+      R(g, oc.main, x + 3, sy + 7, 10, 5);
+      R(g, '#f5c99a', x + 0, sy + 3 - stretch, 3, 4); // Stretching left arm up!
+      R(g, '#f5c99a', x + 13, sy + 3 - stretch, 3, 4); // Stretching right arm up!
+      R(g, '#3a2410', x + 3, sy + 1, 10, 7);
+      R(g, '#f5c99a', x + 4, sy + 3, 8, 5);
+      R(g, oc.dark, x + 2, sy - 1, 12, 4);
+      R(g, oc.cap, x + 3, sy, 10, 3);
+      R(g, '#222', x + 5, sy + 5, 2, 2);
+      R(g, '#222', x + 9, sy + 5, 2, 2);
+      R(g, '#fff', x + 5, sy + 5, 1, 1);
+      R(g, '#fff', x + 9, sy + 5, 1, 1);
+      tx(g, '!', x + 8, sy - 9, '#ffd84a', 'center', '#1a1230');
+      return;
+    }
+
+    // Stage B (wt <= 25): Parabolic jump out of bed onto the floor!
+    const tJump = (25 - wt) / 25;
+    const arcLift = Math.round(Math.sin(tJump * Math.PI) * 15);
+    const jy = y - arcLift;
+    // Ground shadow stays on floor level
+    R(g, '#0005', x + 3, y + 13, arcLift > 8 ? 10 : 12, 3);
+    // Jumping hero pose
+    R(g, '#2a1608', x + 3, jy + 12, 4, 3);
+    R(g, '#2a1608', x + 9, jy + 12, 4, 3);
+    R(g, oc.dark, x + 2, jy + 6, 12, 7);
+    R(g, oc.main, x + 3, jy + 7, 10, 5);
+    R(g, oc.light, x + 3, jy + 7, 10, 1);
+    R(g, '#6b3f1d', x + 3, jy + 10, 10, 1);
+    R(g, '#ffd84a', x + 7, jy + 10, 2, 1);
+    R(g, '#f5c99a', x + 0, jy + 5, 3, 3);
+    R(g, '#f5c99a', x + 13, jy + 5, 3, 3);
+    R(g, '#3a2410', x + 3, jy + 1, 10, 8);
+    R(g, '#f5c99a', x + 4, jy + 3, 8, 5);
+    R(g, oc.dark, x + 2, jy - 1, 12, 5);
+    R(g, oc.cap, x + 3, jy, 10, 3);
+    R(g, oc.dark, x + 12, jy - 3, 5, 4);
+    R(g, oc.cap, x + 13, jy - 2, 3, 3);
+    R(g, '#222', x + 5, jy + 5, 2, 2);
+    R(g, '#222', x + 9, jy + 5, 2, 2);
+    R(g, '#fff', x + 5, jy + 5, 1, 1);
+    R(g, '#fff', x + 9, jy + 5, 1, 1);
     return;
   }
 
@@ -2192,10 +2256,10 @@ function drawLighting(
     if (G.sw > 0) {
       const sx = G.x + 8 + (G.dir === 1 ? 14 : G.dir === 3 ? -14 : 0);
       const sy = G.y + 8 + (G.dir === 0 ? -14 : G.dir === 2 ? 14 : 0);
-      punchLight(lctx, sx, sy, 48, 0.88);
+      punchLight(lctx, sx, sy, 20, 0.42);
     }
     for (const pt of particles) {
-      if (pt.glow) punchLight(lctx, pt.x, pt.y, pt.kind === 'ring' ? 40 : 28, 0.86);
+      if (pt.glow) punchLight(lctx, pt.x, pt.y, pt.kind === 'ring' ? 18 : 14, 0.48);
     }
 
     g.drawImage(layer.canvas, 0, 0);
@@ -2290,17 +2354,17 @@ function drawLighting(
     const sy = G.y + 8 + (G.dir === 0 ? -14 : G.dir === 2 ? 14 : 0);
     const innerCol =
       V.swordTier === 'solar'
-        ? 'rgba(255, 185, 70, 0.34)'
+        ? 'rgba(255, 185, 70, 0.14)'
         : V.swordTier === 'runica'
-          ? 'rgba(95, 220, 255, 0.34)'
+          ? 'rgba(95, 220, 255, 0.14)'
           : V.swordTier === 'aco'
-            ? 'rgba(255, 225, 110, 0.3)'
-            : 'rgba(180, 235, 255, 0.3)';
-    addBloom(g, sx, sy, 38, innerCol, 'rgba(60, 140, 255, 0)');
+            ? 'rgba(255, 225, 110, 0.12)'
+            : 'rgba(180, 235, 255, 0.12)';
+    addBloom(g, sx, sy, 15, innerCol, 'rgba(60, 140, 255, 0)');
   }
   for (const pt of particles) {
     if (pt.glow) {
-      addBloom(g, pt.x, pt.y, pt.kind === 'ring' ? 24 : 15, 'rgba(255, 200, 95, 0.28)', 'rgba(255, 90, 20, 0)');
+      addBloom(g, pt.x, pt.y, pt.kind === 'ring' ? 11 : 8, 'rgba(255, 200, 95, 0.14)', 'rgba(255, 90, 20, 0)');
     }
   }
 
@@ -2671,6 +2735,12 @@ export function drawGame(
   }
 
   drawHud(g, G, V, hn, worldTime);
+  if (G.sleeping && !G.dlg && !(G.wakeTimer ?? 0) && ((t >> 4) & 1) === 0) {
+    R(g, '#080518dd', 36, H - 34, W - 72, 14);
+    R(g, '#ffd84a99', 36, H - 34, W - 72, 1);
+    R(g, '#ffd84a99', 36, H - 21, W - 72, 1);
+    tx(g, 'APERTE QUALQUER BOTAO', W / 2, H - 30, '#ffd84a', 'center');
+  }
   drawDialog(g, G, t);
 }
 

@@ -203,6 +203,7 @@ export interface HeroState {
   wk: number;
   shielding: boolean;
   sleeping?: boolean;
+  wakeTimer?: number;
   it: RupeeDrop[];
   en: Enemy[];
   dlg: DialogState | null;

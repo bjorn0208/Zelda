@@ -107,6 +107,7 @@ export function createInitialHero(): HeroState {
     wk: 0,
     shielding: false,
     sleeping: true,
+    wakeTimer: 0,
     it: [],
     en: [],
     dlg: null,
