@@ -89,8 +89,8 @@ export const SPECIAL_HOUSE_NPCS: Record<number, string> = {
   117: 'crianca',
 };
 
-/** O pai espera ao lado da porta da sala 151 (tile da saída: [7][13]). */
-export const FATHER_TILE = { x: 12, y: 7 } as const;
+/** O pai espera ao lado da passagem inferior da sala 151 (saída em [8][7]). */
+export const FATHER_TILE = { x: 8, y: 8 } as const;
 export const FATHER_INTRO_FLAG = 'pai_intro';
 export const FATHER_INTRO_LINE =
   'Pai: Filho, vá atrás da espada na casa ao lado. Só assim a tempestade irá parar e a sua aventura poderá começar.';

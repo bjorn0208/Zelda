@@ -106,8 +106,8 @@ export function createInitialProgress(): ProgressState {
 export function createInitialHero(): HeroState {
   return {
     map: 451,
-    x: 20,
-    y: 46,
+    x: 30,
+    y: 52,
     dir: 2,
     hp: 6,
     rp: 40, // Starting pocket money for central village shops
@@ -164,16 +164,18 @@ function createRoom(
       // estante com livros, janela com cortinas, quadro, bandeira Hylian,
       // tapete verde com brasão, mesa com vaso de flores, baú do escudo,
       // fogão/chaminé (lareira) e planta no canto.
-      // Cama alinhada à imagem: lado esquerdo, linhas 2-3 (bem no topo).
-      m[2][1] = 'e';
-      m[2][2] = 'e';
+      // Cama apenas como desenho do fundo: colisão cobre as linhas 3-4.
       m[3][1] = 'e';
       m[3][2] = 'e';
+      m[3][3] = 'e';
+      m[4][1] = 'e';
+      m[4][2] = 'e';
+      m[4][3] = 'e';
       m[2][3] = 'v'; // mesinha de cabeceira + lâmpada
       m[1][6] = 'w'; // janela com cortinas verdes
       m[1][8] = 'z'; // mesa com vaso de flores
       m[2][8] = 'z';
-      m[8][7] = 'C'; // baú do Escudo de Madeira (centro inferior da imagem)
+      m[2][11] = 'C'; // baú azul do Escudo de Madeira, no desenho do quarto
       m[1][13] = 'q'; // estante de livros
       m[2][13] = 'q';
       // Tapete verde central com brasão Hylian
@@ -362,7 +364,11 @@ function createRoom(
     }
   }
 
-  if (id !== 451 && id !== 151) {
+  if (id === 151) {
+    // Passagem inferior no meio, visível no PNG da sala.
+    m[8][7] = 'D';
+    m[7][13] = 'F';
+  } else if (id !== 451) {
     m[8][7] = 'D';
   }
   if (o.fwd) m[1][7] = 'D';
@@ -372,13 +378,13 @@ function createRoom(
   world.npcs[id] = [];
   world.enemies[id] = o.en || [0, 0];
   if (id === 451) {
-    // Volta da escada do quarto: desembarca ao lado da escada do 1o andar.
-    world.doors[id] = [{ x: 13, y: 7, to: 151, px: 112, py: 32 }];
+    // Ao descer, o herói chega já ao lado da passagem inferior e do pai.
+    world.doors[id] = [{ x: 13, y: 7, to: 151, px: 112, py: 112 }];
   } else if (id === 151) {
-    // Porta na direita (saída) e escada no centro do topo (2o andar).
+    // Saída no meio da parte de baixo e escada no centro do topo.
     world.doors[id] = [
-      { x: 13, y: 7, to: o.back || 'ret', px: 180, py: 112 },
-      { x: 7, y: 1, to: 451, px: 180, py: 112 },
+      { x: 7, y: 8, to: o.back || 'ret', px: 112, py: 24 },
+      { x: 7, y: 1, to: 451, px: 112, py: 112 },
     ];
   } else {
     world.doors[id] = [{ x: 7, y: 8, to: o.back || 'ret', px: 112, py: 24 }];
@@ -916,14 +922,15 @@ export function loadSavedGame(): {
     }
     // Older saves had the pre-image bedroom layout; realign its physics too.
     applyRoomPhysics(world);
-    if ((V.fl['ch_451_7_8'] || V.fl['main_451']) && world.maps[451]?.[8]) {
-      world.maps[451][8][7] = 'F';
+    if (world.maps[451]?.[2] && (V.fl['ch_451_11_2'] || V.fl['main_451'])) {
+      // O baú azul continua no quarto mesmo depois de aberto.
+      world.maps[451][2][11] = 'C';
     }
     if (world.maps[151]?.[2] && world.maps[151]?.[1] && world.maps[151]?.[7]) {
-      // Save antigo: moves a escada para o topo, centro, e a saída para a direita.
+      // Save antigo: escada no topo e saída no meio da parte de baixo.
       world.maps[151][2][13] = 'F';
-      world.maps[151][8][7] = 'F';
-      world.maps[151][7][13] = 'D';
+      world.maps[151][7][13] = 'F';
+      world.maps[151][8][7] = 'D';
       world.maps[151][1][7] = 'E';
     }
     if (world.maps[4] && world.maps[4][2] && world.maps[4][2][7] === 'D') {

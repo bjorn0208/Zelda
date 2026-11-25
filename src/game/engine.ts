@@ -1055,6 +1055,7 @@ export class GameEngine {
     const tol = this.G.map >= 100 ? 1 : 0;
     const d = L.find((o) => o.y === b && Math.abs(o.x - a) <= tol);
     if (!d) return false;
+    const descendingFromBedroom = this.G.map === 451 && d.to === 151;
 
     if (d.to === 'ret') {
       const r = this.G.ret || { map: 51, x: 32, y: 68 };
@@ -1081,6 +1082,8 @@ export class GameEngine {
         this.V.mt = 100;
       }
     }
+    // Ao descer do quarto, o pai já fala ao lado da passagem inferior.
+    if (descendingFromBedroom) this.fatherPassTrigger();
     return true;
   }
 
@@ -1197,6 +1200,10 @@ export class GameEngine {
     const c = CHEST_ITEMS[this.G.map];
     const chestFlag = `ch_${this.G.map}_${a}_${b}`;
     const alreadyMain = Boolean(this.V.fl[`main_${this.G.map}`]);
+    if (this.G.map === 451 && this.V.fl[chestFlag]) {
+      this.talk('O baú azul já foi aberto. O Escudo de Madeira está com você.');
+      return;
+    }
 
     // O baú do 1º chefe fica selado até o chefe ser derrotado — a checagem
     // vem antes de marcar os flags, senão o baú abriria vazio.
@@ -1794,9 +1801,9 @@ export class GameEngine {
         }
         if (this.G.wakeTimer <= 25 && this.G.wakeTimer > 0) {
           const tJump = (25 - this.G.wakeTimer) / 25;
-          // Acorda na cama da imagem (linha 3, coluna 1) e salta para o lado.
-          this.G.x = 20 + (52 - 20) * tJump;
-          this.G.y = 46 + (58 - 46) * tJump;
+          // Acorda em cima do desenho da cama e salta para o lado direito.
+          this.G.x = 30 + (68 - 30) * tJump;
+          this.G.y = 52 + (58 - 52) * tJump;
         }
         if (this.G.wakeTimer <= 0) {
           this.G.sleeping = false;
@@ -1806,7 +1813,7 @@ export class GameEngine {
           this.G.dir = 2;
           this.fixPos();
           this.audio.bp(260, 0.06, 'triangle');
-          this.burst(58, 66, '#f4e7c8', false, 5);
+          this.burst(74, 66, '#f4e7c8', false, 5);
           this.V.msg = 'BOM DIA! BOA AVENTURA!';
           this.V.mt = 80;
         }
@@ -1911,8 +1918,8 @@ export class GameEngine {
       } else if (tile === 'S' && !this.V.sword) {
         this.pullSword(a, b);
       } else if (tile === 'C') {
-        // No quarto o baú desaparece; nos outros mapas ele fica aberto no chão.
-        row[a] = this.G.map === 451 ? 'F' : 'c';
+        // No quarto o baú azul permanece no lugar; nos outros mapas ele abre no chão.
+        if (this.G.map !== 451) row[a] = 'c';
         this.openChest(a, b);
       } else if (tile === 'G') {
         this.tryOpenGate(a, b);

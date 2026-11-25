@@ -65,38 +65,6 @@ function roomImageFor(map: number): string | null {
   return ROOM_IMAGES[map] ?? null;
 }
 
-/** Hides the chest painted into the bedroom backdrop once it has been opened. */
-function drawBedroomChestPatch(g: CanvasRenderingContext2D, img: HTMLImageElement): void {
-  const x = 7 * 16;
-  const y = 8 * 16;
-  g.imageSmoothingEnabled = false;
-  // Copy neighbouring wooden floor over the 32x16 strip containing the chest.
-  g.drawImage(img, x + 32, y, 32, 16, x, y, 32, 16);
-}
-
-/** Cobre a cama antiga do PNG e redesenha o móvel já na linha de cima. */
-function drawBedroomBed(g: CanvasRenderingContext2D, img: HTMLImageElement): void {
-  g.imageSmoothingEnabled = false;
-  // Piso limpo do canto inferior cobre a cama pintada no fundo.
-  g.drawImage(img, 0, 120, 56, 32, 12, 40, 56, 32);
-
-  // Cama dupla image-aligned: colunas 1-2, linhas 2-3.
-  const x = 1 * T;
-  const y = 2 * T;
-  R(g, '#2a1608', x, y - 4, T * 2, 36);
-  R(g, '#6b3f1d', x + 1, y - 3, T * 2 - 2, 7);
-  R(g, '#a8743a', x + 1, y - 2, T * 2 - 2, 2);
-  R(g, '#8a5f2e', x + 1, y + 4, T * 2 - 2, 24);
-  R(g, '#ffffff', x + 3, y + 4, 12, 7);
-  R(g, '#dbe8ff', x + 3, y + 10, 12, 2);
-  R(g, '#3958cc', x + 2, y + 12, T * 2 - 4, 16);
-  R(g, '#5d7df0', x + 2, y + 12, T * 2 - 4, 3);
-  R(g, '#8aa6ff', x + 2, y + 20, T * 2 - 4, 1);
-  R(g, '#4a2810', x + T * 2 - 3, y, 3, 28);
-  R(g, '#2a1608', x + 1, y + 32, 4, 4);
-  R(g, '#2a1608', x + T * 2 - 5, y + 32, 4, 4);
-}
-
 export interface GameCamera {
   zoom: number;
   x: number;
@@ -3198,12 +3166,12 @@ export function drawGame(
     // The image supplies the visual furniture; the tile map below it keeps
     // collision, doors, bed, stairs and chest interactions exactly as before.
     g.drawImage(roomImg, 0, 0, W, H);
-    if (G.map === 451) drawBedroomBed(g, roomImg);
-    if (G.map === 451 && m[8]?.[7] !== 'C') drawBedroomChestPatch(g, roomImg);
     for (let y = 0; y < 10; y++) {
       for (let x = 0; x < 15; x++) {
         const ch = m[y][x];
-        if (ch === 'S' || ch === 'C' || ch === 'c' || ch === 'G' || ch === 'g') {
+        // No quarto o baú azul já está pintado no PNG: não desenhamos o baú
+        // genérico por cima. A tile 'C' continua ativa para a interação.
+        if (ch === 'S' || ch === 'c' || ch === 'G' || ch === 'g' || (ch === 'C' && G.map !== 451)) {
           drawTile(g, world, V, G, t, ch, x, y, weather, nightFactor);
         }
       }
