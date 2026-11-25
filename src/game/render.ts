@@ -66,6 +66,8 @@ function getRoomImage(src: string): HTMLImageElement | null {
 
 /** Generic houses (not the hero's, not shops) share the cosy-living-room art. */
 function roomImageFor(map: number): string | null {
+  // 301 is a dungeon room even though its ID falls in the "house" range.
+  if (map === 301) return null;
   return ROOM_IMAGES[map] ?? (map >= 100 && map < 500 && map !== 451 ? '/rooms/house_generic.png' : null);
 }
 

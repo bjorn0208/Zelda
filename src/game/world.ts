@@ -12,6 +12,7 @@ import {
   VILLAGES,
 } from './constants';
 import { DominicKind, EnemyKind, HeroState, Npc, NpcKind, ProgressState, WorldData } from './types';
+import { applyRoomPhysics } from './roomPhysics';
 
 export const hs = (a: number, b: number): number => ((a * 73856093) ^ (b * 19349663)) >>> 0;
 export const rnd = (n: number): number => Math.floor(Math.random() * n);
@@ -766,6 +767,9 @@ export function buildWorld(): WorldData {
   createRoom(world, 260, false, rg(260), { fwd: 261, en: [4, 6] });
   createRoom(world, 261, false, rg(261), { back: 260, en: [1, 4] });
 
+  // Make the tile-map physics match the furniture in the room images.
+  applyRoomPhysics(world);
+
   return world;
 }
 
@@ -865,6 +869,8 @@ export function loadSavedGame(): {
     if (world.maps[151]?.[2]) {
       world.maps[151][2][13] = 'E';
     }
+    // Older saves had the pre-image tile layouts — realign their physics too.
+    applyRoomPhysics(world);
     if (world.maps[4] && world.maps[4][2] && world.maps[4][2][7] === 'D') {
       world.doors[4].push({ x: 7, y: 2, to: 260, px: 112, py: 112 });
     }
