@@ -276,7 +276,10 @@ function createRoom(
         m[7][13] = 'E'; // Escada para o quarto (2o andar)
       }
       if (id === 151) {
-        m[2][13] = 'E'; // Escada subindo para o quarto no 2o andar
+        // Sua casa: escada no centro do topo e porta de saída à direita.
+        m[2][13] = 'F';
+        m[7][13] = 'D';
+        m[1][7] = 'E';
       }
     }
   } else {
@@ -359,7 +362,7 @@ function createRoom(
     }
   }
 
-  if (id !== 451) {
+  if (id !== 451 && id !== 151) {
     m[8][7] = 'D';
   }
   if (o.fwd) m[1][7] = 'D';
@@ -368,19 +371,23 @@ function createRoom(
   world.neighbors[id] = {};
   world.npcs[id] = [];
   world.enemies[id] = o.en || [0, 0];
-  world.doors[id] =
-    id === 451
-      ? // Volta da escada do quarto: desembarca ao lado da escada do 1o andar.
-        [{ x: 13, y: 7, to: 151, px: 112, py: 32 }]
-      : [{ x: 7, y: 8, to: o.back || 'ret', px: 112, py: 24 }];
-  if (id === 151) {
-    world.doors[id].push({ x: 13, y: 2, to: 451, px: 180, py: 112 });
+  if (id === 451) {
+    // Volta da escada do quarto: desembarca ao lado da escada do 1o andar.
+    world.doors[id] = [{ x: 13, y: 7, to: 151, px: 112, py: 32 }];
+  } else if (id === 151) {
+    // Porta na direita (saída) e escada no centro do topo (2o andar).
+    world.doors[id] = [
+      { x: 13, y: 7, to: o.back || 'ret', px: 180, py: 112 },
+      { x: 7, y: 1, to: 451, px: 180, py: 112 },
+    ];
+  } else {
+    world.doors[id] = [{ x: 7, y: 8, to: o.back || 'ret', px: 112, py: 24 }];
   }
-  if (o.fwd) {
+  if (o.fwd && id !== 151) {
     world.doors[id].push({ x: 7, y: 1, to: o.fwd, px: 112, py: 112 });
   }
-  if (!h || id !== 451) {
-    // Stair to bedroom (2nd floor) for all houses
+  if (!h || (id !== 451 && id !== 151)) {
+    // Stair to bedroom (2nd floor) for the other houses / dungeons
     world.doors[id].push({ x: 13, y: 7, to: 451, px: 180, py: 42 });
   }
 }
@@ -897,8 +904,12 @@ export function loadSavedGame(): {
     if ((V.fl['ch_451_7_8'] || V.fl['main_451']) && world.maps[451]?.[8]) {
       world.maps[451][8][7] = 'F';
     }
-    if (world.maps[151]?.[2]) {
-      world.maps[151][2][13] = 'E';
+    if (world.maps[151]?.[2] && world.maps[151]?.[1] && world.maps[151]?.[7]) {
+      // Save antigo: moves a escada para o topo, centro, e a saída para a direita.
+      world.maps[151][2][13] = 'F';
+      world.maps[151][8][7] = 'F';
+      world.maps[151][7][13] = 'D';
+      world.maps[151][1][7] = 'E';
     }
     if (world.maps[4] && world.maps[4][2] && world.maps[4][2][7] === 'D') {
       world.doors[4].push({ x: 7, y: 2, to: 260, px: 112, py: 112 });

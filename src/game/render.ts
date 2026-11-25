@@ -40,10 +40,11 @@ import { drawInvItem, INV_SLOT_COUNT, invItemStateFromProgress, invItemTag } fro
 export type Star = [number, number, number];
 
 /**
- * Only the bedroom uses a reference image as backdrop. The tile map still
- * provides all collision, doors, bed, stairs and chest interactions.
+ * The hero's living room and bedroom use reference images as backdrops. The
+ * tile map still provides all collision, doors, bed, stairs and chest logic.
  */
 const ROOM_IMAGES: Record<number, string> = {
+  151: '/rooms/hero_house.png',
   451: '/rooms/hero_bedroom.png',
 };
 
