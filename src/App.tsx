@@ -35,6 +35,7 @@ import {
 } from './game/constants';
 import { GameEngine } from './game/engine';
 import { drawHeroShowcaseStandalone } from './game/render';
+import { INV_ITEM_LABELS, drawInvItem, invItemStateFromUI, invItemTag } from './game/items';
 import { EngineUIState, KeyCode } from './game/types';
 import { bio, forest, lake } from './game/world';
 
@@ -315,6 +316,47 @@ function HeroPreviewCanvas({ ui }: { ui: EngineUIState }) {
   );
 }
 
+/**
+ * A physical inventory item drawn straight from the shared 16x16 pixel-art
+ * maps (see src/game/items.ts). The canvas is an integer multiple of the art
+ * so every pixel stays square, and `.pixel-canvas` keeps responsive
+ * rescaling sharp instead of blurry.
+ */
+function InvItemCanvas({
+  slot,
+  ui,
+  size,
+  scale,
+  className = '',
+}: {
+  slot: number;
+  ui: EngineUIState;
+  size: number;
+  scale: number;
+  className?: string;
+}) {
+  const ref = useRef<HTMLCanvasElement | null>(null);
+
+  useEffect(() => {
+    const canvas = ref.current;
+    if (!canvas) return;
+    const g = canvas.getContext('2d');
+    if (!g) return;
+    g.clearRect(0, 0, canvas.width, canvas.height);
+    drawInvItem(g, slot, 0, 0, scale, invItemStateFromUI(ui));
+  }, [slot, scale, ui]);
+
+  return (
+    <canvas
+      ref={ref}
+      width={size}
+      height={size}
+      className={`pixel-canvas block ${className}`}
+      aria-hidden="true"
+    />
+  );
+}
+
 function ResponsiveInventoryModal({
   ui,
   engine,
@@ -325,6 +367,7 @@ function ResponsiveInventoryModal({
   const swDef = SWORD_STATS[ui.swordTier] || SWORD_STATS.none;
   const shDef = SHIELD_STATS[ui.shieldTier] || SHIELD_STATS.none;
   const outDef = OUTFIT_COLORS[ui.outfit] || OUTFIT_COLORS.verde;
+  const invState = invItemStateFromUI(ui);
 
   const toolNames: Record<EngineUIState['secondary'], string> = {
     arco: `Arco (${ui.arrows} flechas)`,
@@ -450,6 +493,11 @@ function ResponsiveInventoryModal({
             <span className="text-xs sm:text-sm font-extrabold tracking-widest text-[#ffd84a] truncate">
               MALETA TÁTICA · {ui.locationName}
             </span>
+            {/* Fechos metálicos da maleta (temática RE4) */}
+            <span className="ml-1 hidden shrink-0 gap-1 sm:flex" aria-hidden="true">
+              <span className="block h-3.5 w-6 rounded-[3px] border border-[#0a0d14] bg-gradient-to-b from-[#e6ecfb] via-[#97a3bd] to-[#5a6480] shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]" />
+              <span className="block h-3.5 w-6 rounded-[3px] border border-[#0a0d14] bg-gradient-to-b from-[#e6ecfb] via-[#97a3bd] to-[#5a6480] shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]" />
+            </span>
           </div>
 
           <div className="flex items-center gap-2.5 shrink-0">
@@ -515,48 +563,91 @@ function ResponsiveInventoryModal({
           </div>
 
           <div className="flex-1 min-w-0 flex flex-col justify-between gap-3">
-            <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
+            {/* RE4 attaché case: padded interior + physical items, no text slots */}
+            <div
+              className="mx-auto grid w-full max-w-[440px] grid-cols-4 gap-1.5 rounded-xl border border-[#0a0d14] bg-[#161c2a] p-1.5 shadow-[inset_0_3px_14px_rgba(0,0,0,0.75)] sm:gap-2"
+              style={{
+                backgroundImage:
+                  'repeating-linear-gradient(0deg, rgba(255,255,255,0.045) 0 1px, transparent 1px 28px), repeating-linear-gradient(90deg, rgba(255,255,255,0.045) 0 1px, transparent 1px 28px)',
+              }}
+            >
               {slots.map((slot) => {
                 const selected = ui.invSel === slot.id;
+                const tag = invItemTag(slot.id, invState);
                 return (
                   <button
                     key={slot.id}
                     type="button"
                     onClick={() => engine?.selectInvSlot(slot.id)}
-                    className={`relative flex flex-col items-start justify-between rounded-xl border p-2 text-left transition-all cursor-pointer min-h-[56px] sm:min-h-[66px] ${
+                    title={INV_ITEM_LABELS[slot.id]}
+                    aria-label={INV_ITEM_LABELS[slot.id]}
+                    aria-pressed={selected}
+                    className={`relative flex aspect-square cursor-pointer items-center justify-center rounded-lg border transition-all ${
                       selected
-                        ? 'bg-[#25304d] border-[#ffd84a] shadow-[0_0_14px_rgba(255,216,74,0.28)]'
-                        : 'bg-[#182033] border-[#323e5e] hover:border-[#6274a3]'
+                        ? 'z-10 border-[#ffd84a] bg-[#26314e] shadow-[0_0_18px_rgba(255,216,74,0.3),inset_0_1px_0_rgba(255,255,255,0.14)]'
+                        : 'border-[#2b3550] bg-[#0f1522]/85 hover:border-[#6274a3] hover:bg-[#182135]'
                     }`}
                   >
-                    <span className="text-[10px] sm:text-xs font-bold text-slate-300 leading-tight">
-                      {slot.label}
-                    </span>
-                    <span
-                      className={`text-xs sm:text-sm font-extrabold leading-none ${
-                        slot.active ? 'text-emerald-300' : 'text-amber-200/80'
+                    <InvItemCanvas
+                      slot={slot.id}
+                      ui={ui}
+                      size={64}
+                      scale={4}
+                      className={`h-[76%] w-[76%] max-h-16 max-w-16 drop-shadow-[2px_3px_0_rgba(0,0,0,0.6)] transition-transform ${
+                        selected ? 'scale-110' : ''
                       }`}
-                    >
-                      {slot.badge}
-                    </span>
+                    />
+                    {tag && (
+                      <span
+                        className={`absolute bottom-0.5 right-1 rounded-[3px] border px-1 py-px text-[9px] font-extrabold leading-none tracking-wider sm:text-[10px] ${
+                          tag.tone === 'green'
+                            ? 'border-emerald-400/40 bg-emerald-500/15 text-emerald-300'
+                            : tag.tone === 'grey'
+                              ? 'border-white/10 bg-white/5 text-slate-400'
+                              : 'border-amber-400/40 bg-[#1a1408] text-[#ffd84a]'
+                        }`}
+                      >
+                        {tag.text}
+                      </span>
+                    )}
+                    {selected && (
+                      <>
+                        <span className="pointer-events-none absolute left-0 top-0 h-3.5 w-3.5 border-l-2 border-t-2 border-[#ffd84a]" />
+                        <span className="pointer-events-none absolute right-0 top-0 h-3.5 w-3.5 border-r-2 border-t-2 border-[#ffd84a]" />
+                        <span className="pointer-events-none absolute bottom-0 left-0 h-3.5 w-3.5 border-b-2 border-l-2 border-[#ffd84a]" />
+                        <span className="pointer-events-none absolute bottom-0 right-0 h-3.5 w-3.5 border-b-2 border-r-2 border-[#ffd84a]" />
+                      </>
+                    )}
                   </button>
                 );
               })}
             </div>
 
             <div className="flex-1 flex flex-col justify-between gap-3 rounded-xl border border-[#495980] bg-[#0e1422] p-3 sm:p-4">
-              <div>
-                <div className="flex flex-wrap items-center justify-between gap-2 mb-1.5">
-                  <h3 className={`text-sm sm:text-base font-extrabold tracking-wide ${activeSlot.accent}`}>
-                    {activeSlot.title}
-                  </h3>
-                  <span className="rounded-md bg-white/10 px-2 py-0.5 text-[11px] font-bold text-white/90">
-                    {activeSlot.badge}
-                  </span>
+              <div className="flex gap-3 sm:gap-4">
+                <div className="relative shrink-0 self-start rounded-lg border border-[#33405f] bg-[#0a0f1a] p-2 shadow-[inset_0_2px_8px_rgba(0,0,0,0.7)]">
+                  <InvItemCanvas
+                    slot={activeSlot.id}
+                    ui={ui}
+                    size={96}
+                    scale={6}
+                    className="h-20 w-20 drop-shadow-[3px_4px_0_rgba(0,0,0,0.65)] sm:h-24 sm:w-24"
+                  />
+                  <span className="pointer-events-none absolute inset-x-2 -bottom-2 h-1 rounded-full bg-gradient-to-r from-transparent via-[#5a6b92] to-transparent" />
                 </div>
-                <p className="text-xs sm:text-sm text-slate-200 leading-relaxed">
-                  {activeSlot.desc}
-                </p>
+                <div className="min-w-0 flex-1">
+                  <div className="mb-1.5 flex flex-wrap items-center gap-2">
+                    <h3 className={`text-sm sm:text-base font-extrabold tracking-wide ${activeSlot.accent}`}>
+                      {activeSlot.title}
+                    </h3>
+                    <span className="rounded-md bg-white/10 px-2 py-0.5 text-[11px] font-bold text-white/90">
+                      {activeSlot.badge}
+                    </span>
+                  </div>
+                  <p className="text-xs sm:text-sm text-slate-200 leading-relaxed">
+                    {activeSlot.desc}
+                  </p>
+                </div>
               </div>
 
               <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-white/10">

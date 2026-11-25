@@ -34,6 +34,7 @@ import {
   WorldData,
 } from './types';
 import { dungeonTheme, getEnemyMaxHp, hs, isHouse, p3 } from './world';
+import { drawInvItem, INV_SLOT_COUNT, invItemStateFromProgress, invItemTag } from './items';
 
 export type Star = [number, number, number];
 
@@ -2915,82 +2916,6 @@ export function drawVictory(
   });
 }
 
-function drawInvIcon(
-  g: CanvasRenderingContext2D,
-  slot: number,
-  x: number,
-  y: number,
-  V: ProgressState,
-): void {
-  if (slot === 0) {
-    if (!V.sword) {
-      R(g, '#3a345a', x + 6, y + 1, 3, 9);
-      R(g, '#3a345a', x + 4, y + 9, 7, 2);
-      R(g, '#3a345a', x + 6, y + 11, 3, 3);
-      return;
-    }
-    const sw = SWORD_STATS[V.swordTier] || SWORD_STATS.lendaria;
-    R(g, sw.blade, x + 6, y + 1, 3, 8);
-    R(g, sw.edge, x + 8, y + 1, 1, 8);
-    R(g, '#ffd84a', x + 3, y + 9, 9, 2);
-    R(g, '#6b3f1d', x + 6, y + 11, 3, 3);
-    R(g, '#ffd84a', x + 5, y + 13, 5, 1);
-  } else if (slot === 1) {
-    // Shield
-    const sh = SHIELD_STATS[V.shield] || SHIELD_STATS.none;
-    R(g, V.shield !== 'none' ? sh.trim : '#3a345a', x + 3, y + 2, 9, 10);
-    R(g, V.shield !== 'none' ? sh.color : '#4a446a', x + 4, y + 3, 7, 8);
-    R(g, V.shield !== 'none' ? '#fff8' : '#3a345a', x + 6, y + 5, 3, 3);
-  } else if (slot === 2) {
-    // Outfit / Tunic
-    const oc = OUTFIT_COLORS[V.outfit] || OUTFIT_COLORS.verde;
-    R(g, oc.dark, x + 3, y + 2, 9, 10);
-    R(g, oc.main, x + 4, y + 3, 7, 8);
-    R(g, '#ffd84a', x + 6, y + 7, 3, 2);
-  } else if (slot === 3) {
-    // Active X tool (Bow / Bomb / Torch / Potion)
-    if (V.secondary === 'arco') {
-      R(g, '#c98b3c', x + 4, y + 2, 2, 10);
-      R(g, '#c98b3c', x + 6, y + 1, 3, 2);
-      R(g, '#c98b3c', x + 6, y + 11, 3, 2);
-      R(g, '#fff', x + 8, y + 2, 1, 10);
-      R(g, '#9ed8ff', x + 5, y + 6, 7, 2);
-    } else if (V.secondary === 'bomba') {
-      R(g, '#222230', x + 4, y + 4, 8, 8);
-      R(g, '#4a4a66', x + 5, y + 5, 3, 3);
-      R(g, '#ffd84a', x + 7, y + 2, 2, 2);
-      R(g, '#ff6a2a', x + 8, y + 1, 2, 2);
-    } else if (V.secondary === 'tocha') {
-      R(g, '#6b3f1d', x + 6, y + 6, 3, 7);
-      R(g, V.torchLit ? '#ff6a1a' : '#7a5230', x + 5, y + 2, 5, 4);
-      if (V.torchLit) R(g, '#ffe98a', x + 6, y + 3, 3, 2);
-    } else {
-      R(g, '#d8e8ff', x + 5, y + 3, 5, 2);
-      R(g, '#ff4a55', x + 3, y + 5, 9, 8);
-    }
-  } else if (slot === 4) {
-    const c = V.pot > 0 ? '#ff4a55' : '#3a345a';
-    const h = V.pot > 0 ? '#ffa0a8' : '#4a446a';
-    R(g, '#c98b3c', x + 6, y + 1, 3, 2);
-    R(g, '#d8e8ff', x + 5, y + 3, 5, 2);
-    R(g, c, x + 3, y + 5, 9, 8);
-    R(g, h, x + 4, y + 6, 3, 4);
-  } else if (slot === 5) {
-    // Torch toggle icon
-    R(g, '#6b3f1d', x + 6, y + 6, 3, 7);
-    R(g, V.torchLit ? '#ff6a1a' : V.torches > 0 ? '#c9702a' : '#3a345a', x + 5, y + 2, 5, 4);
-    if (V.torchLit) R(g, '#ffe98a', x + 6, y + 3, 3, 2);
-  } else if (slot === 6) {
-    const has = (V.it.fragmento | 0) > 0;
-    R(g, has ? '#6ad0ff' : '#3a345a', x + 5, y + 2, 5, 10);
-    R(g, has ? '#d8f4ff' : '#4a446a', x + 6, y + 4, 2, 5);
-  } else {
-    const has = Boolean(V.it.anel || V.it.minerio || V.it.ursinho || V.it.cogumelo);
-    R(g, has ? '#ffd84a' : '#3a345a', x + 4, y + 4, 7, 7);
-    R(g, has ? '#ff4a8a' : '#4a446a', x + 6, y + 2, 3, 3);
-  }
-}
-
 function drawHeroShowcase(
   g: CanvasRenderingContext2D,
   cx: number,
@@ -3244,7 +3169,8 @@ export function drawInventory(
     },
   ];
 
-  for (let i = 0; i < 8; i++) {
+  const invState = invItemStateFromProgress(V);
+  for (let i = 0; i < INV_SLOT_COUNT; i++) {
     const col = i % 4;
     const row = (i / 4) | 0;
     const sx = 101 + col * 32;
@@ -3264,12 +3190,19 @@ export function drawInventory(
       R(g, '#ffd84a', sx + 23, sy + 24, 6, 1);
       R(g, '#ffd84a', sx + 28, sy + 19, 1, 6);
     }
-    drawInvIcon(g, i, sx + 7, sy + 4, V);
 
-    if (slots[i].badge) {
-      const bc =
-        (i === 0 && V.equipped === 'sword') || (i === 5 && V.torchLit) ? '#2ee06b' : '#ffe98a';
-      tx(g, slots[i].badge, sx + 27, sy + 16, bc, 'right');
+    // The item itself is a physical picture — text only stamps the corner.
+    drawInvItem(g, i, sx + 6, sy + 1, 1, invState);
+    const tag = invItemTag(i, invState);
+    if (tag) {
+      tx(
+        g,
+        tag.text,
+        sx + 27,
+        sy + 17,
+        tag.tone === 'green' ? '#2ee06b' : tag.tone === 'grey' ? '#8c99bd' : '#ffe98a',
+        'right',
+      );
     }
   }
 
