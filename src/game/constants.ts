@@ -42,6 +42,8 @@ export const OBSTACLE_TILES = ['m', 'J', 'j', 'm', 'J', 'm'] as const;
 
 export const CHEST_ITEMS: Record<number, string> = {
   200: 'minerio',
+  // Boss da caverna da floresta: Robe Branca + 1º Fragmento (poder do fogo)
+  202: 'roupa_branca',
   210: 'pocao',
   220: 'ursinho',
   250: 'anel',
@@ -131,6 +133,14 @@ export const OUTFIT_COLORS: Record<
     light: '#ffe478',
     shade: '#a47214',
     cap: '#f0bc3a',
+  },
+  branco: {
+    name: 'ROUPA BRANCA',
+    dark: '#8f96ad',
+    main: '#e8ecf7',
+    light: '#ffffff',
+    shade: '#c3c9db',
+    cap: '#f4f7ff',
   },
 };
 
@@ -268,22 +278,21 @@ export const STORY_PAGES = [
   'Mitribuque fica ao oeste das montanhas rochosas, onde hoje e conhecido como Brasil.',
   'Quem despertar a alma dos tres Dominics tera o Guerreiro Policolor encarnado em si!',
   'Herdara os tres poderes e salvara o Reino de Mitribuque do Monstro Ciclope.',
+  // Interlúdio sem texto: só o Ciclope, entre a fase 5 e a fase 6
+  '',
   'Desperte, {N}! O destino do reino esta em suas maos.',
 ];
 
 // Must stay the same length as STORY_PAGES — a missing entry makes tn = NaN and
 // poisons every colour calculation that follows.
-export const STORY_TONES = [0.22, 0.85, 0.95, 0.72, 0.48, 0.3] as const;
+export const STORY_TONES = [0.22, 0.85, 0.95, 0.72, 0.48, 0.9, 0.3] as const;
 
-// Small illustration shown next to each story page (index matches STORY_PAGES).
-export const STORY_IMAGES = [
-  '/assets/dominic-games.gif',
-  '/cavalier_intro.gif',
-  '/assets/dominic-games.gif',
-  '/warrior_sprites.png',
-  '/cyclops_intro.gif',
-  '/cavalier_intro.gif',
-] as const;
+// Single illustration shown on its own during the story.
+export const STORY_IMAGE = '/cavalier_intro.gif';
+// Shown alone on the text-less interlude between phase 5 and phase 6.
+export const STORY_INTERLUDE_IMAGE = '/cyclops_intro.gif';
+// Index of the interlude inside STORY_PAGES.
+export const STORY_INTERLUDE_AT = 5;
 
 export const NAME_ROWS = ['ABCDEFGHI', 'JKLMNOPQR', 'STUVWXYZ '] as const;
 

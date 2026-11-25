@@ -723,7 +723,9 @@ export function buildWorld(): WorldData {
       const id = 200 + d * 10 + q;
       const eKind = dungeonEnemies[d][q];
       createRoom(world, id, false, rg(id), {
-        chest: !q || q === 1,
+        // Chests live in rooms 0 and 1; the first dungeon's boss room also gets
+        // one — it holds the White Robe + the 1st Crystal Fragment.
+        chest: !q || q === 1 || (d === 0 && q === 2),
         back: q ? id - 1 : 0,
         fwd: q < 2 ? id + 1 : 0,
         en: q === 2 ? [1, 4] : [2 + q, eKind],

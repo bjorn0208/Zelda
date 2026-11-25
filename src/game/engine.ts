@@ -696,6 +696,65 @@ export class GameEngine {
     }
   }
 
+  /** Dominic powers unlocked by the Crystal Fragments. */
+  private hasDominic(kind: DominicKind): boolean {
+    return Boolean(this.V.dominic && this.V.dominic.owned.includes(kind));
+  }
+
+  /**
+   * Syncs V.dominic with how many fragments the hero holds, so every fragment
+   * permanently unlocks one power: 1 Fogo -> 2 Gelo -> 3 Raio.
+   */
+  private syncDominicPowers(): void {
+    const d = this.V.dominic;
+    if (!d) return;
+    const f = this.V.it.fragmento | 0;
+    const kinds: DominicKind[] = ['white', 'blue', 'green'];
+    const names = ['BRANCO DO FOGO', 'AZUL DO GELO', 'VERDE DO RAIO'];
+    for (let i = 0; i < 3; i++) {
+      if (f > i && d.owned[i] === 'none') {
+        d.owned[i] = kinds[i];
+        if (d.current === 'none') d.current = kinds[i];
+        this.audio.bp(760 + i * 200, 0.3, 'square');
+        this.V.msg = `DOMINIC ${names[i]} DESPERTOU!`;
+        this.V.mt = 130;
+      }
+    }
+    if (f >= 3) d.activeEffect = 'all';
+    else if (f >= 1) d.activeEffect = 'single';
+  }
+
+  /** Dominic do Raio: a descarga salta para inimigos próximos. */
+  private chainLightning(x: number, y: number, primary: Enemy): void {
+    let jumps = 0;
+    for (const e of this.G.en) {
+      if (jumps >= 2) break;
+      if (e === primary || e.hp <= 0) continue;
+      const ex = e.k === 4 ? e.x + 16 : e.x + 8;
+      const ey = e.k === 4 ? e.y + 16 : e.y + 8;
+      if (Math.hypot(ex - x, ey - y) > 64) continue;
+      jumps++;
+      for (let s = 1; s < 6; s++) {
+        this.particles.push({
+          x: x + ((ex - x) * s) / 6 + (Math.random() - 0.5) * 5,
+          y: y + ((ey - y) * s) / 6 + (Math.random() - 0.5) * 5,
+          vx: 0,
+          vy: 0,
+          l: 9,
+          maxL: 9,
+          c: s % 2 ? '#eaffb0' : '#9dff5a',
+          glow: true,
+          size: 2,
+          kind: 'spark',
+        });
+      }
+      this.damageEnemy(e, 1, 0, 0);
+      this.burst(ex, ey, '#b6ff5a', true, 5);
+      this.audio.bp(1400, 0.05, 'square');
+    }
+    // No filtering here: callers iterate this.G.en and filter afterwards.
+  }
+
   private getSwordEffectColors(): { primary: string; secondary: string; glow: string } {
     switch (this.V.swordTier) {
       case 'solar':
@@ -814,6 +873,8 @@ export class GameEngine {
         this.markExplored(this.G.map);
         this.spawn();
         this.fixPos();
+        // Um save antigo pode ter fragmentos sem os poderes despertados
+        this.syncDominicPowers();
         this.st = 'game';
         this.V.msg = 'JOGO CARREGADO';
         this.V.mt = 100;
@@ -1060,6 +1121,15 @@ export class GameEngine {
     const c = CHEST_ITEMS[this.G.map];
     const chestFlag = `ch_${this.G.map}_${a}_${b}`;
     const alreadyMain = Boolean(this.V.fl[`main_${this.G.map}`]);
+
+    // O baú do 1º chefe fica selado até o chefe ser derrotado — a checagem
+    // vem antes de marcar os flags, senão o baú abriria vazio.
+    if (c === 'roupa_branca' && !this.V.fl['b' + this.G.map]) {
+      this.audio.bp(150, 0.22, 'sawtooth');
+      this.talk('O baú está selado. Derrote o chefe desta caverna primeiro!');
+      return;
+    }
+
     this.audio.bp(900, 0.3);
 
     if (!alreadyMain && c && !this.V.fl[chestFlag]) {
@@ -1085,6 +1155,17 @@ export class GameEngine {
           this.G.rp = Math.min(999, this.G.rp + 60);
           this.talk('Você achou um tesouro de 60 rupias!');
         }
+      } else if (c === 'roupa_branca') {
+        // Recompensa do 1º chefe: Roupa Branca + 1º Fragmento (poder do fogo)
+        if (!this.V.ownedOutfits.includes('branco')) this.V.ownedOutfits.push('branco');
+        this.V.outfit = 'branco';
+        this.V.it.fragmento = (this.V.it.fragmento | 0) + 1;
+        this.G.hp = this.V.mh * 2;
+        this.syncDominicPowers();
+        this.audio.bp(1300, 0.4, 'square');
+        this.talk(
+          `ROUPA BRANCA e ${this.V.it.fragmento}º FRAGMENTO! Sua espada agora atira FOGO e queima os inimigos!`,
+        );
       } else {
         this.V.it[c] = 1;
         this.talk(`Você achou: ${c.toUpperCase()}! Talvez alguém precise disso...`);
@@ -1161,6 +1242,23 @@ export class GameEngine {
 
   private slash(swFrame: number): void {
     const d = this.G.dir;
+    const domFire = this.hasDominic('white');
+    const domIce = this.hasDominic('blue');
+    const domStorm = this.hasDominic('green');
+
+    // Dominic do Fogo: a espada dispara uma bola de fogo na direção do golpe
+    if (domFire && swFrame === 12) {
+      this.projectiles.push({
+        x: this.G.x + 8 + DX[d] * 13,
+        y: this.G.y + 10 + DY[d] * 13,
+        vx: DX[d] * 2.6,
+        vy: DY[d] * 2.6,
+        kind: 'fire',
+        life: 70,
+      });
+      this.audio.bp(520, 0.07, 'sawtooth');
+    }
+
     const baseAng = d === 0 ? -Math.PI / 2 : d === 1 ? 0 : d === 2 ? Math.PI / 2 : Math.PI;
     const sweepOffset = swFrame === 12 ? -0.65 : swFrame === 8 ? 0.65 : 0;
     const ang = baseAng + sweepOffset;
@@ -1210,7 +1308,7 @@ export class GameEngine {
 
     // Strike enemies across front & sweeping points (max once per swing)
     for (const e of this.G.en) {
-      if (this.swingHitEnemies.has(e)) continue;
+      if (this.swingHitEnemies.has(e) || e.hp <= 0) continue;
       const hitRadius = e.k === 4 ? 25 : 17;
       const ex = e.k === 4 ? e.x + 16 : e.x + 8;
       const ey = e.k === 4 ? e.y + 16 : e.y + 8;
@@ -1219,6 +1317,15 @@ export class GameEngine {
       if (hitFront || hitSweep) {
         this.swingHitEnemies.add(e);
         this.damageEnemy(e, this.V.dmg, DX[d] * 11, DY[d] * 11);
+        // Dominic do Fogo: o inimigo passa a queimar (dano contínuo)
+        if (domFire) e.burn = Math.max(e.burn | 0, 120);
+        // Dominic do Gelo: congela no lugar (o chefe resiste)
+        if (domIce && e.k !== 4) {
+          e.frozen = Math.max(e.frozen | 0, 90);
+          this.burst(ex, ey, '#8ce8ff', true, 5);
+        }
+        // Dominic do Raio: descarga em cadeia
+        if (domStorm) this.chainLightning(ex, ey, e);
         // Stronger tactile screen shake on powerful monsters (Boss, Golem, Skeleton, Dark Mage)
         if (e.k === 4) {
           this.shakeFrames = 10;
@@ -1411,11 +1518,60 @@ export class GameEngine {
         continue;
       }
 
+      if (p.kind === 'fire' && p.life <= 0) {
+        this.burst(p.x, p.y, '#ff9a2a', true, 5);
+        continue;
+      }
+
       if (p.x < 0 || p.x >= W || p.y < 0 || p.y >= H || p.life <= 0) continue;
 
       const tile = map?.[p.y >> 4]?.[p.x >> 4];
       if (tile && SOLID_TILES.has(tile) && tile !== '~') {
-        this.burst(p.x, p.y, p.kind === 'orb' ? '#ff6ad8' : '#e8f4ff', p.kind === 'orb', 5);
+        this.burst(
+          p.x,
+          p.y,
+          p.kind === 'orb' ? '#ff6ad8' : p.kind === 'fire' ? '#ff9a2a' : '#e8f4ff',
+          p.kind !== 'arrow',
+          5,
+        );
+        continue;
+      }
+
+      if (p.kind === 'fire') {
+        // Rastro de chamas
+        if ((this.t & 1) === 0) {
+          this.particles.push({
+            x: p.x + (Math.random() - 0.5) * 3,
+            y: p.y + (Math.random() - 0.5) * 3,
+            vx: 0,
+            vy: -0.35,
+            l: 10,
+            maxL: 10,
+            c: Math.random() < 0.5 ? '#ff9a2a' : '#ffe47a',
+            glow: true,
+            size: 2,
+            kind: 'spark',
+          });
+        }
+        let hit = false;
+        for (const e of this.G.en) {
+          if (e.hp <= 0) continue;
+          const hr = e.k === 4 ? 22 : 13;
+          const ex = e.k === 4 ? e.x + 16 : e.x + 8;
+          const ey = e.k === 4 ? e.y + 16 : e.y + 8;
+          if (Math.abs(ex - p.x) < hr && Math.abs(ey - p.y) < hr) {
+            this.damageEnemy(e, Math.max(1, this.V.dmg - 1), p.vx * 1.4, p.vy * 1.4);
+            e.burn = Math.max(e.burn | 0, 110);
+            this.burst(p.x, p.y, '#ff9a2a', true, 7);
+            hit = true;
+            break;
+          }
+        }
+        if (hit) {
+          this.G.en = this.G.en.filter((e) => e.hp > 0);
+          continue;
+        }
+        next.push(p);
         continue;
       }
 
@@ -1742,6 +1898,46 @@ export class GameEngine {
 
     for (const e of this.G.en) {
       if (e.hitFlash && e.hitFlash > 0) e.hitFlash--;
+
+      // Dominic do Fogo: dano por tempo enquanto a chama arde
+      if (e.burn && e.burn > 0) {
+        e.burn--;
+        if (e.burn % 18 === 0) {
+          e.hp -= 1;
+          e.hitFlash = 5;
+          this.particles.push({
+            x: e.x + 4 + Math.random() * 8,
+            y: e.y + 2 + Math.random() * 8,
+            vx: 0,
+            vy: -0.45,
+            l: 12,
+            maxL: 12,
+            c: Math.random() < 0.5 ? '#ff9a2a' : '#ffd84a',
+            glow: true,
+            size: 2,
+            kind: 'spark',
+          });
+          if (e.hp <= 0) {
+            this.burst(
+              e.k === 4 ? e.x + 16 : e.x + 8,
+              e.k === 4 ? e.y + 16 : e.y + 8,
+              '#ff9a2a',
+              true,
+              7,
+            );
+            this.G.it.push({ x: e.x + 4, y: e.y + 4, val: e.k >= 3 ? 5 : 1 });
+            continue;
+          }
+        }
+      }
+
+      // Dominic do Gelo: congelado não anda nem ataca
+      if (e.frozen && e.frozen > 0) {
+        e.frozen--;
+        if (e.frozen === 0) this.burst(e.x + 8, e.y + 8, '#8ce8ff', true, 4);
+        continue;
+      }
+
       if (--e.t <= 0) {
         e.t = e.k === 1 ? 18 + rnd(20) : 30 + rnd(40);
         const spd = (e.k === 4 ? 0.75 : e.k === 1 ? 0.92 : e.k === 5 ? 0.44 : 0.62) * nightBoost;
@@ -1803,6 +1999,8 @@ export class GameEngine {
         }
       }
     }
+    // Enemies killed by burn damage
+    this.G.en = this.G.en.filter((e) => e.hp > 0);
 
     // Rupee pickups
     this.G.it = this.G.it.filter((i) => {
@@ -1824,9 +2022,14 @@ export class GameEngine {
         this.talk(
           'Vorak foi derrotado e o Cristal de Luz brilha de novo! O reino de Aurora está salvo!',
         );
+      } else if (this.G.map === 202) {
+        // 1º chefe: Fragmento + Roupa Branca ficam no baú da própria sala
+        this.G.hp = this.V.mh * 2;
+        this.talk('O chefe da floresta caiu! Abra o BAÚ da sala: ROUPA BRANCA + 1º Fragmento!');
       } else {
         this.V.it.fragmento = (this.V.it.fragmento | 0) + 1;
         this.G.hp = this.V.mh * 2;
+        this.syncDominicPowers();
         this.talk(`Você obteve um fragmento do cristal! (${this.V.it.fragmento}/3)`);
       }
       this.audio.bp(1200, 0.5);

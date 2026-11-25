@@ -7,7 +7,9 @@ import {
   OUTFIT_COLORS,
   SHIELD_STATS,
   SHOPS,
-  STORY_IMAGES,
+  STORY_IMAGE,
+  STORY_INTERLUDE_AT,
+  STORY_INTERLUDE_IMAGE,
   STORY_PAGES,
   SWORD_STATS,
   T,
@@ -2072,6 +2074,38 @@ function drawEnemy(g: CanvasRenderingContext2D, e: Enemy, t: number, mapId: numb
     g.restore();
   }
 
+  // Dominic do Gelo: casca de gelo azul enquanto congelado
+  if (e.frozen && e.frozen > 0) {
+    const fw = e.k === 4 ? 28 : 16;
+    const fh = e.k === 4 ? 28 : 16;
+    const fx = e.k === 4 ? x + 2 : x;
+    g.save();
+    g.globalAlpha = 0.55;
+    g.fillStyle = '#8ce8ff';
+    g.fillRect(fx, Y, fw, fh);
+    g.globalAlpha = 1;
+    g.strokeStyle = '#e6fbff';
+    g.strokeRect(fx + 0.5, Y + 0.5, fw - 1, fh - 1);
+    g.restore();
+    R(g, '#bff4ff', fx + 2, Y - 3, 3, 3);
+    R(g, '#eaffff', fx + fw - 6, Y - 2, 3, 3);
+  }
+
+  // Dominic do Fogo: chamas lampejando enquanto arde
+  if (e.burn && e.burn > 0) {
+    const fw = e.k === 4 ? 28 : 16;
+    const fh = e.k === 4 ? 28 : 16;
+    const fx = e.k === 4 ? x + 2 : x;
+    g.save();
+    g.globalAlpha = 0.42 + ((t >> 2) & 1) * 0.16;
+    g.fillStyle = '#ff7a1a';
+    g.fillRect(fx, Y, fw, fh);
+    g.restore();
+    const fy = Y + ((t >> 2) & 1);
+    R(g, '#ffd84a', fx + 1, fy - 4, 3, 4);
+    R(g, '#ff9a2a', fx + fw - 4, fy - 5, 3, 5);
+  }
+
   // HP bar for damaged enemies or Boss Vorak
   const maxHp = e.maxHp || getEnemyMaxHp(mapId, e.k);
   if (e.k === 4 || e.hp < maxHp) {
@@ -2105,6 +2139,16 @@ function drawProjectiles(g: CanvasRenderingContext2D, projectiles: Projectile[],
       R(g, fast ? '#ff6a55' : '#4a4a66', px - 3, py - 3, 3, 3);
       R(g, '#ffd84a', px - 1, py - 6, 2, 2);
       R(g, fast ? '#fff' : '#ff7a2a', px, py - 7, 2, 2);
+    } else if (p.kind === 'fire') {
+      // Dominic do Fogo: bola de fogo com chama tremulante
+      const wob = ((t >> 1) & 1) ? 1 : 0;
+      R(g, '#7a2a06', px - 5, py - 4 + wob, 10, 8);
+      R(g, '#ff5a12', px - 4, py - 4 - wob, 8, 8);
+      R(g, '#ff9a2a', px - 3, py - 3 + wob, 6, 6);
+      R(g, '#ffe47a', px - 2, py - 2 - wob, 4, 4);
+      R(g, '#fffbe0', px - 1, py - 1, 2, 2);
+      // Rastro de brasa
+      R(g, '#ff7a1aff', px - 6 - (p.vx | 0), py - 1 - (p.vy | 0), 3, 3);
     } else {
       // Magic orb (enemy dark orb or player-deflected counter orb)
       const pulse = ((t >> 2) & 1);
@@ -2252,7 +2296,7 @@ function drawLighting(
     }
 
     for (const p of projectiles) {
-      punchLight(lctx, p.x, p.y, p.kind === 'orb' ? 34 : 24, 0.88);
+      punchLight(lctx, p.x, p.y, p.kind === 'orb' ? 34 : p.kind === 'fire' ? 38 : 24, 0.88);
     }
     if (G.sw > 0) {
       const sx = G.x + 8 + (G.dir === 1 ? 14 : G.dir === 3 ? -14 : 0);
@@ -2346,6 +2390,8 @@ function drawLighting(
   for (const p of projectiles) {
     if (p.kind === 'orb') {
       addBloom(g, p.x, p.y, 18, 'rgba(255, 70, 180, 0.34)', 'rgba(180, 30, 220, 0)');
+    } else if (p.kind === 'fire') {
+      addBloom(g, p.x, p.y, 26, 'rgba(255, 130, 30, 0.42)', 'rgba(255, 60, 10, 0)');
     } else if (p.kind === 'bomb' && p.life < 20) {
       addBloom(g, p.x, p.y, 16, 'rgba(255, 140, 40, 0.36)', 'rgba(255, 50, 10, 0)');
     }
@@ -2579,19 +2625,17 @@ export function drawNameEntry(
   tx(g, 'DIGITE OU USE A/B  ENTER: OK', 120, 128, '#bbb', 'center');
 }
 
-// Loaded exactly once. The previous implementation created `new Image()` on
-// every single frame, which forces a decode pass per frame and freezes the game.
-let cachedStoryImages: HTMLImageElement[] | null = null;
-function getStoryImages(): HTMLImageElement[] {
-  if (!cachedStoryImages) {
-    cachedStoryImages = STORY_IMAGES.map((src) => {
-      const im = new Image();
-      im.decoding = 'async';
-      im.src = src;
-      return im;
-    });
+// Loaded exactly once. Creating `new Image()` on every frame forces a decode
+// pass per frame and freezes the game.
+const storyImageCache: Record<string, HTMLImageElement> = {};
+function loadStoryImage(src: string): HTMLImageElement {
+  if (!storyImageCache[src]) {
+    const im = new Image();
+    im.decoding = 'async';
+    im.src = src;
+    storyImageCache[src] = im;
   }
-  return cachedStoryImages;
+  return storyImageCache[src];
 }
 
 export function drawStory(
@@ -2605,7 +2649,11 @@ export function drawStory(
   hn: string,
   weather: WeatherState,
 ): void {
-  const page = STORY_PAGES[pg] ?? STORY_PAGES[STORY_PAGES.length - 1];
+  const count = STORY_PAGES.length;
+  const page = STORY_PAGES[pg] ?? STORY_PAGES[count - 1];
+  const s = page.replace('{N}', hn);
+  // The text-less beat between phase 5 and phase 6 is the Cyclops alone.
+  const interlude = pg === STORY_INTERLUDE_AT || s.length === 0;
 
   // Reset any inherited canvas state — leftover alpha/composite from the
   // previous screen is what makes the picture look "broken".
@@ -2616,56 +2664,46 @@ export function drawStory(
   // Black background
   R(g, '#000000', 0, 0, W, H);
 
-  // Small illustration for this part of the story
-  const imgs = getStoryImages();
-  const count = STORY_PAGES.length;
-  const THUMB = 34;
-  const GAP = 4;
-  const rowW = count * THUMB + (count - 1) * GAP;
-  const startX = Math.round((W - rowW) / 2);
-  const thumbY = 8;
+  // The story GIF, alone and centred (letterboxed, never stretched)
+  const boxW = interlude ? 176 : 112;
+  const boxH = interlude ? 132 : 84;
+  const bx = Math.round((W - boxW) / 2);
+  const by = interlude ? 6 : 4;
+  R(g, '#0c0a16', bx - 3, by - 3, boxW + 6, boxH + 6);
 
-  g.save();
-  g.imageSmoothingEnabled = true;
-  for (let i = 0; i < count; i++) {
-    const x = startX + i * (THUMB + GAP);
-    const active = i === pg;
-    R(g, active ? '#1e1a33' : '#0c0a16', x, thumbY, THUMB, THUMB);
-    const im = imgs[i];
-    if (im && im.complete && im.naturalWidth > 0) {
-      const side = Math.min(im.naturalWidth, im.naturalHeight);
-      g.drawImage(
-        im,
-        (im.naturalWidth - side) / 2,
-        (im.naturalHeight - side) / 2,
-        side,
-        side,
-        x,
-        thumbY,
-        THUMB,
-        THUMB,
-      );
-    }
-    g.strokeStyle = active ? '#ffd84a' : '#3a3550';
-    g.strokeRect(x + 0.5, thumbY + 0.5, THUMB - 1, THUMB - 1);
+  const im = loadStoryImage(interlude ? STORY_INTERLUDE_IMAGE : STORY_IMAGE);
+  if (im.complete && im.naturalWidth > 0) {
+    g.save();
+    g.imageSmoothingEnabled = true;
+    const scale = Math.min(boxW / im.naturalWidth, boxH / im.naturalHeight);
+    const dw = im.naturalWidth * scale;
+    const dh = im.naturalHeight * scale;
+    g.drawImage(im, bx + (boxW - dw) / 2, by + (boxH - dh) / 2, dw, dh);
+    g.restore();
   }
-  g.restore();
 
-  // Story text on a translucent strip so it stays readable over any image
-  const s = page.replace('{N}', hn);
+  g.strokeStyle = interlude ? '#ff5a3c' : '#ffd84a';
+  g.strokeRect(bx - 2.5, by - 2.5, boxW + 5, boxH + 5);
+
+  // Story text on a translucent strip so it stays readable
   let n = ch | 0;
-  wrapText(s, 34).forEach((line, i) => {
-    R(g, '#000000cc', 6, 52 + i * 14, W - 12, 13);
-    tx(g, line.slice(0, Math.max(0, n)), 8, 55 + i * 14, '#ffd84a');
-    n -= line.length + 1;
-  });
+  if (!interlude) {
+    wrapText(s, 34).forEach((line, i) => {
+      R(g, '#000000cc', 6, 94 + i * 14, W - 12, 13);
+      tx(g, line.slice(0, Math.max(0, n)), 8, 97 + i * 14, '#ffd84a');
+      n -= line.length + 1;
+    });
+  }
 
-  // Page counter + navigation hint
+  // Page counter (the interlude is not counted as a phase) + navigation hint
   R(g, '#000000cc', 0, H - 14, W, 14);
-  tx(g, `${pg + 1}/${count}`, 6, H - 11, '#ffd84a');
+  if (!interlude) {
+    const shown = pg > STORY_INTERLUDE_AT ? pg : pg + 1;
+    tx(g, `${shown}/${count - 1}`, 6, H - 11, '#ffd84a');
+  }
   tx(
     g,
-    ch < s.length ? 'A: TEXTO' : pg < count - 1 ? 'A: PROXIMA' : 'A: INICIAR',
+    interlude ? 'A: CONTINUAR' : ch < s.length ? 'A: TEXTO' : pg < count - 1 ? 'A: PROXIMA' : 'A: INICIAR',
     W - 6,
     H - 11,
     '#e0e0f0',

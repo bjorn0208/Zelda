@@ -364,7 +364,7 @@ function ResponsiveInventoryModal({
       id: 2,
       label: 'Túnica',
       title: outDef.name,
-      badge: `${ui.ownedOutfits.length}/4`,
+      badge: `${ui.ownedOutfits.length}/5`,
       active: true,
       desc:
         ui.ownedOutfits.length > 1

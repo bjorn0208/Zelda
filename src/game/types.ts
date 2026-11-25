@@ -27,11 +27,11 @@ export type NpcKind =
   | 'explorer';
 
 // 0: slime, 1: bat, 2: scorpion, 3: skeleton, 4: boss Vorak, 5: golem, 6: dark_mage
-export type EnemyKind = 0 | 1 | 2 | 3 | 4 | 5 | 6;
+export type EnemyKind = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 
 export type SwordTier = 'none' | 'lendaria' | 'aco' | 'runica' | 'solar';
 export type ShieldTier = 'none' | 'madeira' | 'ferro' | 'real' | 'espelhado';
-export type OutfitId = 'verde' | 'carmesim' | 'safira' | 'dourada';
+export type OutfitId = 'verde' | 'carmesim' | 'safira' | 'dourada' | 'branco';
 export type SecondaryTool = 'arco' | 'bomba' | 'tocha' | 'pocao';
 
 export interface Door {
@@ -67,6 +67,10 @@ export interface Enemy {
   t: number;
   cd?: number;
   hitFlash?: number;
+  /** Dominic do Fogo: dano por tempo enquanto a chama arde */
+  burn?: number;
+  /** Dominic do Gelo: congela o inimigo (não anda) */
+  frozen?: number;
 }
 
 export interface Projectile {
@@ -74,7 +78,7 @@ export interface Projectile {
   y: number;
   vx: number;
   vy: number;
-  kind: 'arrow' | 'bomb' | 'orb';
+  kind: 'arrow' | 'bomb' | 'orb' | 'fire';
   life: number;
   fromEnemy?: boolean;
 }
