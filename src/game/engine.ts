@@ -645,6 +645,17 @@ export class GameEngine {
   }
 
   private spawn(): void {
+    // Save antigo: pai volta para a cadeira e não bloqueia a escada.
+    const pai = this.world.npcs[151]?.[0];
+    if (pai) {
+      pai.x = 10;
+      pai.y = 5;
+      pai.name = 'Pai';
+      pai.q = 'pai';
+      pai.c = '#b06a34';
+      pai.s = 'Filho, a escada esta livre. Descansa um pouco antes de subir!';
+    }
+
     this.G.en = [];
     this.G.it = [];
     this.projectiles = [];
@@ -1102,7 +1113,7 @@ export class GameEngine {
         if (r.pot) this.V.pot += r.pot;
         if (r.arrows) this.V.arrows = Math.min(99, this.V.arrows + r.arrows);
         if (r.bombs) this.V.bombs = Math.min(99, this.V.bombs + r.bombs);
-        if (n.q === 'marta') this.V.torches = Math.min(99, this.V.torches + 3);
+        if (n.q === 'pai') this.V.torches = Math.min(99, this.V.torches + 3);
         if (r.mh) {
           this.V.mh++;
           this.G.hp = this.V.mh * 2;
@@ -1764,9 +1775,9 @@ export class GameEngine {
         }
         if (this.G.wakeTimer <= 25 && this.G.wakeTimer > 0) {
           const tJump = (25 - this.G.wakeTimer) / 25;
-          // Acorda na cama da imagem (linha 5, coluna 1) e salta para o lado.
-          this.G.x = 20 + (52 - 20) * tJump;
-          this.G.y = 78 + (98 - 78) * tJump;
+          // Deitado no centro da cama da imagem e salta para o lado.
+          this.G.x = 30 + (52 - 30) * tJump;
+          this.G.y = 76 + (98 - 76) * tJump;
         }
         if (this.G.wakeTimer <= 0) {
           this.G.sleeping = false;

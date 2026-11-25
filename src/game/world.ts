@@ -104,8 +104,9 @@ export function createInitialProgress(): ProgressState {
 export function createInitialHero(): HeroState {
   return {
     map: 451,
-    x: 20,
-    y: 78,
+    // Deitado no centro da cama da imagem (x≈23–58, y≈73–100).
+    x: 30,
+    y: 76,
     dir: 2,
     hp: 6,
     rp: 40, // Starting pocket money for central village shops
@@ -216,7 +217,7 @@ function createRoom(
       const v =
         SPECIAL_HOUSE_NPCS[id] === 'ferreiro'
           ? 2
-          : SPECIAL_HOUSE_NPCS[id] === 'marta'
+          : SPECIAL_HOUSE_NPCS[id] === 'pai'
             ? 1
             : hs(id, 2) % 3;
       const layouts: Array<Array<[number, number, string]>> = [
@@ -564,6 +565,15 @@ function genOverworldScreen(world: WorldData, sx: number, sy: number): void {
           s: HOUSE_LINES[hs(id, 1) % HOUSE_LINES.length],
         },
       ];
+      if (id === 151) {
+        // Pai sentado na cadeira da sala — fora da frente da escada.
+        const pai = world.npcs[id][0];
+        pai.x = 10;
+        pai.y = 5;
+        pai.c = '#b06a34';
+        pai.name = 'Pai';
+        pai.s = 'Filho, a escada esta livre. Descansa um pouco antes de subir!';
+      }
       if (id === 351) {
         // Curiosos ao redor da espada cravada no centro da casa.
         const around: Array<[number, number, string]> = [
