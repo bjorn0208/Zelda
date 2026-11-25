@@ -2,6 +2,7 @@ import {
   DAY_CYCLE_FRAMES,
   ENEMY_PALETTES,
   FONT,
+  GAME_ZOOM,
   H,
   NAME_ROWS,
   OUTFIT_COLORS,
@@ -69,6 +70,54 @@ function roomImageFor(map: number): string | null {
   // 301 is a dungeon room even though its ID falls in the "house" range.
   if (map === 301) return null;
   return ROOM_IMAGES[map] ?? (map >= 100 && map < 500 && map !== 451 ? '/rooms/house_generic.png' : null);
+}
+
+export interface GameCamera {
+  zoom: number;
+  x: number;
+  y: number;
+}
+
+let gameCamera: GameCamera = { zoom: GAME_ZOOM, x: W / 2, y: H / 2 };
+let cameraMapId = -1;
+
+export function getGameCamera(): GameCamera {
+  return { ...gameCamera };
+}
+
+/** Convert a 240x160 screen-space canvas point back into world coordinates. */
+export function screenToWorld(sx: number, sy: number): { x: number; y: number } {
+  return {
+    x: (sx - W / 2) / gameCamera.zoom + gameCamera.x,
+    y: (sy - H / 2) / gameCamera.zoom + gameCamera.y,
+  };
+}
+
+function updateGameCamera(G: HeroState, roomImg: HTMLImageElement | null): GameCamera {
+  const halfW = W / (2 * GAME_ZOOM);
+  const halfH = H / (2 * GAME_ZOOM);
+  // The reference room PNGs have their own HUD frame baked into the edges.
+  // Image-backed interiors keep the camera inside that frame so the duplicated
+  // border never peeks in; tile-drawn maps can use the full world rectangle.
+  const edgeX = roomImg ? 8 : 0;
+  const edgeY = roomImg ? 12 : 0;
+  const minX = edgeX + halfW;
+  const maxX = W - edgeX - halfW;
+  const minY = edgeY + halfH;
+  const maxY = H - edgeY - halfH;
+  const targetX = Math.max(minX, Math.min(maxX, G.x + 8));
+  const targetY = Math.max(minY, Math.min(maxY, G.y + 8));
+
+  if (cameraMapId !== G.map || !Number.isFinite(gameCamera.x) || !Number.isFinite(gameCamera.y)) {
+    gameCamera.x = targetX;
+    gameCamera.y = targetY;
+    cameraMapId = G.map;
+  } else {
+    gameCamera.x += (targetX - gameCamera.x) * 0.2;
+    gameCamera.y += (targetY - gameCamera.y) * 0.2;
+  }
+  gameCamera.zoom = GAME_ZOOM;
+  return gameCamera;
 }
 
 // Cached offscreen lightmap canvas for smooth professional dynamic lighting
@@ -3095,6 +3144,15 @@ export function drawGame(
   const m = world.maps[G.map];
   const roomSrc = roomImageFor(G.map);
   const roomImg = roomSrc ? getRoomImage(roomSrc) : null;
+  const cam = updateGameCamera(G, roomImg);
+
+  // Everything in world space — backdrop, tile props, actors, particles,
+  // weather and lighting — is drawn through the closer gameplay camera. HUD
+  // and dialogs are painted afterwards in screen space so they stay readable.
+  g.save();
+  g.imageSmoothingEnabled = false;
+  g.translate(W / 2 - cam.x * cam.zoom, H / 2 - cam.y * cam.zoom);
+  g.scale(cam.zoom, cam.zoom);
 
   if (roomImg) {
     // Pixel-art reference image is the visual backdrop. The tile map below it
@@ -3195,6 +3253,8 @@ export function drawGame(
   if (G.map === 451 && dust.length > 0) {
     drawBedroomDust(g, t, dust);
   }
+
+  g.restore();
 
   drawHud(g, G, V, hn, worldTime);
   if (G.sleeping && !G.dlg && !(G.wakeTimer ?? 0) && ((t >> 4) & 1) === 0) {

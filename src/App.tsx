@@ -34,7 +34,7 @@ import {
   W,
 } from './game/constants';
 import { GameEngine } from './game/engine';
-import { drawHeroShowcaseStandalone } from './game/render';
+import { drawHeroShowcaseStandalone, screenToWorld } from './game/render';
 import { INV_ITEM_LABELS, drawInvItem, invItemStateFromUI, invItemTag } from './game/items';
 import { EngineUIState, KeyCode } from './game/types';
 import { bio, forest, lake } from './game/world';
@@ -904,8 +904,15 @@ export default function App() {
     const engine = engineRef.current;
     if (!canvas || !engine) return;
     const rect = canvas.getBoundingClientRect();
-    const cx = ((e.clientX - rect.left) / rect.width) * W;
-    const cy = ((e.clientY - rect.top) / rect.height) * H;
+    let cx = ((e.clientX - rect.left) / rect.width) * W;
+    let cy = ((e.clientY - rect.top) / rect.height) * H;
+    // Menus, inventory and dialogs are drawn in screen space; only the live
+    // world is seen through the zoomed camera.
+    if (ui.screen === 'game') {
+      const world = screenToWorld(cx, cy);
+      cx = world.x;
+      cy = world.y;
+    }
     engine.handleCanvasTap(cx, cy);
   };
 

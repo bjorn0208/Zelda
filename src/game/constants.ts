@@ -2,6 +2,13 @@ import { OutfitId, ShieldTier, ShopItem, SwordTier } from './types';
 
 export const W = 240;
 export const H = 160;
+
+/**
+ * Gameplay camera zoom. The room images stay 240x160 world pixels, but the
+ * camera only shows a cropped, closer slice of them so the hero and furniture
+ * read at the same scale as the reference screenshots.
+ */
+export const GAME_ZOOM = 1.6;
 export const T = 16;
 export const FONT = '8px "Press Start 2P", monospace';
 export const SAVE_KEY = 'lh_save';
