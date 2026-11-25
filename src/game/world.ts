@@ -11,7 +11,7 @@ import {
   SPECIAL_HOUSE_NPCS,
   VILLAGES,
 } from './constants';
-import { EnemyKind, HeroState, Npc, NpcKind, ProgressState, WorldData } from './types';
+import { DominicKind, EnemyKind, HeroState, Npc, NpcKind, ProgressState, WorldData } from './types';
 
 export const hs = (a: number, b: number): number => ((a * 73856093) ^ (b * 19349663)) >>> 0;
 export const rnd = (n: number): number => Math.floor(Math.random() * n);
@@ -91,6 +91,12 @@ export function createInitialProgress(): ProgressState {
     torchLit: false,
     secondary: 'tocha',
     explored: [51],
+    dominic: {
+      owned: ['none', 'none', 'none'] as DominicKind[],
+      current: 'none' as DominicKind,
+      activeEffect: 'none' as 'single' | 'all' | 'none',
+      flashTimer: 0,
+    },
   };
 }
 
@@ -103,6 +109,7 @@ export function createInitialHero(): HeroState {
     hp: 6,
     rp: 40, // Starting pocket money for central village shops
     inv: 0,
+    hitFlash: 0,
     sw: 0,
     wk: 0,
     shielding: false,
@@ -228,14 +235,27 @@ function createRoom(
         ],
       ];
       layouts[v].forEach(([x, y, c]) => {
-        m[y][x] = c;
+        if (c === 'e' || c === 'v') m[y][x] = 'F';
+        else m[y][x] = c;
       });
+      // Kitchen area on lower floor
+      m[5][2] = 'L'; // stove
+      m[5][3] = 'z'; // pot on stove
+      m[5][4] = 'z';
+      m[2][11] = 'K'; // cabinet
+      m[2][12] = 'K';
+      m[3][11] = 'K';
+      m[3][12] = 'K';
+      m[7][13] = 'E'; // stairs to bedroom (2nd floor)
       for (let y = 4; y < 7; y++) {
         for (let x = 5; x < 10; x++) m[y][x] = 'r';
       }
       m[7][7] = 'r';
       if (id === 351) {
         m[5][7] = 'S';
+      }
+      if (id !== 451) {
+        m[7][13] = 'E'; // Escada para o quarto (2o andar)
       }
       if (id === 151) {
         m[2][13] = 'E'; // Escada subindo para o quarto no 2o andar
@@ -339,6 +359,10 @@ function createRoom(
   }
   if (o.fwd) {
     world.doors[id].push({ x: 7, y: 1, to: o.fwd, px: 112, py: 112 });
+  }
+  if (!h || id !== 451) {
+    // Stair to bedroom (2nd floor) for all houses
+    world.doors[id].push({ x: 13, y: 7, to: 451, px: 180, py: 42 });
   }
 }
 
@@ -650,14 +674,24 @@ function genOverworldScreen(world: WorldData, sx: number, sy: number): void {
     }
     m[sp[1]][sp[0]] = fl;
     world.npcs[i].push(nn);
+    if (k === '3,4') {
+      world.npcs[i].push({
+        x: Math.max(1, Math.min(13, sp[0] + 2)),
+        y: sp[1],
+        c: '#2a6a2a',
+        kind: 'explorer',
+        s: 'Sou o cacador. Traga-me 10 essencias de gosma!',
+        q: 'hunter',
+      });
+    }
   }
 
-  // Varied enemy species per biome!
+  // Varied enemy species per biome (expanded roster)!
   let enemyKind: EnemyKind = 0;
-  if (b === 'd') enemyKind = (i % 2 === 0 ? 6 : 3) as EnemyKind; // Dark mage & skeleton
-  else if (b === 'n') enemyKind = (i % 2 === 0 ? 5 : 3) as EnemyKind; // Ice Golem & skeleton
-  else if (b === 's') enemyKind = (i % 2 === 0 ? 2 : 6) as EnemyKind; // Scorpion & mage
-  else enemyKind = (forest(sx, sy) && i % 2 === 1 ? 1 : 0) as EnemyKind; // Bats in deep forest, slimes in plains
+  if (b === 'd') enemyKind = ([6, 3, 7][i % 3]) as EnemyKind; // Dark mage, skeleton, zombie
+  else if (b === 'n') enemyKind = ([5, 3, 1][i % 3]) as EnemyKind; // Ciclope, skeleton, bat
+  else if (b === 's') enemyKind = ([2, 9, 5][i % 3]) as EnemyKind; // Scorpion, giant, ciclope
+  else enemyKind = (forest(sx, sy) ? ([1, 7, 5][i % 3]) : ([0, 8, 5][i % 3])) as EnemyKind; // Bats/zombies/gosmas in forest; slimes/gosmas in plains; ciclope also appears
 
   world.enemies[i] = vil ? [0, 0] : [1 + (hs(i, 9) % 3), enemyKind];
   world.maps[i] = m;
@@ -702,6 +736,14 @@ export function buildWorld(): WorldData {
   createRoom(world, 251, false, rg(251), { chest: 1, en: [3, 3], treasureVault: true });
   createRoom(world, 252, false, rg(252), { chest: 1, en: [3, 5], treasureVault: true });
   createRoom(world, 253, false, rg(253), { chest: 1, en: [3, 6], treasureVault: true });
+
+  // Fire Dominion Angelic Room (301) - appears after obtaining all 3 Dominics
+  createRoom(world, 301, false, rg(301), {
+    chest: 1, // White Dominic Robe
+    en: [5, 5], // Cyclops guard
+    treasureVault: true,
+    fwd: 250, // Return to first dungeon
+  });
 
   // Hero's 2nd Floor Bedroom (above 151)
   createRoom(world, 451, true, rg(451), {});

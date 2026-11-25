@@ -596,6 +596,9 @@ export default function App() {
   const stickPointerId = useRef<number | null>(null);
   const [knobOffset, setKnobOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [stickEngaged, setStickEngaged] = useState(false);
+  // If the logo GIF fails to load we fall back to the canvas-drawn logo
+  // instead of showing a broken image over a black screen.
+  const [logoBroken, setLogoBroken] = useState(false);
 
   const [padMode, setPadMode] = useState<MovePadMode>(() => {
     try {
@@ -899,10 +902,33 @@ export default function App() {
             style={{ aspectRatio: '3 / 2' }}
           />
 
-          {ui.showLogoGif && (
+          {ui.introPhase === 'video' && (
+            <video
+              key="intro-video"
+              src="/intro_video.mp4"
+              className="pointer-events-none absolute inset-0 h-full w-full bg-black object-contain"
+              autoPlay
+              muted
+              playsInline
+              preload="auto"
+              onEnded={() => engineRef.current?.introVideoDone()}
+              onError={() => engineRef.current?.introVideoDone()}
+              ref={(el) => {
+                if (!el) return;
+                const p = el.play();
+                if (p && typeof p.catch === 'function') {
+                  // Autoplay blocked (common on mobile): never stall the intro
+                  p.catch(() => engineRef.current?.introVideoDone());
+                }
+              }}
+            />
+          )}
+
+          {ui.showLogoGif && !logoBroken && (
             <img
               src="/assets/dominic-games.gif"
               alt="Dominic Games"
+              onError={() => setLogoBroken(true)}
               className="animate-logo-fade pointer-events-none absolute inset-0 h-full w-full bg-black object-contain"
             />
           )}

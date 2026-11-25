@@ -12,8 +12,8 @@ export const DY = [-1, 0, 1, 0] as const;
 // Solid tiles including walls, trees, houses, grand stores (U, V), stalls (Y), water, lamps ('L'), cracked rocks ('R'), torches ('t'), pedestals ('S'), TV+PS2 ('y')
 export const SOLID_TILES = new Set('TbH~#WCkPKGeuqzvwmxjJASLRtyUVY'.split(''));
 
-// HP per monster kind: 0:slime, 1:bat, 2:scorpion, 3:skeleton, 4:boss, 5:golem, 6:dark_mage
-export const HPT = [2, 2, 3, 4, 18, 6, 3] as const;
+// HP per monster kind: 0:slime, 1:bat, 2:scorpion, 3:skeleton, 4:boss, 5:golem, 6:dark_mage, 7:zombie, 8:gosma, 9:giant
+export const HPT = [2, 2, 3, 4, 18, 6, 3, 5, 2, 12] as const;
 
 export const ENEMY_PALETTES: readonly [string, string, string, string][] = [
   ['#1a2a80', '#3a5ae0', '#5f82ff', '#2a3fb0'], // Slime
@@ -21,8 +21,11 @@ export const ENEMY_PALETTES: readonly [string, string, string, string][] = [
   ['#5a1a0a', '#d86a2a', '#ff9a5a', '#a04010'], // Scorpion
   ['#3a4458', '#d8dde8', '#ffffff', '#8c96ac'], // Skeleton
   ['#3a0a0a', '#c0262e', '#ff5a5a', '#801018'], // Boss Vorak
-  ['#2c3846', '#6882a0', '#a8c8e8', '#465870'], // Golem
+  ['#4a2c2c', '#8b4a3a', '#c46a5a', '#5a2520'], // Ciclope
   ['#2a0844', '#6c229a', '#b668ff', '#441068'], // Dark Mage
+  ['#2a3a1a', '#5a7a2a', '#8aca4a', '#1a2a0a'], // Zombie
+  ['#1a4a2a', '#2ecc71', '#7fffaa', '#0e2a18'], // Gosma
+  ['#4a3a2a', '#8a7a5a', '#c8b89a', '#2a2018']  // Giant
 ];
 
 export const WALL_PALETTES: readonly [string, string, string][] = [
@@ -249,22 +252,45 @@ export const QUESTS: Record<string, QuestDef> = {
     done: 'Eu amo meu ursinho!',
     rew: { mh: 1, arrows: 10 },
   },
+  hunter: {
+    need: 'slime',
+    n: 10,
+    ask: 'Cace 10 gosmas nas florestas e traga-me suas essencias!',
+    ok: 'Incrivel! Tome 50 rupias, flechas e uma pocao!',
+    done: 'Obrigado, heroi. As florestas estao mais seguras.',
+    rew: { rp: 50, arrows: 15, pot: 1 },
+  },
 };
 
 export const STORY_PAGES = [
-  'Ha muito tempo, o reino de Aurora vivia em paz, protegido pelo Cristal de Luz.',
-  'Mas o feiticeiro Vorak partiu o cristal em tres fragmentos e mergulhou o reino nas trevas.',
-  'Resta uma esperanca: um heroi adormecido, escondido em um simples vilarejo.',
-  'Sem a espada lendaria ele e so um jovem comum. Com ela, torna-se o heroi capaz de vencer o vilao.',
+  'A muito tempo existia uma vila antiga escondida dos olhos humanos: Mitribuque.',
+  'Dizia a lenda que ao juntar dos tres Dominics, qualquer mal se combatia.',
+  'Mitribuque fica ao oeste das montanhas rochosas, onde hoje e conhecido como Brasil.',
+  'Quem despertar a alma dos tres Dominics tera o Guerreiro Policolor encarnado em si!',
+  'Herdara os tres poderes e salvara o Reino de Mitribuque do Monstro Ciclope.',
   'Desperte, {N}! O destino do reino esta em suas maos.',
 ];
 
-export const STORY_TONES = [0.22, 0.85, 0.95, 0.72, 0.48] as const;
+// Must stay the same length as STORY_PAGES — a missing entry makes tn = NaN and
+// poisons every colour calculation that follows.
+export const STORY_TONES = [0.22, 0.85, 0.95, 0.72, 0.48, 0.3] as const;
+
+// Small illustration shown next to each story page (index matches STORY_PAGES).
+export const STORY_IMAGES = [
+  '/assets/dominic-games.gif',
+  '/cavalier_intro.gif',
+  '/assets/dominic-games.gif',
+  '/warrior_sprites.png',
+  '/cyclops_intro.gif',
+  '/cavalier_intro.gif',
+] as const;
 
 export const NAME_ROWS = ['ABCDEFGHI', 'JKLMNOPQR', 'STUVWXYZ '] as const;
 
 export const INTRO_LOGO_FRAMES = 180;
 export const INTRO_FADE_FRAMES = 100;
+// Safety cap only: the <video> overlay normally ends the phase via introVideoDone().
+export const INTRO_VIDEO_FRAMES = 900; // ~15s hard fallback so the intro can never hang
 export const INTRO_RISE_FRAMES = 135;
 
 export const DAY_CYCLE_FRAMES = 4200; // ~70s full day/dusk/night/dawn cycle

@@ -14,7 +14,7 @@ export type ScreenState =
   | 'over'
   | 'victory';
 
-export type IntroPhase = 'logo' | 'fade' | 'rise';
+export type IntroPhase = 'logo' | 'fade' | 'video' | 'rise';
 
 export type NpcKind =
   | 'elder'
@@ -167,9 +167,19 @@ export interface MinigameState {
   end: number;
 }
 
+export type DominicKind = 'none' | 'white' | 'blue' | 'green';
+
+export interface DominicState {
+  owned: DominicKind[];
+  current: DominicKind;
+  activeEffect: 'single' | 'all' | 'none';
+  flashTimer: number;
+}
+
 export interface ProgressState {
   it: Record<string, number>;
   fl: Record<string, number>;
+  dominic: DominicState;
   dmg: number;
   pot: number;
   mh: number;
@@ -202,6 +212,7 @@ export interface HeroState {
   sw: number;
   wk: number;
   shielding: boolean;
+  hitFlash?: number;
   sleeping?: boolean;
   wakeTimer?: number;
   it: RupeeDrop[];

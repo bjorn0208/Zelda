@@ -9,6 +9,7 @@ import {
   INTRO_FADE_FRAMES,
   INTRO_LOGO_FRAMES,
   INTRO_RISE_FRAMES,
+  INTRO_VIDEO_FRAMES,
   NAME_ROWS,
   QUESTS,
   SHIELD_STATS,
@@ -36,6 +37,7 @@ import {
   wrapText,
 } from './render';
 import {
+  DominicKind,
   DustMote,
   Enemy,
   EngineUIState,
@@ -558,11 +560,24 @@ export class GameEngine {
       this.introPhase = 'fade';
       this.introTick = 0;
     } else if (this.introPhase === 'fade') {
+      this.introPhase = 'video';
+      this.introTick = 0;
+    } else if (this.introPhase === 'video') {
+      // Player skipped the intro video
       this.introPhase = 'rise';
       this.introTick = 0;
     } else {
       this.st = 'menu';
       this.menuSel = 0;
+    }
+  }
+
+  /** Called by the <video> overlay on ended/error/autoplay-rejection. */
+  public introVideoDone(): void {
+    if (this.st === 'intro' && this.introPhase === 'video') {
+      this.introPhase = 'rise';
+      this.introTick = 0;
+      this.broadcastUI();
     }
   }
 
@@ -833,6 +848,7 @@ export class GameEngine {
       if (this.pg >= STORY_PAGES.length) {
         this.pg = STORY_PAGES.length - 1;
         this.audio.bp(880, 0.14);
+        // Story finished - transition to game
         this.beginGameInsideHouse();
       } else {
         this.audio.bp(700, 0.06);
@@ -1539,7 +1555,14 @@ export class GameEngine {
       return;
     }
 
-    // Advance Day / Dusk / Night / Dawn cycle & Torch fuel
+    // Outfit color cycling (press 'B' to change)
+    if (this.pressed.b && !this.G.sw && this.V.ownedOutfits.length > 1) {
+      const idx = this.V.ownedOutfits.indexOf(this.V.outfit);
+      this.V.outfit = this.V.ownedOutfits[(idx + 1) % this.V.ownedOutfits.length];
+      this.audio.bp(780, 0.06);
+    }
+
+// Advance Day / Dusk / Night / Dawn cycle & Torch fuel
     this.worldTime = (this.worldTime + 1) % DAY_CYCLE_FRAMES;
     if (this.V.torchLit) {
       this.torchFuel--;
@@ -1808,6 +1831,30 @@ export class GameEngine {
       }
       this.audio.bp(1200, 0.5);
       saveGame(this.hn, this.G, this.V, this.world, this.worldTime);
+    }
+
+    // Fire Dominion passage opening: once, and only while exploring a dungeon.
+    // `fl`/`dominic` are optional so an older save can never throw inside step()
+    // (an exception here kills the requestAnimationFrame loop = permanent freeze).
+    if (this.V.fl && !this.V.fl.fireDominionOpened && this.V.dominic) {
+      const d = this.V.dominic;
+      const allOwned = d.owned[0] !== 'none' && d.owned[1] !== 'none' && d.owned[2] !== 'none';
+      const inDungeon = this.G.map >= 200 && this.G.map !== 301 && !isHouse(this.G.map);
+      if (allOwned && inDungeon) {
+        this.V.fl.fireDominionOpened = 1;
+        if (d.current === 'none') {
+          d.owned[0] = 'white' as DominicKind;
+          d.current = 'white' as DominicKind;
+          d.activeEffect = 'single' as 'single' | 'all' | 'none';
+        }
+        this.G.map = 301;
+        this.transitionTimer = 24;
+        this.markExplored(301);
+        this.talk(
+          'Uma passagem secreta se abre! Voce recebeu o Dominic branco (Poder do Fogo) e encontra a sala angelical!',
+        );
+        this.audio.bp(1200, 0.3, 'square');
+      }
     }
 
     // Save on room changes or periodic timer
@@ -2184,6 +2231,10 @@ export class GameEngine {
         this.introPhase = 'fade';
         this.introTick = 0;
       } else if (this.introPhase === 'fade' && this.introTick >= INTRO_FADE_FRAMES) {
+        this.introPhase = 'video';
+        this.introTick = 0;
+      } else if (this.introPhase === 'video' && this.introTick >= INTRO_VIDEO_FRAMES) {
+        // Video never signalled (blocked autoplay, missing file, ...): move on anyway
         this.introPhase = 'rise';
         this.introTick = 0;
       } else if (this.introPhase === 'rise' && this.introTick >= INTRO_RISE_FRAMES) {

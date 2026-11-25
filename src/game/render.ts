@@ -7,6 +7,7 @@ import {
   OUTFIT_COLORS,
   SHIELD_STATS,
   SHOPS,
+  STORY_IMAGES,
   STORY_PAGES,
   SWORD_STATS,
   T,
@@ -2445,8 +2446,20 @@ export function drawIntro(
   phase: IntroPhase,
   phaseTick: number,
 ): void {
+  // Never inherit alpha/composite state from a previous screen
+  g.globalAlpha = 1;
+  g.globalCompositeOperation = 'source-over';
+
   if (phase === 'logo') {
     R(g, '#000', 0, 0, W, H);
+    // The GIF overlay sits on top of this, but if it fails to load we still
+    // need something on screen instead of a black frame for 3 seconds.
+    const a = Math.min(1, phaseTick / 24);
+    g.save();
+    g.globalAlpha = a;
+    tx(g, 'CLAUDE GAMES', 120, 70, '#ffd84a', 'center');
+    tx(g, 'apresenta', 120, 92, '#9aa0b5', 'center');
+    g.restore();
     return;
   }
 
@@ -2458,6 +2471,13 @@ export function drawIntro(
     tx(g, 'CLAUDE GAMES', 120, 68, '#ffd84a', 'center');
     tx(g, 'apresenta', 120, 86, '#bbb', 'center');
     g.restore();
+    return;
+  }
+
+  if (phase === 'video') {
+    // The <video> overlay covers the canvas — keep it black underneath so no
+    // stale frame bleeds through, and never fall into the rise animation.
+    R(g, '#000', 0, 0, W, H);
     return;
   }
 
@@ -2559,6 +2579,21 @@ export function drawNameEntry(
   tx(g, 'DIGITE OU USE A/B  ENTER: OK', 120, 128, '#bbb', 'center');
 }
 
+// Loaded exactly once. The previous implementation created `new Image()` on
+// every single frame, which forces a decode pass per frame and freezes the game.
+let cachedStoryImages: HTMLImageElement[] | null = null;
+function getStoryImages(): HTMLImageElement[] {
+  if (!cachedStoryImages) {
+    cachedStoryImages = STORY_IMAGES.map((src) => {
+      const im = new Image();
+      im.decoding = 'async';
+      im.src = src;
+      return im;
+    });
+  }
+  return cachedStoryImages;
+}
+
 export function drawStory(
   g: CanvasRenderingContext2D,
   t: number,
@@ -2570,52 +2605,67 @@ export function drawStory(
   hn: string,
   weather: WeatherState,
 ): void {
-  drawScene(g, t, stars, sc * 1.6, tn, 120, 2, weather.flash);
+  const page = STORY_PAGES[pg] ?? STORY_PAGES[STORY_PAGES.length - 1];
 
-  if (pg >= 3) {
-    g.globalAlpha = 0.2 + 0.1 * Math.sin(sc / 10);
-    g.fillStyle = '#8fc8ff';
-    g.beginPath();
-    g.arc(44, 100, 16 + Math.sin(sc / 8) * 2, 0, Math.PI * 2);
-    g.fill();
-    g.globalAlpha = 1;
-    R(g, '#6c6c80', 37, 110, 14, 7);
-    R(g, '#9a9ab0', 37, 110, 14, 2);
-    R(g, '#e8f0ff', 43, 88, 3, 22);
-    R(g, '#ffd84a', 40, 95, 9, 2);
-    R(g, '#6b3f1d', 43, 84, 3, 5);
+  // Reset any inherited canvas state — leftover alpha/composite from the
+  // previous screen is what makes the picture look "broken".
+  g.globalAlpha = 1;
+  g.globalCompositeOperation = 'source-over';
+  g.lineWidth = 1;
+
+  // Black background
+  R(g, '#000000', 0, 0, W, H);
+
+  // Small illustration for this part of the story
+  const imgs = getStoryImages();
+  const count = STORY_PAGES.length;
+  const THUMB = 34;
+  const GAP = 4;
+  const rowW = count * THUMB + (count - 1) * GAP;
+  const startX = Math.round((W - rowW) / 2);
+  const thumbY = 8;
+
+  g.save();
+  g.imageSmoothingEnabled = true;
+  for (let i = 0; i < count; i++) {
+    const x = startX + i * (THUMB + GAP);
+    const active = i === pg;
+    R(g, active ? '#1e1a33' : '#0c0a16', x, thumbY, THUMB, THUMB);
+    const im = imgs[i];
+    if (im && im.complete && im.naturalWidth > 0) {
+      const side = Math.min(im.naturalWidth, im.naturalHeight);
+      g.drawImage(
+        im,
+        (im.naturalWidth - side) / 2,
+        (im.naturalHeight - side) / 2,
+        side,
+        side,
+        x,
+        thumbY,
+        THUMB,
+        THUMB,
+      );
+    }
+    g.strokeStyle = active ? '#ffd84a' : '#3a3550';
+    g.strokeRect(x + 0.5, thumbY + 0.5, THUMB - 1, THUMB - 1);
   }
+  g.restore();
 
-  drawHorse(g, 120, 138, 2, sc);
-
-  for (let i = 0; i < 8; i++) {
-    const x = ((((i * 37 - sc * 4) % (W + 37)) + W + 37) % (W + 37)) - 18;
-    const y = 151 + (i % 3) * 3;
-    R(g, '#0b2a14', x, y, 10, 6);
-    R(g, '#124020', x + 2, y - 2, 6, 3);
-  }
-
-  drawWeather(g, weather, 110, true);
-
-  R(g, '#050412d8', 0, 0, W, 62);
-  R(g, '#ffd84a', 0, 62, W, 1);
-
-  const s = STORY_PAGES[pg].replace('{N}', hn);
+  // Story text on a translucent strip so it stays readable over any image
+  const s = page.replace('{N}', hn);
   let n = ch | 0;
-  wrapText(s, 27).forEach((line, i) => {
-    tx(g, line.slice(0, Math.max(0, n)), 12, 6 + i * 12);
+  wrapText(s, 34).forEach((line, i) => {
+    R(g, '#000000cc', 6, 52 + i * 14, W - 12, 13);
+    tx(g, line.slice(0, Math.max(0, n)), 8, 55 + i * 14, '#ffd84a');
     n -= line.length + 1;
   });
 
-  if (ch >= s.length && ((t >> 4) & 1)) {
-    tx(g, 'v', W - 15, 50, '#ffd84a');
-  }
-
-  R(g, '#050412aa', 0, H - 13, W, 13);
-  tx(g, `${pg + 1}/${STORY_PAGES.length}`, 6, H - 11, '#ffd84a');
+  // Page counter + navigation hint
+  R(g, '#000000cc', 0, H - 14, W, 14);
+  tx(g, `${pg + 1}/${count}`, 6, H - 11, '#ffd84a');
   tx(
     g,
-    ch < s.length ? 'A/START: TEXTO' : pg < STORY_PAGES.length - 1 ? 'A/START: PROXIMA' : 'A/START: INICIAR',
+    ch < s.length ? 'A: TEXTO' : pg < count - 1 ? 'A: PROXIMA' : 'A: INICIAR',
     W - 6,
     H - 11,
     '#e0e0f0',
