@@ -34,6 +34,9 @@ const TRACK_FILES: Partial<Record<Exclude<TrackName, ''>, string>> = {
   awakening: '/music/awakening.mp3',
   ezlo: '/music/ezlo.mp3',
   cyclops: '/music/cyclops.mp3',
+  // The same Minish Cap "Inside a Cave" track plays on every cave entry
+  // (the Cyclops interlude uses `cyclops` for the story beat).
+  cave: '/music/cyclops.mp3',
 };
 
 const TRACKS: Partial<Record<Exclude<TrackName, ''>, TrackDef>> = {
