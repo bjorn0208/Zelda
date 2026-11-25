@@ -647,8 +647,8 @@ export class GameEngine {
     }
   }
 
-  /** Ao passar pelo pai na sala 151, ele interrompe o herói e conta sobre a espada. */
-  private updateFatherIntro(): void {
+  /** Função do pai: ao passar por ele na sala 151, o herói para e ele fala. */
+  private fatherPassTrigger(): void {
     if (
       this.G.map !== 151 ||
       this.G.dlg ||
@@ -667,6 +667,9 @@ export class GameEngine {
     this.V.fl[FATHER_INTRO_FLAG] = 1;
     this.G.sw = 0;
     this.G.shielding = false;
+    this.input.u = this.input.d = this.input.l = this.input.r = false;
+    this.analog.x = 0;
+    this.analog.y = 0;
     this.audio.bp(700, 0.05);
     this.talkChain([FATHER_INTRO_LINE]);
   }
@@ -1791,19 +1794,19 @@ export class GameEngine {
         }
         if (this.G.wakeTimer <= 25 && this.G.wakeTimer > 0) {
           const tJump = (25 - this.G.wakeTimer) / 25;
-          // Acorda na cama da imagem (linha 4, coluna 1) e salta para o lado.
+          // Acorda na cama da imagem (linha 3, coluna 1) e salta para o lado.
           this.G.x = 20 + (52 - 20) * tJump;
-          this.G.y = 62 + (82 - 62) * tJump;
+          this.G.y = 46 + (58 - 46) * tJump;
         }
         if (this.G.wakeTimer <= 0) {
           this.G.sleeping = false;
           this.G.wakeTimer = 0;
           this.G.x = 52;
-          this.G.y = 82;
+          this.G.y = 58;
           this.G.dir = 2;
           this.fixPos();
           this.audio.bp(260, 0.06, 'triangle');
-          this.burst(58, 90, '#f4e7c8', false, 5);
+          this.burst(58, 66, '#f4e7c8', false, 5);
           this.V.msg = 'BOM DIA! BOA AVENTURA!';
           this.V.mt = 80;
         }
@@ -1811,7 +1814,7 @@ export class GameEngine {
       return;
     }
 
-    this.updateFatherIntro();
+    this.fatherPassTrigger();
     this.updateSwordCrowd();
 
     // Outfit color cycling (press 'B' to change)

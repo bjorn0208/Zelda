@@ -107,7 +107,7 @@ export function createInitialHero(): HeroState {
   return {
     map: 451,
     x: 20,
-    y: 62,
+    y: 46,
     dir: 2,
     hp: 6,
     rp: 40, // Starting pocket money for central village shops
@@ -164,13 +164,11 @@ function createRoom(
       // estante com livros, janela com cortinas, quadro, bandeira Hylian,
       // tapete verde com brasão, mesa com vaso de flores, baú do escudo,
       // fogão/chaminé (lareira) e planta no canto.
-      // Cama alinhada à imagem: lado esquerdo, linhas 3-5 (uma linha acima).
+      // Cama alinhada à imagem: lado esquerdo, linhas 2-3 (bem no topo).
+      m[2][1] = 'e';
+      m[2][2] = 'e';
       m[3][1] = 'e';
       m[3][2] = 'e';
-      m[4][1] = 'e';
-      m[4][2] = 'e';
-      m[5][1] = 'e';
-      m[5][2] = 'e';
       m[2][3] = 'v'; // mesinha de cabeceira + lâmpada
       m[1][6] = 'w'; // janela com cortinas verdes
       m[1][8] = 'z'; // mesa com vaso de flores

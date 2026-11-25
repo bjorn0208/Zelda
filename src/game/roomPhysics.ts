@@ -47,7 +47,7 @@ export const ROOM_PHYSICS: Record<string, PhysicsGrid> = {
 };
 
 /** Interactive tiles must survive the overlay; props sit on `s` cells already. */
-const KEEP_TILES = 'DECcS';
+const KEEP_TILES = 'DECcSe';
 
 function gridFor(mapId: number): PhysicsGrid | null {
   if (mapId === 451) return BEDROOM_451;
