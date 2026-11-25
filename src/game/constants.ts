@@ -50,6 +50,7 @@ export const CHEST_ITEMS: Record<number, string> = {
   251: 'rp',
   252: 'bomba_kit',
   253: 'escudo_tesouro',
+  451: 'escudo_quarto',
 };
 
 export const VILLAGES: Record<string, number> = {

@@ -169,6 +169,8 @@ function createRoom(
       }
       m[5][7] = 'd'; // Tapete no meio com um 'D' no centro
       m[7][13] = 'E'; // Escada descendo para o 1o andar
+      // Baú do quarto: guarda o Escudo de Madeira.
+      m[2][2] = 'C';
     } else if (isShop) {
       // Grand Emporium Interior: wide counter, display racks, lanterns & crimson runner
       m[1][1] = 'q';

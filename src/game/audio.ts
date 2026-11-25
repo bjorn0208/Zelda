@@ -234,6 +234,32 @@ export class RetroAudio {
     }
   }
 
+  /** One-shot item/chest jingle, independent from the background track. */
+  public playItemGet(): void {
+    if (typeof document === 'undefined' || typeof Audio === 'undefined') return;
+    try {
+      const el = new Audio('/music/item_get.mp3');
+      el.volume = 0.7;
+      // Muted autoplay is allowed on open; unlock() will not touch this node.
+      if (this.mute) el.muted = true;
+      const p = el.play();
+      if (p && typeof p.catch === 'function') {
+        p.catch(() => {
+          // If autoplay is blocked, retry once muted so it still sounds after
+          // the first gesture unmutes the context.
+          el.muted = true;
+          const retry = el.play();
+          if (retry && typeof retry.catch === 'function') retry.catch(() => undefined);
+        });
+      }
+      el.addEventListener('ended', () => {
+        el.src = '';
+      });
+    } catch {
+      // Never let a missing SFX break gameplay
+    }
+  }
+
   private ensureContext(): AudioContext | null {
     if (typeof window === 'undefined') return null;
     if (!this.ac) {

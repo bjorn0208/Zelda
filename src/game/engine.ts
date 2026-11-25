@@ -1131,9 +1131,11 @@ export class GameEngine {
       return;
     }
 
-    this.audio.bp(900, 0.3);
+    if (!this.mute) this.audio.bp(900, 0.3);
+    const willLoot = !alreadyMain && Boolean(c) && !this.V.fl[chestFlag];
+    if (willLoot) this.audio.playItemGet();
 
-    if (!alreadyMain && c && !this.V.fl[chestFlag]) {
+    if (willLoot) {
       this.V.fl[`main_${this.G.map}`] = 1;
       this.V.fl[chestFlag] = 1;
       if (c === 'rp') {
@@ -1147,7 +1149,7 @@ export class GameEngine {
         this.G.rp = Math.min(999, this.G.rp + 30);
         this.V.secondary = 'bomba';
         this.talk('Você achou 5 BOMBAS e 30 rupias! Use com X para explodir pedras rachadas!');
-      } else if (c === 'escudo_tesouro') {
+      } else if (c === 'escudo_tesouro' || c === 'escudo_quarto') {
         if (!this.V.ownedShields.includes('madeira')) {
           this.V.ownedShields.push('madeira');
           this.V.shield = 'madeira';
