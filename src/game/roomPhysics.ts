@@ -31,14 +31,14 @@ const HOUSE_151: PhysicsGrid = [
 
 const BEDROOM_451: PhysicsGrid = [
   'sssssssssssssss',
-  'sss###sss####ss', // cama (x1-x2) preservada
+  'sss###sss####ss',
   'ss#s#.#ss.#s#ss',
-  's.........#...s',
-  's............#s',
-  's##..rrrrrr..#s',
-  's##..rrrsrr.##s',
+  'ss........#...s', // vaso movido para [3][1]
+  'sss..........#s', // cama da imagem (x1-x2, linhas 4-6) preservada
+  'sss..rrrrrr..#s',
+  'sss..rrrsrr.##s',
   'sss..rrrrrrs.ss', // fogão/lareira (x1-x2) preservado
-  's#.....#......s',
+  's#.....s......s', // baú no centro inferior (x7) preservado
   'sssssssssssssss',
 ];
 
