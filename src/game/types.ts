@@ -81,9 +81,11 @@ export interface Projectile {
   y: number;
   vx: number;
   vy: number;
-  kind: 'arrow' | 'bomb' | 'orb' | 'fire';
+  kind: 'arrow' | 'bomb' | 'orb' | 'fire' | 'beam';
   life: number;
   fromEnemy?: boolean;
+  /** Dominic que deu cor ao raio da barra cheia. */
+  element?: DominicKind;
 }
 
 export interface RupeeDrop {

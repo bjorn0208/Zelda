@@ -8,6 +8,7 @@ import {
   FLOOR_TILES,
   HOUSE_LINES,
   HPT,
+  MAX_HEARTS,
   OBSTACLE_TILES,
   SAVE_KEY,
   SPECIAL_HOUSE_NPCS,
@@ -77,7 +78,7 @@ export function createInitialProgress(): ProgressState {
     fl: {},
     dmg: 1,
     pot: 1,
-    mh: 3,
+    mh: MAX_HEARTS,
     msg: '',
     mt: 0,
     sword: 0,
@@ -109,7 +110,7 @@ export function createInitialHero(): HeroState {
     x: 30,
     y: 52,
     dir: 2,
-    hp: 6,
+    hp: MAX_HEARTS * 2,
     rp: 40, // Starting pocket money for central village shops
     inv: 0,
     hitFlash: 0,
@@ -900,6 +901,8 @@ export function loadSavedGame(): {
 
     const world = buildWorld();
     const V = Object.assign(createInitialProgress(), parsed.V);
+    // A barra de corações é fixa em 12, mesmo em saves antigos.
+    V.mh = MAX_HEARTS;
     if (!V.equipped) V.equipped = V.sword ? 'sword' : 'none';
     if (!V.swordTier) V.swordTier = V.sword ? (V.dmg > 1 ? 'aco' : 'lendaria') : 'none';
     if (!V.ownedSwords || !V.ownedSwords.length) {
@@ -947,6 +950,7 @@ export function loadSavedGame(): {
       it: [],
       en: [],
     });
+    G.hp = Math.max(1, Math.min(G.hp, V.mh * 2));
 
     return { heroName, world, G, V, worldTime: parsed.worldTime ?? 600 };
   } catch {

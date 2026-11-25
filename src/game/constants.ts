@@ -1,4 +1,4 @@
-import { OutfitId, ShieldTier, ShopItem, SwordTier } from './types';
+import { DominicKind, OutfitId, ShieldTier, ShopItem, SwordTier } from './types';
 
 export const W = 240;
 export const H = 160;
@@ -11,6 +11,20 @@ export const GAME_ZOOM = 1;
 export const T = 16;
 export const FONT = '8px "Press Start 2P", monospace';
 export const SAVE_KEY = 'lh_save';
+
+/** Vida sempre começa com 12 corações (24 meios-corações). */
+export const MAX_HEARTS = 12;
+
+/** Cores do raio disparado com a barra cheia, conforme o Dominic atual. */
+export const DOMINIC_BEAM_COLORS: Record<
+  DominicKind,
+  { core: string; glow: string; trail: string; bloom: string }
+> = {
+  none: { core: '#ffffff', glow: '#9ed8ff', trail: '#4a8ad8', bloom: 'rgba(150,210,255,0.5)' },
+  white: { core: '#fff4b0', glow: '#ff8a2a', trail: '#ff4a12', bloom: 'rgba(255,130,30,0.55)' },
+  blue: { core: '#f0ffff', glow: '#8ce8ff', trail: '#2a9cff', bloom: 'rgba(120,230,255,0.55)' },
+  green: { core: '#fffbc0', glow: '#b6ff5a', trail: '#5ac82a', bloom: 'rgba(160,255,90,0.55)' },
+};
 
 export const DX = [0, 1, 0, -1] as const;
 export const DY = [-1, 0, 1, 0] as const;

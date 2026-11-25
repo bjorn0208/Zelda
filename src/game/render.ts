@@ -1,5 +1,6 @@
 import {
   DAY_CYCLE_FRAMES,
+  DOMINIC_BEAM_COLORS,
   ENEMY_PALETTES,
   FONT,
   GAME_ZOOM,
@@ -43,8 +44,9 @@ export type Star = [number, number, number];
  * The hero's living room and bedroom use reference images as backdrops. The
  * tile map still provides all collision, doors, bed, stairs and chest logic.
  */
+const HOUSE_IMAGE = '/rooms/hero_house.png';
 const ROOM_IMAGES: Record<number, string> = {
-  151: '/rooms/hero_house.png',
+  151: HOUSE_IMAGE,
   451: '/rooms/hero_bedroom.png',
 };
 
@@ -62,7 +64,11 @@ function getRoomImage(src: string): HTMLImageElement | null {
 }
 
 function roomImageFor(map: number): string | null {
-  return ROOM_IMAGES[map] ?? null;
+  if (ROOM_IMAGES[map]) return ROOM_IMAGES[map];
+  // Todas as casas usam o mesmo interior da referência; 451 é o quarto e
+  // 301 é a sala angelical (desenhada por tiles, não é uma casa).
+  if (isHouse(map) && map !== 451 && map !== 301) return HOUSE_IMAGE;
+  return null;
 }
 
 export interface GameCamera {
@@ -2230,6 +2236,16 @@ function drawProjectiles(g: CanvasRenderingContext2D, projectiles: Projectile[],
       R(g, fast ? '#ff6a55' : '#4a4a66', px - 3, py - 3, 3, 3);
       R(g, '#ffd84a', px - 1, py - 6, 2, 2);
       R(g, fast ? '#fff' : '#ff7a2a', px, py - 7, 2, 2);
+    } else if (p.kind === 'beam') {
+      // Raio dos 12 corações: cor definida pelo Dominic atual.
+      const c = DOMINIC_BEAM_COLORS[p.element ?? 'none'];
+      const pulse = ((t >> 1) & 1) !== 0;
+      R(g, '#0008', px - 5, py - 3, 10, 6);
+      R(g, c.trail, px - 5 - (p.vx | 0), py - 1 - (p.vy | 0), 8, 2);
+      R(g, c.glow, px - 4, py - 3, 8, 6);
+      R(g, c.core, px - 3, py - 2, 6, 4);
+      R(g, '#fff', px - 1, py - 1, 2, 2);
+      if (pulse) R(g, c.core, px - 6, py - 1, 2, 2);
     } else if (p.kind === 'fire') {
       // Dominic do Fogo: bola de fogo com chama tremulante
       const wob = ((t >> 1) & 1) ? 1 : 0;
@@ -2481,6 +2497,8 @@ function drawLighting(
   for (const p of projectiles) {
     if (p.kind === 'orb') {
       addBloom(g, p.x, p.y, 18, 'rgba(255, 70, 180, 0.34)', 'rgba(180, 30, 220, 0)');
+    } else if (p.kind === 'beam') {
+      addBloom(g, p.x, p.y, 30, DOMINIC_BEAM_COLORS[p.element ?? 'none'].bloom, 'rgba(0, 0, 0, 0)');
     } else if (p.kind === 'fire') {
       addBloom(g, p.x, p.y, 26, 'rgba(255, 130, 30, 0.42)', 'rgba(255, 60, 10, 0)');
     } else if (p.kind === 'bomb' && p.life < 20) {

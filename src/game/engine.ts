@@ -2,6 +2,7 @@ import { RetroAudio, TrackName } from './audio';
 import {
   CHEST_ITEMS,
   DAY_CYCLE_FRAMES,
+  DOMINIC_BEAM_COLORS,
   DX,
   DY,
   FATHER_INTRO_FLAG,
@@ -13,6 +14,7 @@ import {
   INTRO_LOGO_FRAMES,
   INTRO_RISE_FRAMES,
   INTRO_VIDEO_FRAMES,
+  MAX_HEARTS,
   NAME_ROWS,
   QUESTS,
   SHIELD_STATS,
@@ -22,6 +24,7 @@ import {
   STORY_PAGES,
   STORY_TONES,
   SWORD_STATS,
+  T,
   W,
 } from './constants';
 import {
@@ -660,9 +663,17 @@ export class GameEngine {
     }
     const father = (this.world.npcs[151] || []).find((n) => n.name === 'Pai');
     if (!father) return;
-    const fx = FATHER_TILE.x * 16 + 8;
-    const fy = FATHER_TILE.y * 16 + 8;
-    if (Math.hypot(this.G.x + 8 - fx, this.G.y + 8 - fy) >= 24) return;
+    const hx = this.G.x + 8;
+    const hy = this.G.y + 8;
+    const fx = FATHER_TILE.x * T + T / 2;
+    const fy = FATHER_TILE.y * T + T / 2;
+    const pertoDoPai = Math.hypot(hx - fx, hy - fy) <= 3 * T;
+    // A conversa também começa quando o herói chega à passagem inferior.
+    const passage = (this.world.doors[151] || []).find((d) => d.y === 8);
+    const pertoDaPorta = passage
+      ? Math.hypot(hx - (passage.x * T + T / 2), hy - (passage.y * T + T / 2)) <= 2 * T
+      : false;
+    if (!pertoDoPai && !pertoDaPorta) return;
 
     this.V.fl[FATHER_INTRO_FLAG] = 1;
     this.G.sw = 0;
@@ -787,6 +798,31 @@ export class GameEngine {
     }
     if (f >= 3) d.activeEffect = 'all';
     else if (f >= 1) d.activeEffect = 'single';
+  }
+
+  /** Com os 12 corações cheios, o ataque lança um raio do Dominic atual junto com a espada. */
+  private fireFullHeartBeam(): void {
+    if (this.V.mh < MAX_HEARTS || this.G.hp < this.V.mh * 2) return;
+    const d = this.G.dir;
+    const element: DominicKind = this.V.dominic?.current ?? 'none';
+    const color = DOMINIC_BEAM_COLORS[element] ?? DOMINIC_BEAM_COLORS.none;
+    const x = this.G.x + 8 + DX[d] * 10;
+    const y = this.G.y + 9 + DY[d] * 10;
+    this.projectiles.push({
+      x,
+      y,
+      vx: DX[d] * 4,
+      vy: DY[d] * 4,
+      kind: 'beam',
+      element,
+      life: 45,
+    });
+    this.burst(x, y, color.glow, true, 6);
+    this.audio.bp(
+      element === 'white' ? 520 : element === 'blue' ? 1480 : 1200,
+      0.1,
+      element === 'white' ? 'sawtooth' : 'square',
+    );
   }
 
   /** Dominic do Raio: a descarga salta para inimigos próximos. */
@@ -1137,7 +1173,7 @@ export class GameEngine {
         if (r.bombs) this.V.bombs = Math.min(99, this.V.bombs + r.bombs);
         if (n.q === 'marta') this.V.torches = Math.min(99, this.V.torches + 3);
         if (r.mh) {
-          this.V.mh++;
+          this.V.mh = Math.min(MAX_HEARTS, this.V.mh + r.mh);
           this.G.hp = this.V.mh * 2;
         }
         if (r.dmg) {
@@ -1639,10 +1675,59 @@ export class GameEngine {
         this.burst(
           p.x,
           p.y,
-          p.kind === 'orb' ? '#ff6ad8' : p.kind === 'fire' ? '#ff9a2a' : '#e8f4ff',
+          p.kind === 'orb'
+            ? '#ff6ad8'
+            : p.kind === 'fire'
+              ? '#ff9a2a'
+              : p.kind === 'beam'
+                ? DOMINIC_BEAM_COLORS[p.element ?? 'none'].glow
+                : '#e8f4ff',
           p.kind !== 'arrow',
           5,
         );
+        continue;
+      }
+
+      if (p.kind === 'beam') {
+        const color = DOMINIC_BEAM_COLORS[p.element ?? 'none'];
+        if ((this.t & 1) === 0) {
+          this.particles.push({
+            x: p.x + (Math.random() - 0.5) * 3,
+            y: p.y + (Math.random() - 0.5) * 3,
+            vx: 0,
+            vy: 0,
+            l: 6,
+            maxL: 6,
+            c: color.trail,
+            glow: true,
+            size: 2,
+            kind: 'spark',
+          });
+        }
+        let hit = false;
+        for (const e of this.G.en) {
+          if (e.hp <= 0) continue;
+          const hr = e.k === 4 ? 20 : 12;
+          const ex = e.k === 4 ? e.x + 16 : e.x + 8;
+          const ey = e.k === 4 ? e.y + 16 : e.y + 8;
+          if (Math.abs(ex - p.x) < hr && Math.abs(ey - p.y) < hr) {
+            this.damageEnemy(e, Math.max(3, this.V.dmg + 2), p.vx * 2, p.vy * 2);
+            if (p.element === 'white') e.burn = Math.max(e.burn | 0, 110);
+            if (p.element === 'blue' && e.k !== 4) {
+              e.frozen = Math.max(e.frozen | 0, 90);
+              this.burst(ex, ey, '#8ce8ff', true, 5);
+            }
+            if (p.element === 'green') this.chainLightning(ex, ey, e);
+            this.burst(p.x, p.y, color.glow, true, 8);
+            hit = true;
+            break;
+          }
+        }
+        if (hit) {
+          this.G.en = this.G.en.filter((e) => e.hp > 0);
+          continue;
+        }
+        next.push(p);
         continue;
       }
 
@@ -1943,6 +2028,7 @@ export class GameEngine {
         this.swingHitClanged = false;
         this.audio.playMinishSwing();
         this.emitSwordArcSparks(13);
+        this.fireFullHeartBeam();
       } else if (this.V.sword) {
         this.audio.bp(220, 0.05);
         this.V.msg = 'EQUIPE A ESPADA (INV)';
