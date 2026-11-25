@@ -39,6 +39,40 @@ import { drawInvItem, INV_SLOT_COUNT, invItemStateFromProgress, invItemTag } fro
 
 export type Star = [number, number, number];
 
+/**
+ * Only the bedroom uses a reference image as backdrop. The tile map still
+ * provides all collision, doors, bed, stairs and chest interactions.
+ */
+const ROOM_IMAGES: Record<number, string> = {
+  451: '/rooms/hero_bedroom.png',
+};
+
+const roomImageCache = new Map<string, HTMLImageElement | null>();
+
+function getRoomImage(src: string): HTMLImageElement | null {
+  if (typeof document === 'undefined' || typeof Image === 'undefined') return null;
+  if (!roomImageCache.has(src)) {
+    const img = new Image();
+    img.src = src;
+    roomImageCache.set(src, img);
+  }
+  const img = roomImageCache.get(src) ?? null;
+  return img && img.complete && img.naturalWidth > 0 ? img : null;
+}
+
+function roomImageFor(map: number): string | null {
+  return ROOM_IMAGES[map] ?? null;
+}
+
+/** Hides the chest painted into the bedroom backdrop once it has been opened. */
+function drawBedroomChestPatch(g: CanvasRenderingContext2D, img: HTMLImageElement): void {
+  const x = 7 * 16;
+  const y = 8 * 16;
+  g.imageSmoothingEnabled = false;
+  // Copy neighbouring wooden floor over the 32x16 strip containing the chest.
+  g.drawImage(img, x + 32, y, 32, 16, x, y, 32, 16);
+}
+
 export interface GameCamera {
   zoom: number;
   x: number;
@@ -3124,23 +3158,40 @@ export function drawGame(
 ): void {
   const { nightFactor } = getCycleInfo(worldTime);
   const m = world.maps[G.map];
+  const roomSrc = roomImageFor(G.map);
+  const roomImg = roomSrc ? getRoomImage(roomSrc) : null;
   const cam = updateGameCamera(G);
 
-  // Everything in world space — tiles, props, actors, particles, weather and
-  // lighting — is drawn through the gameplay camera. HUD and dialogs are
+  // Everything in world space — backdrop, tiles, actors, particles, weather
+  // and lighting — is drawn through the gameplay camera. HUD and dialogs are
   // painted afterwards in screen space so they stay readable.
   g.save();
   g.imageSmoothingEnabled = false;
   g.translate(W / 2 - cam.x * cam.zoom, H / 2 - cam.y * cam.zoom);
   g.scale(cam.zoom, cam.zoom);
 
-  for (let y = 0; y < 10; y++) {
-    for (let x = 0; x < 15; x++) {
-      drawTile(g, world, V, G, t, m[y][x], x, y, weather, nightFactor);
+  if (roomImg) {
+    // The image supplies the visual furniture; the tile map below it keeps
+    // collision, doors, bed, stairs and chest interactions exactly as before.
+    g.drawImage(roomImg, 0, 0, W, H);
+    if (G.map === 451 && m[8]?.[7] !== 'C') drawBedroomChestPatch(g, roomImg);
+    for (let y = 0; y < 10; y++) {
+      for (let x = 0; x < 15; x++) {
+        const ch = m[y][x];
+        if (ch === 'S' || ch === 'C' || ch === 'c' || ch === 'G' || ch === 'g') {
+          drawTile(g, world, V, G, t, ch, x, y, weather, nightFactor);
+        }
+      }
     }
+  } else {
+    for (let y = 0; y < 10; y++) {
+      for (let x = 0; x < 15; x++) {
+        drawTile(g, world, V, G, t, m[y][x], x, y, weather, nightFactor);
+      }
+    }
+    if (G.map === 451) drawBedroomDecor(g, t, world);
+    else if (isHouse(G.map)) drawHouseDecor(g, t, world, G.map);
   }
-  if (G.map === 451) drawBedroomDecor(g, t, world);
-  else if (isHouse(G.map)) drawHouseDecor(g, t, world, G.map);
 
   const drawables: Array<[number, () => void]> = [];
   for (const n of world.npcs[G.map] || []) {

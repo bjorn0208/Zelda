@@ -12,6 +12,7 @@ import {
   VILLAGES,
 } from './constants';
 import { DominicKind, EnemyKind, HeroState, Npc, NpcKind, ProgressState, WorldData } from './types';
+import { applyRoomPhysics } from './roomPhysics';
 
 export const hs = (a: number, b: number): number => ((a * 73856093) ^ (b * 19349663)) >>> 0;
 export const rnd = (n: number): number => Math.floor(Math.random() * n);
@@ -104,7 +105,7 @@ export function createInitialHero(): HeroState {
   return {
     map: 451,
     x: 20,
-    y: 14,
+    y: 78,
     dir: 2,
     hp: 6,
     rp: 40, // Starting pocket money for central village shops
@@ -161,13 +162,18 @@ function createRoom(
       // estante com livros, janela com cortinas, quadro, bandeira Hylian,
       // tapete verde com brasão, mesa com vaso de flores, baú do escudo,
       // fogão/chaminé (lareira) e planta no canto.
-      m[1][1] = 'e';
-      m[1][2] = 'e';
+      // Cama alinhada à imagem: lado esquerdo, linhas 4-6.
+      m[4][1] = 'e';
+      m[4][2] = 'e';
+      m[5][1] = 'e';
+      m[5][2] = 'e';
+      m[6][1] = 'e';
+      m[6][2] = 'e';
       m[2][3] = 'v'; // mesinha de cabeceira + lâmpada
       m[1][6] = 'w'; // janela com cortinas verdes
       m[1][8] = 'z'; // mesa com vaso de flores
       m[2][8] = 'z';
-      m[2][11] = 'C'; // baú do Escudo de Madeira
+      m[8][7] = 'C'; // baú do Escudo de Madeira (centro inferior da imagem)
       m[1][13] = 'q'; // estante de livros
       m[2][13] = 'q';
       // Tapete verde central com brasão Hylian
@@ -178,8 +184,8 @@ function createRoom(
       m[7][1] = 'u'; // fogão / lareira com chaminé
       m[7][2] = 'u';
       m[7][13] = 'E'; // escada descendo para o 1o andar
-      // Vasos de planta nos cantos
-      m[4][1] = 'v';
+      // Vasos de planta nos cantos (o da esquerda sai da área da cama)
+      m[3][1] = 'v';
       m[4][13] = 'v';
     } else if (isShop) {
       // Grand Emporium Interior: wide counter, display racks, lanterns & crimson runner
@@ -364,7 +370,8 @@ function createRoom(
   world.enemies[id] = o.en || [0, 0];
   world.doors[id] =
     id === 451
-      ? [{ x: 13, y: 7, to: 151, px: 180, py: 42 }]
+      ? // Volta da escada do quarto: desembarca ao lado da escada do 1o andar.
+        [{ x: 13, y: 7, to: 151, px: 112, py: 32 }]
       : [{ x: 7, y: 8, to: o.back || 'ret', px: 112, py: 24 }];
   if (id === 151) {
     world.doors[id].push({ x: 13, y: 2, to: 451, px: 180, py: 112 });
@@ -786,6 +793,9 @@ export function buildWorld(): WorldData {
   createRoom(world, 260, false, rg(260), { fwd: 261, en: [4, 6] });
   createRoom(world, 261, false, rg(261), { back: 260, en: [1, 4] });
 
+  // Make the bedroom collision match the furniture in its reference image.
+  applyRoomPhysics(world);
+
   return world;
 }
 
@@ -881,6 +891,11 @@ export function loadSavedGame(): {
       if (baseMaps[refreshId]?.length) {
         world.maps[refreshId] = baseMaps[refreshId];
       }
+    }
+    // Older saves had the pre-image bedroom layout; realign its physics too.
+    applyRoomPhysics(world);
+    if ((V.fl['ch_451_7_8'] || V.fl['main_451']) && world.maps[451]?.[8]) {
+      world.maps[451][8][7] = 'F';
     }
     if (world.maps[151]?.[2]) {
       world.maps[151][2][13] = 'E';

@@ -1764,18 +1764,19 @@ export class GameEngine {
         }
         if (this.G.wakeTimer <= 25 && this.G.wakeTimer > 0) {
           const tJump = (25 - this.G.wakeTimer) / 25;
-          this.G.x = 20 + (24 - 20) * tJump;
-          this.G.y = 14 + (34 - 14) * tJump;
+          // Acorda na cama da imagem (linha 5, coluna 1) e salta para o lado.
+          this.G.x = 20 + (52 - 20) * tJump;
+          this.G.y = 78 + (98 - 78) * tJump;
         }
         if (this.G.wakeTimer <= 0) {
           this.G.sleeping = false;
           this.G.wakeTimer = 0;
-          this.G.x = 24;
-          this.G.y = 34;
+          this.G.x = 52;
+          this.G.y = 98;
           this.G.dir = 2;
           this.fixPos();
           this.audio.bp(260, 0.06, 'triangle');
-          this.burst(32, 46, '#f4e7c8', false, 5);
+          this.burst(58, 106, '#f4e7c8', false, 5);
           this.V.msg = 'BOM DIA! BOA AVENTURA!';
           this.V.mt = 80;
         }
@@ -1879,7 +1880,8 @@ export class GameEngine {
       } else if (tile === 'S' && !this.V.sword) {
         this.pullSword(a, b);
       } else if (tile === 'C') {
-        row[a] = 'c';
+        // No quarto o baú desaparece; nos outros mapas ele fica aberto no chão.
+        row[a] = this.G.map === 451 ? 'F' : 'c';
         this.openChest(a, b);
       } else if (tile === 'G') {
         this.tryOpenGate(a, b);
