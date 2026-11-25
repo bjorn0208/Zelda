@@ -2342,22 +2342,22 @@ export class GameEngine {
   }
 
   private wantedTrack(): TrackName {
-    // "Awakening" theme: starts right after the hero name is confirmed
-    // (confirmName -> story) and runs until the sword is pulled out of the
-    // stone (pullSword). Intro/menu/name keep the classic menu tune, and
-    // game-over stays silent.
+    // Two real-file themes around the hero-name screen:
+    //  - before the name (intro/menu/name/help): "prologue" — Minish Cap prologue
+    //  - after confirmName (story/game/inv/shop) until pullSword: "awakening"
+    const beforeName =
+      this.st === 'intro' || this.st === 'menu' || this.st === 'name' || this.st === 'help';
+    if (beforeName) return 'prologue';
+
     const pastName = this.st === 'story' || this.st === 'game' || this.st === 'inv' || this.st === 'shop';
     if (pastName && !this.V.sword) {
       return 'awakening';
-    }
-    if (this.st === 'intro') {
-      return this.introPhase === 'rise' ? 'menu' : '';
     }
     if (this.st === 'mg') return 'mini';
     if (this.st === 'story') return 'story';
     if (this.st === 'game' || this.st === 'inv' || this.st === 'shop') {
       const m = this.G.map;
-      if (isHouse(m) || m === 35 || m === 36) return 'calm';
+      if (isHouse(m) || m === 35 || m === 36) return this.V.sword ? 'ezlo' : 'calm';
       if (m >= 200) {
         return this.world.enemies[m] && this.world.enemies[m][1] === 4 && !this.V.fl['b' + m]
           ? 'boss'
@@ -2366,7 +2366,10 @@ export class GameEngine {
       if (m < 8 && m >= 3 && m <= 5) return 'cave';
       const x = m & 7;
       const y = m >> 3;
-      return lake(x, y) || bio(x, y) === 'n' ? 'calm' : 'field';
+      const calm = lake(x, y) || bio(x, y) === 'n';
+      // Once the sword is obtained, the overworld theme becomes "ezlo".
+      // Caves, bosses and the minigame keep their own dedicated tracks.
+      return this.V.sword ? 'ezlo' : calm ? 'calm' : 'field';
     }
     if (this.st === 'over') return '';
     return 'menu';

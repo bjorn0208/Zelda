@@ -1,4 +1,15 @@
-export type TrackName = '' | 'awakening' | 'menu' | 'field' | 'calm' | 'cave' | 'boss' | 'story' | 'mini';
+export type TrackName =
+  | ''
+  | 'prologue'
+  | 'awakening'
+  | 'ezlo'
+  | 'menu'
+  | 'field'
+  | 'calm'
+  | 'cave'
+  | 'boss'
+  | 'story'
+  | 'mini';
 
 interface TrackDef {
   bpm: number;
@@ -18,7 +29,9 @@ interface TrackDef {
  * the original music rather than silence.
  */
 const TRACK_FILES: Partial<Record<Exclude<TrackName, ''>, string>> = {
+  prologue: '/music/prologue.mp3',
   awakening: '/music/awakening.mp3',
+  ezlo: '/music/ezlo.mp3',
 };
 
 const TRACKS: Partial<Record<Exclude<TrackName, ''>, TrackDef>> = {
