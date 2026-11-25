@@ -2342,6 +2342,12 @@ export class GameEngine {
   }
 
   private wantedTrack(): TrackName {
+    // "Awakening" theme: runs from waking up until the hero pulls the sword
+    // out of the stone (pullSword). After that, the regular per-area tracks
+    // take over. Game-over stays silent and the minigame keeps its own tune.
+    if (!this.V.sword && this.st !== 'over' && this.st !== 'victory' && this.st !== 'mg') {
+      return 'awakening';
+    }
     if (this.st === 'intro') {
       return this.introPhase === 'rise' ? 'menu' : '';
     }

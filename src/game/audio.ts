@@ -1,4 +1,4 @@
-export type TrackName = '' | 'menu' | 'field' | 'calm' | 'cave' | 'boss' | 'story' | 'mini';
+export type TrackName = '' | 'awakening' | 'menu' | 'field' | 'calm' | 'cave' | 'boss' | 'story' | 'mini';
 
 interface TrackDef {
   bpm: number;
@@ -11,7 +11,17 @@ interface TrackDef {
   pad?: number;
 }
 
-const TRACKS: Record<Exclude<TrackName, ''>, TrackDef> = {
+/**
+ * Tracks backed by a real audio file instead of the synth. When a track is
+ * listed here the file wins and the synth stays silent for it; anything not
+ * listed keeps the chiptune generator, so missing/failing files degrade to
+ * the original music rather than silence.
+ */
+const TRACK_FILES: Partial<Record<Exclude<TrackName, ''>, string>> = {
+  awakening: '/music/awakening.mp3',
+};
+
+const TRACKS: Partial<Record<Exclude<TrackName, ''>, TrackDef>> = {
   menu: {
     bpm: 108,
     c: [
@@ -146,6 +156,59 @@ export class RetroAudio {
   private ms = 0;
   private ma = 0;
 
+  // --- real audio files (see TRACK_FILES) -----------------------------------
+  private fileEl: HTMLAudioElement | null = null;
+  private fileSrc = '';
+  private fileTrk: TrackName = '';
+  private fileBlocked = false;
+
+  /** Best-effort play of a streamed track; never throws into the game loop. */
+  private playTrackFile(wanted: TrackName, src: string): void {
+    if (typeof document === 'undefined' || typeof Audio === 'undefined') return;
+    try {
+      if (!this.fileEl) {
+        const el = new Audio(src);
+        el.loop = true;
+        el.preload = 'auto';
+        el.volume = 0.55;
+        this.fileEl = el;
+        this.fileSrc = src;
+        this.fileTrk = wanted;
+        this.fileBlocked = false;
+      } else if (this.fileSrc !== src) {
+        // Different track: swap the source in place, keeping one element alive.
+        this.fileEl.pause();
+        this.fileEl.src = src;
+        this.fileEl.load();
+        this.fileSrc = src;
+        this.fileTrk = wanted;
+        this.fileBlocked = false;
+      }
+      const el = this.fileEl;
+      if (this.mute || this.fileBlocked || !el) return;
+      if (el.paused) {
+        const p = el.play();
+        if (p && typeof p.catch === 'function') {
+          p.catch(() => {
+            // Autoplay policy: wait for the next unlock() gesture to retry.
+            this.fileBlocked = true;
+          });
+        }
+      }
+    } catch {
+      this.fileBlocked = true;
+    }
+  }
+
+  private stopTrackFile(): void {
+    if (!this.fileEl) return;
+    try {
+      if (!this.fileEl.paused) this.fileEl.pause();
+    } catch {
+      // Ignore teardown errors
+    }
+  }
+
   private ensureContext(): AudioContext | null {
     if (typeof window === 'undefined') return null;
     if (!this.ac) {
@@ -162,6 +225,8 @@ export class RetroAudio {
   public unlock(): void {
     try {
       this.ensureContext();
+      // A blocked autoplay can only be cleared by a user gesture.
+      if (this.fileBlocked) this.fileBlocked = false;
     } catch {
       // Ignore audio lock failures prior to user interaction
     }
@@ -169,6 +234,7 @@ export class RetroAudio {
 
   public toggleMute(): boolean {
     this.mute = !this.mute;
+    if (this.mute) this.stopTrackFile();
     this.updateRainGain(this.mute ? 0 : this.currentRainLevel);
     return this.mute;
   }
@@ -522,7 +588,19 @@ export class RetroAudio {
       this.ms = 0;
       this.ma = 99;
     }
-    if (!this.trk || this.mute) return;
+    if (!this.trk || this.mute) {
+      this.stopTrackFile();
+      return;
+    }
+
+    // A real file, when mapped for this track, replaces the synth entirely.
+    const fileSrc = TRACK_FILES[this.trk];
+    if (fileSrc) {
+      this.playTrackFile(this.trk, fileSrc);
+      return;
+    }
+    this.stopTrackFile();
+
     const k = TRACKS[this.trk];
     if (!k) return;
     const fr = 900 / k.bpm;
