@@ -610,6 +610,40 @@ export class GameEngine {
     }
   }
 
+  /** Curiosos ao redor da espada saem do caminho quando o herói se aproxima. */
+  private updateSwordCrowd(): void {
+    if (this.G.map !== 351 || this.V.sword || this.t % 6 !== 0) return;
+    const crowd = (this.world.npcs[351] || []).filter((n) => n.swordCrowd && n.home);
+    if (!crowd.length) return;
+    const sx = 7 * 16 + 8;
+    const sy = 5 * 16 + 8;
+    const near = Math.hypot(this.G.x + 8 - sx, this.G.y + 8 - sy) < 54;
+    const heroTx = (this.G.x + 8) >> 4;
+    const heroTy = (this.G.y + 8) >> 4;
+    for (const n of crowd) {
+      const home = n.home!;
+      const dx = home.x - heroTx;
+      const dy = home.y - heroTy;
+      const options: Array<[number, number]> = near
+        ? [
+            [home.x + (dx >= 0 ? 1 : -1), home.y],
+            [home.x, home.y + (dy >= 0 ? 1 : -1)],
+            [home.x + (dx >= 0 ? 1 : -1), home.y + (dy >= 0 ? 1 : -1)],
+            [home.x, home.y],
+          ]
+        : [[home.x, home.y]];
+      for (const [nx, ny] of options) {
+        if (nx === n.x && ny === n.y) break;
+        if (nx < 1 || nx > 13 || ny < 1 || ny > 8) continue;
+        if (this.free(nx * 16 + 3, ny * 16 + 8, 10, 7)) {
+          n.x = nx;
+          n.y = ny;
+          break;
+        }
+      }
+    }
+  }
+
   private spawn(): void {
     this.G.en = [];
     this.G.it = [];
@@ -1110,7 +1144,18 @@ export class GameEngine {
     this.V.dmg = Math.max(this.V.dmg, 1);
     this.weather.clearBanner = 160;
     this.world.maps[this.G.map][b][a] = 'r';
-    this.audio.playSwordFanfare();
+    // A multidão para de tentar puxar quando a espada finalmente sai.
+    for (const n of this.world.npcs[this.G.map] || []) {
+      if (n.swordCrowd) {
+        if (n.home) {
+          n.x = n.home.x;
+          n.y = n.home.y;
+        }
+        n.swordCrowd = false;
+      }
+    }
+    // Mesmo jingle de item do baú — sem fanfarra antiga por cima.
+    this.audio.playItemGet();
     this.burst(a * 16 + 8, b * 16 + 4, '#ffd84a', true, 16);
     this.talk(
       'Com força e coragem, Herói puxa a ESPADA LENDÁRIA! Apenas você podia retirá-la. A chuva lá fora parou!',
@@ -1131,7 +1176,7 @@ export class GameEngine {
       return;
     }
 
-    if (!this.mute) this.audio.bp(900, 0.3);
+    // Som antigo do baú removido: só o jingle de item toca aqui.
     const willLoot = !alreadyMain && Boolean(c) && !this.V.fl[chestFlag];
     if (willLoot) this.audio.playItemGet();
 
@@ -1196,6 +1241,31 @@ export class GameEngine {
     }
   }
 
+  /** Monstro explode ao morrer e deixa coração + rupia no chão. */
+  private explodeEnemy(e: Enemy): void {
+    const ex = e.k === 4 ? e.x + 16 : e.x + 8;
+    const ey = e.k === 4 ? e.y + 16 : e.y + 8;
+    const big = e.k === 4 || e.k === 9;
+    this.audio.playEnemyExplosion();
+    this.particles.push({
+      x: ex,
+      y: ey,
+      vx: 0,
+      vy: 0,
+      l: 14,
+      maxL: 14,
+      c: '#ffc04a',
+      glow: true,
+      size: big ? 17 : 12,
+      kind: 'ring',
+    });
+    this.burst(ex, ey, '#ff9a2a', true, big ? 20 : 13);
+    this.burst(ex, ey, '#ff4a2a', false, big ? 12 : 8);
+    this.burst(ex, ey, '#fff2b0', true, big ? 9 : 6);
+    this.G.it.push({ x: e.x + 4, y: e.y + 4, val: 2, kind: 'heart' });
+    this.G.it.push({ x: e.x + 10, y: e.y + 4, val: e.k >= 3 ? 5 : 1 });
+  }
+
   private damageEnemy(e: Enemy, dmg: number, knockDx = 0, knockDy = 0): void {
     e.hp -= dmg;
     e.hitFlash = 8;
@@ -1238,8 +1308,7 @@ export class GameEngine {
       e.y += knockDy;
     }
     if (e.hp <= 0) {
-      this.burst(ex, ey, '#ffffff', true, 7);
-      this.G.it.push({ x: e.x + 4, y: e.y + 4, val: e.k >= 3 ? 5 : 1 });
+      this.explodeEnemy(e);
     }
   }
 
@@ -1715,6 +1784,8 @@ export class GameEngine {
       return;
     }
 
+    this.updateSwordCrowd();
+
     // Outfit color cycling (press 'B' to change)
     if (this.pressed.b && !this.G.sw && this.V.ownedOutfits.length > 1) {
       const idx = this.V.ownedOutfits.indexOf(this.V.outfit);
@@ -1831,7 +1902,7 @@ export class GameEngine {
         this.G.sw = 14;
         this.swingHitEnemies.clear();
         this.swingHitClanged = false;
-        this.audio.playSwordSwing(this.V.swordTier);
+        this.audio.playMinishSwing();
         this.emitSwordArcSparks(13);
       } else if (this.V.sword) {
         this.audio.bp(220, 0.05);
@@ -1922,14 +1993,7 @@ export class GameEngine {
             kind: 'spark',
           });
           if (e.hp <= 0) {
-            this.burst(
-              e.k === 4 ? e.x + 16 : e.x + 8,
-              e.k === 4 ? e.y + 16 : e.y + 8,
-              '#ff9a2a',
-              true,
-              7,
-            );
-            this.G.it.push({ x: e.x + 4, y: e.y + 4, val: e.k >= 3 ? 5 : 1 });
+            this.explodeEnemy(e);
             continue;
           }
         }
@@ -2006,11 +2070,20 @@ export class GameEngine {
     // Enemies killed by burn damage
     this.G.en = this.G.en.filter((e) => e.hp > 0);
 
-    // Rupee pickups
+    // Rupee / heart pickups
     this.G.it = this.G.it.filter((i) => {
       if (Math.abs(i.x - this.G.x - 4) < 10 && Math.abs(i.y - this.G.y - 4) < 10) {
-        this.G.rp = Math.min(999, this.G.rp + (i.val || 1));
-        this.audio.bp(1000, 0.05);
+        if (i.kind === 'heart') {
+          // Cheio: deixa o coração no chão para pegar depois.
+          if (this.G.hp >= this.V.mh * 2) return true;
+          this.G.hp = Math.min(this.V.mh * 2, this.G.hp + (i.val || 2));
+          this.audio.bp(1180, 0.09, 'triangle');
+          this.V.msg = 'CORAÇÃO!';
+          this.V.mt = 60;
+        } else {
+          this.G.rp = Math.min(999, this.G.rp + (i.val || 1));
+          this.audio.bp(1000, 0.05);
+        }
         return false;
       }
       return true;

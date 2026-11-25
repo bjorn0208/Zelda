@@ -564,6 +564,26 @@ function genOverworldScreen(world: WorldData, sx: number, sy: number): void {
           s: HOUSE_LINES[hs(id, 1) % HOUSE_LINES.length],
         },
       ];
+      if (id === 351) {
+        // Curiosos ao redor da espada cravada no centro da casa.
+        const around: Array<[number, number, string]> = [
+          [6, 4, '#d0a84a'],
+          [8, 4, '#a866c8'],
+          [6, 6, '#4a90c8'],
+          [9, 5, '#c85a52'],
+        ];
+        for (const [x, y, c] of around) {
+          world.npcs[id].push({
+            x,
+            y,
+            c,
+            kind: 'villager',
+            swordCrowd: true,
+            home: { x, y },
+            s: 'Eu também tentei puxar essa espada... não houve jeito. Vai você, Herói!',
+          });
+        }
+      }
     }
 
     // Outdoor Merchant Stall & interactive Merchant NPC in all villages!

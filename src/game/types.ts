@@ -54,6 +54,9 @@ export interface Npc {
   el?: number;
   shopId?: 'items' | 'weapons' | 'tailor' | 'bazaar';
   chat?: string[];
+  /** Pessoas ao redor da espada: afastam-se quando o herói chega perto. */
+  swordCrowd?: boolean;
+  home?: { x: number; y: number };
 }
 
 export interface Enemy {
@@ -87,6 +90,7 @@ export interface RupeeDrop {
   x: number;
   y: number;
   val?: number;
+  kind?: 'rupee' | 'heart';
 }
 
 export interface Particle {

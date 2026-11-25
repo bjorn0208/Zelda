@@ -236,6 +236,15 @@ function drawHeart(g: CanvasRenderingContext2D, c: string, x: number, y: number,
   });
 }
 
+function floorHeart(g: CanvasRenderingContext2D, x: number, y: number): void {
+  x |= 0;
+  y |= 0;
+  drawHeart(g, '#5a1020', x, y + 1, 7);
+  drawHeart(g, '#ff4a5a', x, y, 7);
+  R(g, '#ffd0d8', x + 2, y + 1, 1, 1);
+  R(g, '#ffd0d8', x + 4, y + 1, 1, 1);
+}
+
 export function wrapText(s: string, maxLen = 27): string[] {
   const lines: string[] = [];
   let cur = '';
@@ -1732,6 +1741,17 @@ function drawPerson(g: CanvasRenderingContext2D, n: Npc, t: number): void {
     }
   }
 
+  // Curiosos da espada: braços estendidos e pequenos puxões rítmicos.
+  if (n.swordCrowd && n.home && n.x === n.home.x && n.y === n.home.y) {
+    const dx = 7 - n.x;
+    const dy = 5 - n.y;
+    const ax = dx > 0 ? x + 13 : dx < 0 ? x + 1 : x + 7;
+    const ay = dy > 0 ? Y + 10 : dy < 0 ? Y + 2 : Y + 6;
+    const tug = Math.sin(t / 7 + phase) > 0 ? 1 : 0;
+    R(g, '#f5c99a', ax, ay - tug, 2, 3);
+    R(g, '#fff8c8', ax, ay - tug, 1, 1);
+  }
+
   // Floating golden trade badge for all merchants
   if (n.shopId) {
     const floatY = y - 7 + (sway ? 1 : 0);
@@ -3191,7 +3211,12 @@ export function drawGame(
 
   for (const i of G.it) {
     const val = i.val || 1;
-    rup(g, i.x, i.y + Math.sin(t / 8) * 1.5, val > 1 ? '#58a8ff' : '#2ee06b', val > 1 ? '#2658b8' : '#1fa04c');
+    const bobY = i.y + Math.sin(t / 8) * 1.5;
+    if (i.kind === 'heart') {
+      floorHeart(g, i.x, bobY);
+      continue;
+    }
+    rup(g, i.x, bobY, val > 1 ? '#58a8ff' : '#2ee06b', val > 1 ? '#2658b8' : '#1fa04c');
     if (((t >> 3) + i.x) % 6 === 0) R(g, '#fff', i.x + 5, i.y, 1, 1);
   }
   drawables.forEach((e) => e[1]());

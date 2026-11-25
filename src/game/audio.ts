@@ -404,6 +404,79 @@ export class RetroAudio {
     }
   }
 
+  /** Curto "shing" de espada estilo The Legend of Zelda: The Minish Cap. */
+  public playMinishSwing(): void {
+    if (this.mute) return;
+    try {
+      const ac = this.ensureContext();
+      if (!ac || ac.state !== 'running') return;
+      const now = ac.currentTime;
+
+      const o1 = ac.createOscillator();
+      const g1 = ac.createGain();
+      o1.type = 'square';
+      o1.frequency.setValueAtTime(1560, now);
+      o1.frequency.exponentialRampToValueAtTime(520, now + 0.085);
+      g1.gain.setValueAtTime(0.042, now);
+      g1.gain.exponentialRampToValueAtTime(0.0001, now + 0.095);
+      o1.connect(g1);
+      g1.connect(ac.destination);
+      o1.start(now);
+      o1.stop(now + 0.1);
+
+      const o2 = ac.createOscillator();
+      const g2 = ac.createGain();
+      o2.type = 'triangle';
+      o2.frequency.setValueAtTime(2100, now);
+      o2.frequency.exponentialRampToValueAtTime(880, now + 0.06);
+      g2.gain.setValueAtTime(0.02, now);
+      g2.gain.exponentialRampToValueAtTime(0.0001, now + 0.07);
+      o2.connect(g2);
+      g2.connect(ac.destination);
+      o2.start(now);
+      o2.stop(now + 0.075);
+    } catch {
+      // Ignore Web Audio errors
+    }
+  }
+
+  /** Estouro curto e abafado quando um monstro é derrotado. */
+  public playEnemyExplosion(): void {
+    if (this.mute) return;
+    try {
+      const ac = this.ensureContext();
+      if (!ac || ac.state !== 'running') return;
+      const now = ac.currentTime;
+      const sr = ac.sampleRate;
+      const dur = 0.24;
+      const len = Math.floor(sr * dur);
+      const buf = ac.createBuffer(1, len, sr);
+      const data = buf.getChannelData(0);
+      let last = 0;
+      for (let i = 0; i < len; i++) {
+        const white = Math.random() * 2 - 1;
+        last = (last + 0.12 * white) / 1.12;
+        data[i] = last * (1 - i / len) * 1.6;
+      }
+      const src = ac.createBufferSource();
+      src.buffer = buf;
+      const lp = ac.createBiquadFilter();
+      lp.type = 'lowpass';
+      lp.frequency.setValueAtTime(900, now);
+      lp.frequency.exponentialRampToValueAtTime(120, now + dur);
+      const gain = ac.createGain();
+      gain.gain.setValueAtTime(0.09, now);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+      src.connect(lp);
+      lp.connect(gain);
+      gain.connect(ac.destination);
+      src.start(now);
+      src.stop(now + dur);
+    } catch {
+      // Ignore Web Audio errors
+    }
+  }
+
   public playSwordHit(): void {
     if (this.mute) return;
     try {
