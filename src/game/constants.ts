@@ -83,7 +83,7 @@ export const BONUS_CAVES: Record<string, number> = {
 };
 
 export const SPECIAL_HOUSE_NPCS: Record<number, string> = {
-  151: 'pai',
+  151: 'marta',
   351: 'maria',
   122: 'ferreiro',
   117: 'crianca',
@@ -237,12 +237,12 @@ export interface QuestDef {
 }
 
 export const QUESTS: Record<string, QuestDef> = {
-  pai: {
+  marta: {
     need: 'cogumelo',
     n: 5,
-    ask: 'Filho, traga 5 cogumelos para a sopa. A escada esta livre, pode subir quando quiser.',
+    ask: 'Preciso de 5 cogumelos para a sopa! Corte arbustos la fora.',
     ok: 'Que delicia! Tome uma pocao, 30 rupias e 3 tochas!',
-    done: 'A sopa ficou otima, filho. Boa aventura!',
+    done: 'A sopa ficou otima, obrigada!',
     rew: { rp: 30, pot: 1 },
   },
   maria: {

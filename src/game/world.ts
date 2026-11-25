@@ -12,7 +12,6 @@ import {
   VILLAGES,
 } from './constants';
 import { DominicKind, EnemyKind, HeroState, Npc, NpcKind, ProgressState, WorldData } from './types';
-import { applyRoomPhysics } from './roomPhysics';
 
 export const hs = (a: number, b: number): number => ((a * 73856093) ^ (b * 19349663)) >>> 0;
 export const rnd = (n: number): number => Math.floor(Math.random() * n);
@@ -104,9 +103,8 @@ export function createInitialProgress(): ProgressState {
 export function createInitialHero(): HeroState {
   return {
     map: 451,
-    // Deitado no centro da cama da imagem (x≈23–58, y≈73–100).
-    x: 30,
-    y: 76,
+    x: 20,
+    y: 14,
     dir: 2,
     hp: 6,
     rp: 40, // Starting pocket money for central village shops
@@ -163,18 +161,13 @@ function createRoom(
       // estante com livros, janela com cortinas, quadro, bandeira Hylian,
       // tapete verde com brasão, mesa com vaso de flores, baú do escudo,
       // fogão/chaminé (lareira) e planta no canto.
-      // Cama alinhada à imagem: lado esquerdo, linhas 4-6 (x≈23-58, y≈73-100).
-      m[4][1] = 'e';
-      m[4][2] = 'e';
-      m[5][1] = 'e';
-      m[5][2] = 'e';
-      m[6][1] = 'e';
-      m[6][2] = 'e';
+      m[1][1] = 'e';
+      m[1][2] = 'e';
       m[2][3] = 'v'; // mesinha de cabeceira + lâmpada
       m[1][6] = 'w'; // janela com cortinas verdes
       m[1][8] = 'z'; // mesa com vaso de flores
       m[2][8] = 'z';
-      m[8][7] = 'C'; // baú do Escudo de Madeira (centro inferior da imagem)
+      m[2][11] = 'C'; // baú do Escudo de Madeira
       m[1][13] = 'q'; // estante de livros
       m[2][13] = 'q';
       // Tapete verde central com brasão Hylian
@@ -185,8 +178,8 @@ function createRoom(
       m[7][1] = 'u'; // fogão / lareira com chaminé
       m[7][2] = 'u';
       m[7][13] = 'E'; // escada descendo para o 1o andar
-      // Vasos de planta nos cantos (o da esquerda sai da área da cama)
-      m[3][1] = 'v';
+      // Vasos de planta nos cantos
+      m[4][1] = 'v';
       m[4][13] = 'v';
     } else if (isShop) {
       // Grand Emporium Interior: wide counter, display racks, lanterns & crimson runner
@@ -217,7 +210,7 @@ function createRoom(
       const v =
         SPECIAL_HOUSE_NPCS[id] === 'ferreiro'
           ? 2
-          : SPECIAL_HOUSE_NPCS[id] === 'pai'
+          : SPECIAL_HOUSE_NPCS[id] === 'marta'
             ? 1
             : hs(id, 2) % 3;
       const layouts: Array<Array<[number, number, string]>> = [
@@ -277,10 +270,7 @@ function createRoom(
         m[7][13] = 'E'; // Escada para o quarto (2o andar)
       }
       if (id === 151) {
-        // Sua casa: escada no centro do topo e porta de saída à direita.
-        m[2][13] = 'F';
-        m[7][13] = 'D';
-        m[1][7] = 'E';
+        m[2][13] = 'E'; // Escada subindo para o quarto no 2o andar
       }
     }
   } else {
@@ -363,7 +353,7 @@ function createRoom(
     }
   }
 
-  if (id !== 451 && id !== 151) {
+  if (id !== 451) {
     m[8][7] = 'D';
   }
   if (o.fwd) m[1][7] = 'D';
@@ -372,23 +362,18 @@ function createRoom(
   world.neighbors[id] = {};
   world.npcs[id] = [];
   world.enemies[id] = o.en || [0, 0];
-  if (id === 451) {
-    // Volta da escada do quarto: desembarca ao lado da escada do 1o andar.
-    world.doors[id] = [{ x: 13, y: 7, to: 151, px: 112, py: 32 }];
-  } else if (id === 151) {
-    // Porta na direita (saída) e escada no centro do topo (2o andar).
-    world.doors[id] = [
-      { x: 13, y: 7, to: o.back || 'ret', px: 180, py: 112 },
-      { x: 7, y: 1, to: 451, px: 180, py: 112 },
-    ];
-  } else {
-    world.doors[id] = [{ x: 7, y: 8, to: o.back || 'ret', px: 112, py: 24 }];
+  world.doors[id] =
+    id === 451
+      ? [{ x: 13, y: 7, to: 151, px: 180, py: 42 }]
+      : [{ x: 7, y: 8, to: o.back || 'ret', px: 112, py: 24 }];
+  if (id === 151) {
+    world.doors[id].push({ x: 13, y: 2, to: 451, px: 180, py: 112 });
   }
-  if (o.fwd && id !== 151) {
+  if (o.fwd) {
     world.doors[id].push({ x: 7, y: 1, to: o.fwd, px: 112, py: 112 });
   }
-  if (!h || (id !== 451 && id !== 151)) {
-    // Stair to bedroom (2nd floor) for the other houses / dungeons
+  if (!h || id !== 451) {
+    // Stair to bedroom (2nd floor) for all houses
     world.doors[id].push({ x: 13, y: 7, to: 451, px: 180, py: 42 });
   }
 }
@@ -565,15 +550,6 @@ function genOverworldScreen(world: WorldData, sx: number, sy: number): void {
           s: HOUSE_LINES[hs(id, 1) % HOUSE_LINES.length],
         },
       ];
-      if (id === 151) {
-        // Pai sentado na cadeira da sala — fora da frente da escada.
-        const pai = world.npcs[id][0];
-        pai.x = 10;
-        pai.y = 5;
-        pai.c = '#b06a34';
-        pai.name = 'Pai';
-        pai.s = 'Filho, a escada esta livre. Descansa um pouco antes de subir!';
-      }
       if (id === 351) {
         // Curiosos ao redor da espada cravada no centro da casa.
         const around: Array<[number, number, string]> = [
@@ -810,9 +786,6 @@ export function buildWorld(): WorldData {
   createRoom(world, 260, false, rg(260), { fwd: 261, en: [4, 6] });
   createRoom(world, 261, false, rg(261), { back: 260, en: [1, 4] });
 
-  // Make the tile-map physics match the furniture in the room images.
-  applyRoomPhysics(world);
-
   return world;
 }
 
@@ -912,8 +885,6 @@ export function loadSavedGame(): {
     if (world.maps[151]?.[2]) {
       world.maps[151][2][13] = 'E';
     }
-    // Older saves had the pre-image tile layouts — realign their physics too.
-    applyRoomPhysics(world);
     if (world.maps[4] && world.maps[4][2] && world.maps[4][2][7] === 'D') {
       world.doors[4].push({ x: 7, y: 2, to: 260, px: 112, py: 112 });
     }
