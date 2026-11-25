@@ -2851,6 +2851,198 @@ function drawBedroomDecor(
   }
 }
 
+/**
+ * Interior decoration for houses and shops, following the pixel-art refs.
+ * Three layouts:
+ *  - hero's ground floor (151): stone fireplace, blue curtains, clock,
+ *    beige sofa on a red rug, dining table, stairs, sideboard/oven.
+ *  - other houses: cosier version with a fireplace, sofa, table and plants.
+ *  - shops (135/335/136): potion shelf, sword rack, shields, armour, counter,
+ *    merchant's wares and a red carpet.
+ * Drawn over the base tiles but before characters, so the hero stays on top.
+ */
+function drawHouseDecor(
+  g: CanvasRenderingContext2D,
+  t: number,
+  world: WorldData,
+  M_: number,
+): void {
+  const m = world.maps[M_];
+  if (!m) return;
+  const shop = M_ === 135 || M_ === 335 || M_ === 136;
+  const heroHome = M_ === 151;
+  const open = (a: number, b: number) => {
+    const ch = m[b]?.[a];
+    return ch !== 'D' && ch !== 'E' && ch !== 'C' && ch !== 'S';
+  };
+
+  // ── Shared: warm wood wainscot along the top wall ────────────────────────
+  R(g, '#8a5f2e', 16, 1, 208, 2);
+  R(g, '#b5834a', 16, 3, 208, 1);
+
+  if (shop) {
+    // ── Shops: stone back wall, merchant counter, potion shelf ─────────────
+    R(g, '#8a8878', 16, 4, 208, 34);
+    R(g, '#a6a498', 16, 5, 208, 30);
+    // Hanging banners
+    for (const bx of [22, 206]) {
+      R(g, '#8a1c18', bx, 6, 10, 22);
+      R(g, '#c0392b', bx + 1, 7, 8, 20);
+      R(g, '#ffd84a', bx + 4, 10, 2, 2);
+      R(g, '#ffd84a', bx + 3, 12, 2, 2);
+      R(g, '#ffd84a', bx + 5, 12, 2, 2);
+    }
+    // Potion shelf (top-left)
+    R(g, '#6b3f1d', 24, 8, 52, 26);
+    R(g, '#a8743a', 25, 9, 50, 24);
+    R(g, '#2a1608', 25, 18, 50, 2);
+    const potionCols = ['#c0392b', '#27ae60', '#8e44ad', '#2e86c1', '#f1c40f'];
+    for (let i = 0; i < 5; i++) {
+      const px = 28 + i * 10;
+      R(g, '#1e5c36', px, 11, 5, 6);
+      R(g, potionCols[i], px + 1, 12, 3, 4);
+      R(g, '#1e5c36', px, 21, 5, 6);
+      R(g, potionCols[(i + 2) % 5], px + 1, 22, 3, 4);
+    }
+    // Sword rack (top-centre)
+    R(g, '#6b3f1d', 84, 8, 48, 16);
+    for (let i = 0; i < 4; i++) {
+      const sx = 88 + i * 11;
+      R(g, '#dff0ff', sx, 9, 2, 12);
+      R(g, '#8fa8d8', sx + 1, 9, 1, 12);
+      R(g, '#6b3f1d', sx - 1, 20, 4, 2);
+    }
+    // Pair of shields (top-right)
+    for (const [sx, sc] of [[140, '#2e86c1'], [162, '#c0392b']] as const) {
+      R(g, '#2a1608', sx, 8, 18, 20);
+      R(g, '#c8a83c', sx + 1, 9, 16, 18);
+      R(g, sc, sx + 3, 11, 12, 14);
+      R(g, '#ffd84a', sx + 8, 12, 2, 4);
+      R(g, '#ffd84a', sx + 7, 15, 4, 2);
+    }
+    // Merchant's counter with a coin and a ledger
+    R(g, '#2a1608', 100, 44, 92, 28);
+    R(g, '#c98b3c', 101, 45, 90, 8);
+    R(g, '#a8743a', 101, 53, 90, 18);
+    R(g, '#c0392b', 142, 53, 28, 18);
+    R(g, '#ffd84a', 150, 47, 4, 4);
+    R(g, '#f5e4b8', 166, 46, 10, 6);
+    // Red carpet centre
+    R(g, '#8a1c18', 92, 78, 108, 44);
+    R(g, '#c0392b', 94, 80, 104, 40);
+    R(g, '#ffd84a', 96, 82, 100, 1);
+    R(g, '#ffd84a', 96, 117, 100, 1);
+    // Wares on the lower shelf / crates
+    R(g, '#6b3f1d', 18, 84, 62, 20);
+    R(g, '#c8a870', 19, 85, 60, 18);
+    for (let i = 0; i < 3; i++) {
+      const wx = 24 + i * 18;
+      R(g, '#dff0ff', wx, 88, 2, 12);
+      R(g, '#a8743a', wx - 2, 99, 6, 2);
+    }
+    // Armour display (right)
+    R(g, '#6b3f1d', 172, 72, 50, 32);
+    R(g, '#a8743a', 173, 73, 48, 30);
+    R(g, '#8a93a8', 178, 76, 12, 12);
+    R(g, '#c8a83c', 198, 76, 12, 12);
+    R(g, '#2a1608', 178, 76, 12, 12);
+    R(g, '#2a1608', 198, 76, 12, 12);
+    R(g, '#8a93a8', 178, 92, 12, 8);
+    R(g, '#2e86c1', 198, 92, 12, 8);
+    // Treasure chest bottom-right
+    if (open(12, 8)) {
+      const cx = 12 * T;
+      const cy = 8 * T;
+      R(g, '#2a1608', cx, cy, T, T);
+      R(g, '#a8743a', cx + 1, cy + 2, 14, 12);
+      R(g, '#c98b3c', cx + 1, cy + 2, 14, 5);
+      R(g, '#ffd84a', cx + 5, cy + 7, 6, 5);
+    }
+    // Lanterns flanking the entrance
+    for (const lx of [92, 140]) {
+      R(g, '#6b3f1d', lx, 136, 4, 12);
+      R(g, '#ffd84a', lx - 2, 138, 8, 6);
+      R(g, '#fff4a8', lx, 139, 4, 4);
+    }
+  } else {
+    // ── Houses: stone fireplace, sofa, table, stairs, curtains ─────────────
+    // Stone chimney / fireplace (top-left)
+    R(g, '#48485a', 22, -4, 44, 46);
+    R(g, '#6c6c80', 24, -2, 40, 42);
+    R(g, '#a6a6be', 22, -4, 44, 4);
+    R(g, '#222230', 30, 8, 28, 26);
+    const fl = (t >> 3) & 1;
+    R(g, '#ff6a1a', 34, 16 + fl, 20, 18 - fl);
+    R(g, '#ffe98a', 39, 22, 10, 12);
+    R(g, '#3a2a1a', 30, 30, 28, 4);
+    // Triforce plaque on the mantle
+    R(g, '#ffd84a', 40, 2, 3, 3);
+    R(g, '#ffd84a', 38, 5, 3, 3);
+    R(g, '#ffd84a', 42, 5, 3, 3);
+    // Wall clock (far left)
+    R(g, '#6b3f1d', 16, 8, 12, 14);
+    R(g, '#f5e4b8', 18, 10, 8, 10);
+    R(g, '#2a1608', 21, 12, 1, 5);
+    R(g, '#2a1608', 21, 14, 3, 1);
+    // Blue curtains on the window tile
+    if (open(4, 1) || m[1]?.[4] === 'w') {
+      R(g, '#1e3f8a', 4 * T, 2, 4, 12);
+      R(g, '#2e6ac0', 4 * T + 1, 3, 2, 10);
+      R(g, '#1e3f8a', 4 * T + 12, 2, 4, 12);
+      R(g, '#2e6ac0', 4 * T + 13, 3, 2, 10);
+    }
+    // Green rug + beige sofa (centre-left)
+    R(g, '#8a1c18', 18, 66, 96, 56);
+    R(g, '#c0392b', 20, 68, 92, 52);
+    R(g, '#ffd84a', 22, 70, 88, 1);
+    R(g, '#ffd84a', 22, 118, 88, 1);
+    R(g, '#8a5f2e', 28, 60, 62, 26);
+    R(g, '#c8a870', 30, 62, 58, 20);
+    R(g, '#e0c890', 30, 62, 58, 6);
+    // Green sofa cushions
+    R(g, '#1e7a44', 30, 70, 58, 12);
+    R(g, '#2a9c58', 32, 72, 26, 8);
+    R(g, '#2a9c58', 60, 72, 26, 8);
+    // Coffee table with a plant
+    R(g, '#6b3f1d', 40, 96, 36, 18);
+    R(g, '#a8743a', 41, 97, 34, 16);
+    R(g, '#2a9c58', 54, 99, 8, 6);
+    R(g, '#8a4a2a', 54, 104, 8, 4);
+    // Dining table with flower pot (centre-right)
+    R(g, '#6b3f1d', 130, 84, 58, 30);
+    R(g, '#c8a870', 132, 86, 54, 26);
+    R(g, '#fff', 154, 92, 8, 8);
+    R(g, '#2a9c58', 157, 94, 2, 6);
+    R(g, '#ffd84a', 157, 94, 1, 1);
+    // Green rug under the dining table
+    R(g, '#1e5c36', 126, 80, 66, 38);
+    R(g, '#2a9c58', 128, 82, 62, 34);
+    R(g, '#c8a83c', 128, 82, 62, 1);
+    R(g, '#c8a83c', 128, 115, 62, 1);
+    // Sideboard with lamp + stove (right)
+    R(g, '#6b3f1d', 186, 62, 30, 24);
+    R(g, '#c8a870', 187, 63, 28, 22);
+    R(g, '#ffd84a', 196, 66, 10, 8);
+    R(g, '#fff4a8', 198, 68, 6, 5);
+    R(g, '#48485a', 190, 92, 24, 28);
+    R(g, '#222230', 194, 100, 16, 16);
+    R(g, '#ff6a1a', 196, 104 + fl, 12, 12 - fl);
+    // Potted plants in the corners
+    for (const [px, py] of [[20, 112], [204, 130]] as const) {
+      R(g, '#8a4a2a', px, py, 10, 8);
+      R(g, '#2a9c58', px + 2, py - 8, 6, 8);
+      R(g, '#27ae60', px, py - 6, 4, 5);
+    }
+    // Staircase to the upper floor (right, when present)
+    if (heroHome || m.some((row) => row.includes('E'))) {
+      for (let i = 0; i < 5; i++) {
+        R(g, '#6b3f1d', 148 + i * 4, 34 - i * 5, 4, 5 + i * 5);
+        R(g, '#a8743a', 148 + i * 4, 34 - i * 5, 3, 4 + i * 5);
+      }
+    }
+  }
+}
+
 export function drawGame(
   g: CanvasRenderingContext2D,
   world: WorldData,
@@ -2874,6 +3066,7 @@ export function drawGame(
     }
   }
   if (G.map === 451) drawBedroomDecor(g, t, world);
+  else if (isHouse(G.map)) drawHouseDecor(g, t, world, G.map);
 
   const drawables: Array<[number, () => void]> = [];
   for (const n of world.npcs[G.map] || []) {
