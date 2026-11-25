@@ -38,6 +38,37 @@ import { drawInvItem, INV_SLOT_COUNT, invItemStateFromProgress, invItemTag } fro
 
 export type Star = [number, number, number];
 
+/**
+ * Rooms that use the reference pixel-art image as their backdrop. The tile
+ * map is still in place underneath — it keeps all collision, doors, NPCs,
+ * chests and interactions exactly as before; only the visual layer changes.
+ */
+const ROOM_IMAGES: Record<number, string> = {
+  151: '/rooms/hero_house.png', // hero's ground floor (parte de baixo)
+  135: '/rooms/shop.png',
+  335: '/rooms/shop.png',
+  136: '/rooms/shop.png',
+  451: '/rooms/hero_bedroom.png', // second-floor bedroom
+};
+
+const roomImageCache = new Map<string, HTMLImageElement | null>();
+
+function getRoomImage(src: string): HTMLImageElement | null {
+  if (typeof document === 'undefined' || typeof Image === 'undefined') return null;
+  if (!roomImageCache.has(src)) {
+    const img = new Image();
+    img.src = src;
+    roomImageCache.set(src, img);
+  }
+  const img = roomImageCache.get(src) ?? null;
+  return img && img.complete && img.naturalWidth > 0 ? img : null;
+}
+
+/** Generic houses (not the hero's, not shops) share the cosy-living-room art. */
+function roomImageFor(map: number): string | null {
+  return ROOM_IMAGES[map] ?? (map >= 100 && map < 500 && map !== 451 ? '/rooms/house_generic.png' : null);
+}
+
 // Cached offscreen lightmap canvas for smooth professional dynamic lighting
 let lightCanvas: HTMLCanvasElement | null = null;
 let lightCtx: CanvasRenderingContext2D | null = null;
@@ -3060,13 +3091,33 @@ export function drawGame(
 ): void {
   const { nightFactor } = getCycleInfo(worldTime);
   const m = world.maps[G.map];
-  for (let y = 0; y < 10; y++) {
-    for (let x = 0; x < 15; x++) {
-      drawTile(g, world, V, G, t, m[y][x], x, y, weather, nightFactor);
+  const roomSrc = roomImageFor(G.map);
+  const roomImg = roomSrc ? getRoomImage(roomSrc) : null;
+
+  if (roomImg) {
+    // Pixel-art reference image is the visual backdrop. The tile map below it
+    // is untouched: collision, doors, NPCs, chests and triggers all still work.
+    g.imageSmoothingEnabled = false;
+    g.drawImage(roomImg, 0, 0, W, H);
+    // Only interactive props are painted on top of the backdrop, so the hero
+    // can still see and use the sword-in-stone, chests and gates.
+    for (let y = 0; y < 10; y++) {
+      for (let x = 0; x < 15; x++) {
+        const ch = m[y][x];
+        if (ch === 'S' || ch === 'C' || ch === 'c' || ch === 'G' || ch === 'g') {
+          drawTile(g, world, V, G, t, ch, x, y, weather, nightFactor);
+        }
+      }
     }
+  } else {
+    for (let y = 0; y < 10; y++) {
+      for (let x = 0; x < 15; x++) {
+        drawTile(g, world, V, G, t, m[y][x], x, y, weather, nightFactor);
+      }
+    }
+    if (G.map === 451) drawBedroomDecor(g, t, world);
+    else if (isHouse(G.map)) drawHouseDecor(g, t, world, G.map);
   }
-  if (G.map === 451) drawBedroomDecor(g, t, world);
-  else if (isHouse(G.map)) drawHouseDecor(g, t, world, G.map);
 
   const drawables: Array<[number, () => void]> = [];
   for (const n of world.npcs[G.map] || []) {
