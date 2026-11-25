@@ -3,6 +3,7 @@ export type TrackName =
   | 'prologue'
   | 'awakening'
   | 'ezlo'
+  | 'cyclops'
   | 'menu'
   | 'field'
   | 'calm'
@@ -32,6 +33,7 @@ const TRACK_FILES: Partial<Record<Exclude<TrackName, ''>, string>> = {
   prologue: '/music/prologue.mp3',
   awakening: '/music/awakening.mp3',
   ezlo: '/music/ezlo.mp3',
+  cyclops: '/music/cyclops.mp3',
 };
 
 const TRACKS: Partial<Record<Exclude<TrackName, ''>, TrackDef>> = {

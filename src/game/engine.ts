@@ -15,6 +15,7 @@ import {
   SHIELD_STATS,
   SHOPS,
   SOLID_TILES,
+  STORY_INTERLUDE_AT,
   STORY_PAGES,
   STORY_TONES,
   SWORD_STATS,
@@ -2348,6 +2349,9 @@ export class GameEngine {
     const beforeName =
       this.st === 'intro' || this.st === 'menu' || this.st === 'name' || this.st === 'help';
     if (beforeName) return 'prologue';
+
+    // The text-less Cyclops interlude (story page 5) gets its own track.
+    if (this.st === 'story' && this.pg === STORY_INTERLUDE_AT) return 'cyclops';
 
     const pastName = this.st === 'story' || this.st === 'game' || this.st === 'inv' || this.st === 'shop';
     if (pastName && !this.V.sword) {
