@@ -4,6 +4,9 @@ import {
   DAY_CYCLE_FRAMES,
   DX,
   DY,
+  FATHER_INTRO_FLAG,
+  FATHER_INTRO_LINE,
+  FATHER_TILE,
   FONT,
   H,
   INTRO_FADE_FRAMES,
@@ -642,6 +645,30 @@ export class GameEngine {
         }
       }
     }
+  }
+
+  /** Ao passar pelo pai na sala 151, ele interrompe o herói e conta sobre a espada. */
+  private updateFatherIntro(): void {
+    if (
+      this.G.map !== 151 ||
+      this.G.dlg ||
+      this.G.sw ||
+      this.G.sleeping ||
+      this.V.fl[FATHER_INTRO_FLAG]
+    ) {
+      return;
+    }
+    const father = (this.world.npcs[151] || []).find((n) => n.name === 'Pai');
+    if (!father) return;
+    const fx = FATHER_TILE.x * 16 + 8;
+    const fy = FATHER_TILE.y * 16 + 8;
+    if (Math.hypot(this.G.x + 8 - fx, this.G.y + 8 - fy) >= 24) return;
+
+    this.V.fl[FATHER_INTRO_FLAG] = 1;
+    this.G.sw = 0;
+    this.G.shielding = false;
+    this.audio.bp(700, 0.05);
+    this.talkChain([FATHER_INTRO_LINE]);
   }
 
   private spawn(): void {
@@ -1764,19 +1791,19 @@ export class GameEngine {
         }
         if (this.G.wakeTimer <= 25 && this.G.wakeTimer > 0) {
           const tJump = (25 - this.G.wakeTimer) / 25;
-          // Acorda na cama da imagem (linha 5, coluna 1) e salta para o lado.
+          // Acorda na cama da imagem (linha 4, coluna 1) e salta para o lado.
           this.G.x = 20 + (52 - 20) * tJump;
-          this.G.y = 78 + (98 - 78) * tJump;
+          this.G.y = 62 + (82 - 62) * tJump;
         }
         if (this.G.wakeTimer <= 0) {
           this.G.sleeping = false;
           this.G.wakeTimer = 0;
           this.G.x = 52;
-          this.G.y = 98;
+          this.G.y = 82;
           this.G.dir = 2;
           this.fixPos();
           this.audio.bp(260, 0.06, 'triangle');
-          this.burst(58, 106, '#f4e7c8', false, 5);
+          this.burst(58, 90, '#f4e7c8', false, 5);
           this.V.msg = 'BOM DIA! BOA AVENTURA!';
           this.V.mt = 80;
         }
@@ -1784,6 +1811,7 @@ export class GameEngine {
       return;
     }
 
+    this.updateFatherIntro();
     this.updateSwordCrowd();
 
     // Outfit color cycling (press 'B' to change)

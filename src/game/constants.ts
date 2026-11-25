@@ -83,11 +83,17 @@ export const BONUS_CAVES: Record<string, number> = {
 };
 
 export const SPECIAL_HOUSE_NPCS: Record<number, string> = {
-  151: 'marta',
+  151: 'pai',
   351: 'maria',
   122: 'ferreiro',
   117: 'crianca',
 };
+
+/** O pai espera ao lado da porta da sala 151 (tile da saída: [7][13]). */
+export const FATHER_TILE = { x: 12, y: 7 } as const;
+export const FATHER_INTRO_FLAG = 'pai_intro';
+export const FATHER_INTRO_LINE =
+  'Pai: Filho, vá atrás da espada na casa ao lado. Só assim a tempestade irá parar e a sua aventura poderá começar.';
 
 export const SWORD_STATS: Record<SwordTier, { name: string; dmg: number; blade: string; edge: string }> = {
   none: { name: 'SEM ESPADA', dmg: 0, blade: '#888', edge: '#555' },

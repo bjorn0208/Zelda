@@ -3,6 +3,8 @@ import {
   BONUS_CAVES,
   CAVES,
   COMMON_LINES,
+  FATHER_INTRO_LINE,
+  FATHER_TILE,
   FLOOR_TILES,
   HOUSE_LINES,
   HPT,
@@ -105,7 +107,7 @@ export function createInitialHero(): HeroState {
   return {
     map: 451,
     x: 20,
-    y: 78,
+    y: 62,
     dir: 2,
     hp: 6,
     rp: 40, // Starting pocket money for central village shops
@@ -162,13 +164,13 @@ function createRoom(
       // estante com livros, janela com cortinas, quadro, bandeira Hylian,
       // tapete verde com brasão, mesa com vaso de flores, baú do escudo,
       // fogão/chaminé (lareira) e planta no canto.
-      // Cama alinhada à imagem: lado esquerdo, linhas 4-6.
+      // Cama alinhada à imagem: lado esquerdo, linhas 3-5 (uma linha acima).
+      m[3][1] = 'e';
+      m[3][2] = 'e';
       m[4][1] = 'e';
       m[4][2] = 'e';
       m[5][1] = 'e';
       m[5][2] = 'e';
-      m[6][1] = 'e';
-      m[6][2] = 'e';
       m[2][3] = 'v'; // mesinha de cabeceira + lâmpada
       m[1][6] = 'w'; // janela com cortinas verdes
       m[1][8] = 'z'; // mesa com vaso de flores
@@ -184,8 +186,8 @@ function createRoom(
       m[7][1] = 'u'; // fogão / lareira com chaminé
       m[7][2] = 'u';
       m[7][13] = 'E'; // escada descendo para o 1o andar
-      // Vasos de planta nos cantos (o da esquerda sai da área da cama)
-      m[3][1] = 'v';
+      // Vasos de planta nos cantos (o da esquerda fica abaixo da cama)
+      m[6][1] = 'v';
       m[4][13] = 'v';
     } else if (isShop) {
       // Grand Emporium Interior: wide counter, display racks, lanterns & crimson runner
@@ -216,7 +218,7 @@ function createRoom(
       const v =
         SPECIAL_HOUSE_NPCS[id] === 'ferreiro'
           ? 2
-          : SPECIAL_HOUSE_NPCS[id] === 'marta'
+          : SPECIAL_HOUSE_NPCS[id] === 'marta' || SPECIAL_HOUSE_NPCS[id] === 'pai'
             ? 1
             : hs(id, 2) % 3;
       const layouts: Array<Array<[number, number, string]>> = [
@@ -564,6 +566,21 @@ function genOverworldScreen(world: WorldData, sx: number, sy: number): void {
           s: HOUSE_LINES[hs(id, 1) % HOUSE_LINES.length],
         },
       ];
+      if (id === 151) {
+        // O pai fica ao lado da porta de saída, fora da escada central.
+        world.npcs[id] = [
+          {
+            x: FATHER_TILE.x,
+            y: FATHER_TILE.y,
+            c: '#b06a34',
+            kind: 'elder',
+            name: 'Pai',
+            heal: 1,
+            q: SPECIAL_HOUSE_NPCS[id],
+            s: FATHER_INTRO_LINE,
+          },
+        ];
+      }
       if (id === 351) {
         // Curiosos ao redor da espada cravada no centro da casa.
         const around: Array<[number, number, string]> = [
