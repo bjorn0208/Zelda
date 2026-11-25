@@ -173,43 +173,50 @@ export class RetroAudio {
   private fileEl: HTMLAudioElement | null = null;
   private fileSrc = '';
   private fileTrk: TrackName = '';
-  private fileBlocked = false;
+  // Browsers refuse audible autoplay until a user gesture. We still start the
+  // track immediately (muted) so it is already playing when the game opens;
+  // the first gesture anywhere unmutes it without restarting the song.
+  private fileWaitingGesture = false;
 
   /** Best-effort play of a streamed track; never throws into the game loop. */
   private playTrackFile(wanted: TrackName, src: string): void {
     if (typeof document === 'undefined' || typeof Audio === 'undefined') return;
     try {
-      if (!this.fileEl) {
-        const el = new Audio(src);
-        el.loop = true;
-        el.preload = 'auto';
-        el.volume = 0.55;
-        this.fileEl = el;
+      if (!this.fileEl || this.fileSrc !== src) {
+        if (this.fileEl) {
+          // Different track: swap the source in place, keeping one element alive.
+          this.fileEl.pause();
+          this.fileEl.src = src;
+          this.fileEl.load();
+        } else {
+          this.fileEl = new Audio(src);
+          this.fileEl.loop = true;
+          this.fileEl.preload = 'auto';
+          this.fileEl.volume = 0.55;
+        }
         this.fileSrc = src;
         this.fileTrk = wanted;
-        this.fileBlocked = false;
-      } else if (this.fileSrc !== src) {
-        // Different track: swap the source in place, keeping one element alive.
-        this.fileEl.pause();
-        this.fileEl.src = src;
-        this.fileEl.load();
-        this.fileSrc = src;
-        this.fileTrk = wanted;
-        this.fileBlocked = false;
+        this.fileWaitingGesture = false;
       }
       const el = this.fileEl;
-      if (this.mute || this.fileBlocked || !el) return;
+      if (!el) return;
+      // Mute on open (autoplay policy) or when the player hit the mute button.
+      el.muted = this.mute || this.fileWaitingGesture;
       if (el.paused) {
         const p = el.play();
         if (p && typeof p.catch === 'function') {
           p.catch(() => {
-            // Autoplay policy: wait for the next unlock() gesture to retry.
-            this.fileBlocked = true;
+            // Audible autoplay was refused: fall back to muted playback so the
+            // track still starts now. unlock() flips it back on first gesture.
+            this.fileWaitingGesture = true;
+            el.muted = true;
+            const mutedPlay = el.play();
+            if (mutedPlay && typeof mutedPlay.catch === 'function') mutedPlay.catch(() => undefined);
           });
         }
       }
     } catch {
-      this.fileBlocked = true;
+      this.fileWaitingGesture = true;
     }
   }
 
@@ -238,16 +245,25 @@ export class RetroAudio {
   public unlock(): void {
     try {
       this.ensureContext();
-      // A blocked autoplay can only be cleared by a user gesture.
-      if (this.fileBlocked) this.fileBlocked = false;
     } catch {
       // Ignore audio lock failures prior to user interaction
+    }
+    // First gesture: drop the muted-autoplay fallback and unmute in place.
+    if (this.fileWaitingGesture) {
+      this.fileWaitingGesture = false;
+      if (this.fileEl) {
+        this.fileEl.muted = this.mute;
+        if (this.fileEl.paused) {
+          const p = this.fileEl.play();
+          if (p && typeof p.catch === 'function') p.catch(() => undefined);
+        }
+      }
     }
   }
 
   public toggleMute(): boolean {
     this.mute = !this.mute;
-    if (this.mute) this.stopTrackFile();
+    if (this.fileEl) this.fileEl.muted = this.mute || this.fileWaitingGesture;
     this.updateRainGain(this.mute ? 0 : this.currentRainLevel);
     return this.mute;
   }

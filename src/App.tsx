@@ -796,9 +796,20 @@ export default function App() {
     window.addEventListener('keydown', onKeyDown);
     window.addEventListener('keyup', onKeyUp);
 
+    // The browser blocks audible autoplay until the player interacts with the
+    // page. Any first gesture anywhere (including the logo or the name field)
+    // must unlock the already-playing music — not just the canvas/stick.
+    const unlockAudio = () => engineRef.current?.audio.unlock();
+    window.addEventListener('pointerdown', unlockAudio, true);
+    window.addEventListener('touchstart', unlockAudio, true);
+    window.addEventListener('keydown', unlockAudio, true);
+
     return () => {
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);
+      window.removeEventListener('pointerdown', unlockAudio, true);
+      window.removeEventListener('touchstart', unlockAudio, true);
+      window.removeEventListener('keydown', unlockAudio, true);
       engine.destroy();
       engineRef.current = null;
     };
