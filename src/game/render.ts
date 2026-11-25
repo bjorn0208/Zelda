@@ -45,8 +45,12 @@ export type Star = [number, number, number];
  * tile map still provides all collision, doors, bed, stairs and chest logic.
  */
 const HOUSE_IMAGE = '/rooms/hero_house.png';
+const SHOP_IMAGE = '/rooms/shop_interior.png';
 const ROOM_IMAGES: Record<number, string> = {
+  135: SHOP_IMAGE, // Mercado Central
+  136: SHOP_IMAGE, // Alfaiataria
   151: HOUSE_IMAGE,
+  335: SHOP_IMAGE, // Forja Real
   451: '/rooms/hero_bedroom.png',
 };
 
@@ -67,7 +71,7 @@ function roomImageFor(map: number): string | null {
   if (ROOM_IMAGES[map]) return ROOM_IMAGES[map];
   // Todas as casas usam o mesmo interior da referência; 451 é o quarto e
   // 301 é a sala angelical (desenhada por tiles, não é uma casa).
-  if (isHouse(map) && map !== 451 && map !== 301) return HOUSE_IMAGE;
+  if (isHouse(map) && map !== 451 && map !== 301 && !ROOM_IMAGES[map]) return HOUSE_IMAGE;
   return null;
 }
 
