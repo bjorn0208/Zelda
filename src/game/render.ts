@@ -99,8 +99,8 @@ function updateGameCamera(G: HeroState, roomImg: HTMLImageElement | null): GameC
   // The reference room PNGs have their own HUD frame baked into the edges.
   // Image-backed interiors keep the camera inside that frame so the duplicated
   // border never peeks in; tile-drawn maps can use the full world rectangle.
-  const edgeX = roomImg ? 8 : 0;
-  const edgeY = roomImg ? 12 : 0;
+  const edgeX = roomImg && GAME_ZOOM > 1 ? 8 : 0;
+  const edgeY = roomImg && GAME_ZOOM > 1 ? 12 : 0;
   const minX = edgeX + halfW;
   const maxX = W - edgeX - halfW;
   const minY = edgeY + halfH;
