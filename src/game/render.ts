@@ -2725,6 +2725,132 @@ function drawBedroomDust(g: CanvasRenderingContext2D, t: number, dust: DustMote[
   g.restore();
 }
 
+/**
+ * Bedroom decoration for map 451, matching the pixel-art reference:
+ * Hylian crest shield on the wall, castle painting, green Triforce banner,
+ * green curtains, the big green rug with a golden crest, a bedside lamp,
+ * flowers on the table and the wood stove. Drawn after the base tiles but
+ * before characters, so the hero always stays on top.
+ */
+function drawBedroomDecor(
+  g: CanvasRenderingContext2D,
+  t: number,
+  world: WorldData,
+): void {
+  const wall = world.maps[451];
+  if (!wall) return;
+  // A tile was opened by the hero (chest / stairs): don't paint over it.
+  const isOpen = (a: number, b: number) => wall[b]?.[a] !== 'C' && wall[b]?.[a] !== 'E';
+
+  // ── Wall hanging: Hylian shield crest (left of the window) ────────────────
+  if (isOpen(4, 1)) {
+    const x = 4 * T;
+    const y = 0 * T;
+    R(g, '#00000030', x + 3, y + 4, 11, 13);
+    R(g, '#6b3f1d', x + 3, y + 1, 10, 13);
+    R(g, '#c8a83c', x + 4, y + 2, 8, 11);
+    R(g, '#1f3f8a', x + 5, y + 3, 6, 9);
+    R(g, '#c0392b', x + 5, y + 8, 6, 4);
+    // Triforce in gold
+    R(g, '#ffd84a', x + 7, y + 3, 2, 2);
+    R(g, '#ffd84a', x + 6, y + 5, 2, 2);
+    R(g, '#ffd84a', x + 8, y + 5, 2, 2);
+    R(g, '#fff4a8', x + 7, y + 3, 1, 1);
+  }
+
+  // ── Royal painting (castle) above the table ──────────────────────────────
+  if (isOpen(10, 1)) {
+    const x = 10 * T;
+    const y = 0 * T;
+    R(g, '#6b3f1d', x + 1, y + 2, 14, 11);
+    R(g, '#c8a83c', x + 2, y + 3, 12, 9);
+    R(g, '#8fd0ff', x + 3, y + 4, 10, 7);
+    R(g, '#ffffff66', x + 3, y + 4, 4, 2);
+    // castle silhouette
+    R(g, '#5a5488', x + 6, y + 6, 4, 5);
+    R(g, '#3a345a', x + 5, y + 5, 2, 6);
+    R(g, '#3a345a', x + 9, y + 5, 2, 6);
+    R(g, '#8a5f2e', x + 4, y + 9, 8, 2);
+  }
+
+  // ── Green Triforce banner (top right) ────────────────────────────────────
+  if (isOpen(13, 1)) {
+    const x = 13 * T;
+    const y = 0 * T;
+    R(g, '#6b3f1d', x + 1, y + 1, 14, 2);
+    R(g, '#1e7a44', x + 2, y + 3, 12, 12);
+    R(g, '#2a9c58', x + 3, y + 4, 10, 10);
+    R(g, '#ffd84a', x + 7, y + 4, 2, 2);
+    R(g, '#ffd84a', x + 6, y + 6, 2, 2);
+    R(g, '#ffd84a', x + 8, y + 6, 2, 2);
+    R(g, '#c8a83c', x + 2, y + 13, 12, 2);
+  }
+
+  // ── Green curtains around the window (tile [1][6]) ──────────────────────
+  if (wall[1]?.[6] === 'w') {
+    const x = 6 * T;
+    const y = 0 * T;
+    R(g, '#6b3f1d', x, y + 1, T, 1);
+    R(g, '#1e7a44', x, y + 2, 4, 12);
+    R(g, '#2a9c58', x + 1, y + 3, 2, 10);
+    R(g, '#1e7a44', x + 12, y + 2, 4, 12);
+    R(g, '#2a9c58', x + 13, y + 3, 2, 10);
+    R(g, '#c8a83c', x + 12, y + 12, 4, 1);
+    R(g, '#c8a83c', x, y + 12, 4, 1);
+  }
+
+  // ── Big green rug with a golden Hylian crest ─────────────────────────────
+  const rug = (x: number, y: number) => {
+    R(g, '#1e5c36', x, y, T, T);
+    R(g, '#2a9c58', x + 1, y + 1, 14, 14);
+    R(g, '#c8a83c', x + 1, y + 1, 14, 1);
+    R(g, '#c8a83c', x + 1, y + 14, 14, 1);
+    R(g, '#c8a83c', x + 1, y + 1, 1, 14);
+    R(g, '#c8a83c', x + 14, y + 1, 1, 14);
+  };
+  for (let b = 5; b < 8; b++) {
+    for (let a = 5; a < 11; a++) rug(a * T, b * T);
+  }
+  // Golden Hylian crest on the central tile [8][6]
+  const cx = 8 * T;
+  const cy = 6 * T;
+  R(g, '#c8a83c', cx + 5, cy + 2, 6, 3);
+  R(g, '#c8a83c', cx + 3, cy + 5, 10, 2);
+  R(g, '#c8a83c', cx + 1, cy + 7, 14, 3);
+  R(g, '#c8a83c', cx + 3, cy + 10, 10, 2);
+  R(g, '#c8a83c', cx + 7, cy + 7, 2, 5);
+  R(g, '#ffd84a', cx + 6, cy + 3, 4, 1);
+  R(g, '#ffd84a', cx + 2, cy + 8, 12, 1);
+  R(g, '#1e5c36', cx + 7, cy + 7, 2, 2);
+
+  // ── Bedside lamp on the little table at [3][2] ───────────────────────────
+  if (wall[2]?.[3] === 'v') {
+    const x = 3 * T;
+    const y = 2 * T;
+    R(g, '#6b3f1d', x + 2, y + 7, 12, 7);
+    R(g, '#c98b3c', x + 3, y + 8, 10, 2);
+    R(g, '#ffd84a', x + 5, y + 3, 6, 5);
+    R(g, '#fff4a8', x + 6, y + 4, 4, 3);
+    R(g, '#c8a83c', x + 7, y + 2, 2, 2);
+  }
+
+  // ── Flowers in the pot on the table [1][8]/[2][8] ────────────────────────
+  if (wall[1]?.[8] === 'z') {
+    const x = 8 * T;
+    const y = 1 * T;
+    R(g, '#8a4a2a', x + 5, y + 5, 6, 5);
+    R(g, '#c8794a', x + 6, y + 6, 4, 3);
+    const green = ((t >> 4) & 1) === 0 ? '#2a9c58' : '#27ae60';
+    R(g, green, x + 7, y + 2, 2, 5);
+    R(g, green, x + 5, y + 3, 2, 3);
+    R(g, green, x + 10, y + 3, 2, 3);
+    R(g, '#fff', x + 6, y + 1, 3, 3);
+    R(g, '#fff', x + 10, y + 2, 3, 3);
+    R(g, '#ffd84a', x + 7, y + 2, 1, 1);
+    R(g, '#ffd84a', x + 11, y + 3, 1, 1);
+  }
+}
+
 export function drawGame(
   g: CanvasRenderingContext2D,
   world: WorldData,
@@ -2747,6 +2873,7 @@ export function drawGame(
       drawTile(g, world, V, G, t, m[y][x], x, y, weather, nightFactor);
     }
   }
+  if (G.map === 451) drawBedroomDecor(g, t, world);
 
   const drawables: Array<[number, () => void]> = [];
   for (const n of world.npcs[G.map] || []) {

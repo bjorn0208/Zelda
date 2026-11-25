@@ -156,21 +156,31 @@ function createRoom(
     m[0][11] = 'w';
 
     if (id === 451) {
-      // 2nd Floor Bedroom: corner bed, TV + PS2 console, bookshelf, center rug with 'D', stairs down
+      // ── Quatro paredes, piso de madeira, decoração estilo Zelda (refs imgur) ──
+      // Cama (esquerda, 2 tiles largos), mesinha de cabeceira com lâmpada,
+      // estante com livros, janela com cortinas, quadro, bandeira Hylian,
+      // tapete verde com brasão, mesa com vaso de flores, baú do escudo,
+      // fogão/chaminé (lareira) e planta no canto.
       m[1][1] = 'e';
       m[1][2] = 'e';
-      m[1][7] = 'y'; // TV + video game estilo PS2
-      m[1][11] = 'q';
-      m[1][12] = 'q';
-      m[7][1] = 'v';
-      m[7][2] = 'z';
-      for (let y = 4; y < 7; y++) {
-        for (let x = 5; x < 10; x++) m[y][x] = 'r';
+      m[2][3] = 'v'; // mesinha de cabeceira + lâmpada
+      m[1][6] = 'w'; // janela com cortinas verdes
+      m[1][8] = 'z'; // mesa com vaso de flores
+      m[2][8] = 'z';
+      m[2][11] = 'C'; // baú do Escudo de Madeira
+      m[1][13] = 'q'; // estante de livros
+      m[2][13] = 'q';
+      // Tapete verde central com brasão Hylian
+      for (let y = 5; y < 8; y++) {
+        for (let x = 5; x < 11; x++) m[y][x] = 'r';
       }
-      m[5][7] = 'd'; // Tapete no meio com um 'D' no centro
-      m[7][13] = 'E'; // Escada descendo para o 1o andar
-      // Baú do quarto: guarda o Escudo de Madeira.
-      m[2][2] = 'C';
+      m[6][8] = 'd'; // brasão dourado no centro do tapete
+      m[7][1] = 'u'; // fogão / lareira com chaminé
+      m[7][2] = 'u';
+      m[7][13] = 'E'; // escada descendo para o 1o andar
+      // Vasos de planta nos cantos
+      m[4][1] = 'v';
+      m[4][13] = 'v';
     } else if (isShop) {
       // Grand Emporium Interior: wide counter, display racks, lanterns & crimson runner
       m[1][1] = 'q';
