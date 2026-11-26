@@ -113,6 +113,10 @@ export const FATHER_INTRO_FLAG = 'pai_intro';
 export const FATHER_INTRO_LINE =
   'Pai: Filho, vá ao centro da Vila Central, ao norte, e puxe a Espada Lendária cravada na praça. Só assim a tempestade irá parar e a sua aventura poderá começar.';
 
+/** Fala do ancião quando o herói ainda não tem a espada (com dublagem própria). */
+export const SWORD_HINT_LINE =
+  'Você precisa da Espada Lendária! Vá até a praça no centro da Vila Central e puxe a espada cravada no meio dela.';
+
 export const SWORD_STATS: Record<SwordTier, { name: string; dmg: number; blade: string; edge: string }> = {
   none: { name: 'SEM ESPADA', dmg: 0, blade: '#888', edge: '#555' },
   lendaria: { name: 'ESPADA LENDARIA', dmg: 1, blade: '#dff0ff', edge: '#8fa8d8' },

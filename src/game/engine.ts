@@ -21,6 +21,7 @@ import {
   STORY_INTERLUDE_AT,
   STORY_PAGES,
   STORY_TONES,
+  SWORD_HINT_LINE,
   SWORD_MAP,
   SWORD_STATS,
   SWORD_TILE,
@@ -1188,9 +1189,7 @@ export class GameEngine {
     const q = n.q ? QUESTS[n.q] : null;
     if (n.heal) this.G.hp = this.V.mh * 2;
     if (n.el && !this.V.sword) {
-      this.talk(
-        'Você precisa da Espada Lendária! Vá até a praça no centro da Vila Central e puxe a espada cravada no pedestal. Os três Dominics contam com você!',
-      );
+      this.talk(SWORD_HINT_LINE);
       return;
     }
     if (n.el) {

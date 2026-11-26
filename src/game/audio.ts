@@ -1,4 +1,4 @@
-import { FATHER_INTRO_LINE } from './constants';
+import { FATHER_INTRO_LINE, SWORD_HINT_LINE } from './constants';
 import type { DialogState } from './types';
 
 export type TrackName =
@@ -54,12 +54,13 @@ const TRACK_FILES: Partial<Record<Exclude<TrackName, ''>, string>> = {
 const MUSIC_VOLUME = 0.55;
 
 /**
- * Única fala de diálogo com gravação própria (SpeechGen). O texto completo é
+ * Falas de diálogo com gravação própria (SpeechGen). O texto completo é
  * comparado antes da paginação, então a dublagem toca uma vez mesmo quando a
- * fala ocupa várias páginas. As outras falas não têm voz: o jogador lê o texto.
+ * fala ocupa várias páginas. As demais falas não têm voz: o jogador lê o texto.
  */
 const VOICE_LINES: Array<{ match: string; src: string }> = [
   { match: FATHER_INTRO_LINE, src: '/voice/father.mp3' },
+  { match: SWORD_HINT_LINE, src: '/voice/sword_hint.mp3' },
 ];
 
 /** Diálogos com gravação não mostram legenda. */
