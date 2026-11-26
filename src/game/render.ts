@@ -42,12 +42,15 @@ import { drawInvItem, INV_SLOT_COUNT, invItemStateFromProgress, invItemTag } fro
 export type Star = [number, number, number];
 
 /**
- * The hero's living room and bedroom use reference images as backdrops. The
- * tile map still provides all collision, doors, bed, stairs and chest logic.
+ * The hero's living room, bedroom, shops and starting village use reference
+ * images as backdrops. The tile map still provides all collision, doors,
+ * bed, stairs and chest logic.
  */
 const HOUSE_IMAGE = '/rooms/hero_house.png';
 const SHOP_IMAGE = '/rooms/shop_interior.png';
+const START_IMAGE = '/rooms/start_village.png';
 const ROOM_IMAGES: Record<number, string> = {
+  51: START_IMAGE, // Vila inicial: primeira tela ao sair da casa do pai
   135: SHOP_IMAGE, // Mercado Central
   136: SHOP_IMAGE, // Alfaiataria
   151: HOUSE_IMAGE,
@@ -3194,7 +3197,16 @@ export function drawGame(
         const ch = m[y][x];
         // No quarto o baú azul já está pintado no PNG: não desenhamos o baú
         // genérico por cima. A tile 'C' continua ativa para a interação.
-        if (ch === 'S' || ch === 'c' || ch === 'G' || ch === 'g' || (ch === 'C' && G.map !== 451)) {
+        // Na vila inicial as portas, lampiões e o bazar ficam visíveis sobre
+        // a imagem para que o jogador encontre a casa do pai e as lojas.
+        if (
+          ch === 'S' ||
+          ch === 'c' ||
+          ch === 'G' ||
+          ch === 'g' ||
+          (ch === 'C' && G.map !== 451) ||
+          (G.map === 51 && (ch === 'D' || ch === 'L' || ch === 'Y'))
+        ) {
           drawTile(g, world, V, G, t, ch, x, y, weather, nightFactor);
         }
       }
