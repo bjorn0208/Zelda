@@ -1,5 +1,7 @@
 import { RetroAudio, TrackName } from './audio';
 import {
+  AWAKENING_LINE,
+  BLACKSMITH_LINE,
   CHEST_ITEMS,
   DAY_CYCLE_FRAMES,
   DOMINIC_BEAM_COLORS,
@@ -13,6 +15,7 @@ import {
   INTRO_LOGO_FRAMES,
   INTRO_VIDEO_FRAMES,
   MAX_HEARTS,
+  MERCHANT_THEO_LINE,
   NAME_ROWS,
   QUESTS,
   SHIELD_STATS,
@@ -944,9 +947,7 @@ export class GameEngine {
     this.sleepTimer = 0;
     this.st = 'game';
     this.lastMapSaved = this.G.map;
-    this.talk(
-      'Você desperta com o som dos trovões lá fora... Levante, desça as escadas e vá à praça da Vila Central. A Espada Lendária espera por você!',
-    );
+    this.talk(AWAKENING_LINE);
     saveGame(this.hn, this.G, this.V, this.world, this.worldTime);
   }
 
@@ -1180,6 +1181,11 @@ export class GameEngine {
 
   private interactNpc(n: Npc): void {
     if (n.shopId) {
+      // Os dois lojistas com gravação própria falam ao abrir a loja; a fala
+      // não vira legenda nem diálogo, apenas o MP3 toca uma vez.
+      if (n.s === MERCHANT_THEO_LINE || n.s === BLACKSMITH_LINE) {
+        this.audio.playDialogVoice({ p: [[n.s]], i: 0, full: n.s });
+      }
       this.shopId = n.shopId;
       this.shopSel = 0;
       this.st = 'shop';

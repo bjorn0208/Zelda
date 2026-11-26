@@ -121,6 +121,16 @@ export const SWORD_HINT_LINE =
 export const SWORD_PULLED_LINE =
   'Com força e coragem, Herói puxa a ESPADA LENDÁRIA! Apenas você podia retirá-la. A chuva lá fora parou!';
 
+/** Fala ao acordar em casa, antes de ir à praça (com dublagem própria). */
+export const AWAKENING_LINE =
+  'Você desperta com o som dos trovões lá fora... Hora de levantar, descer as escadas e ir ao centro da Vila Central puxar a Espada Lendária!';
+
+/** Fala do Mercador Theo ao abrir loja de itens (com dublagem própria). */
+export const MERCHANT_THEO_LINE = 'Bem-vindo ao Mercado Central! Tenho poções, flechas, bombas e tochas!';
+
+/** Fala do Mestre Ferreiro ao abrir a forja (com dublagem própria). */
+export const BLACKSMITH_LINE = 'Aqui forjamos os melhores escudos e espadas do reino!';
+
 export const SWORD_STATS: Record<SwordTier, { name: string; dmg: number; blade: string; edge: string }> = {
   none: { name: 'SEM ESPADA', dmg: 0, blade: '#888', edge: '#555' },
   lendaria: { name: 'ESPADA LENDARIA', dmg: 1, blade: '#dff0ff', edge: '#8fa8d8' },

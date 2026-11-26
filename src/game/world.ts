@@ -1,5 +1,6 @@
 import {
   BIOME_LINES,
+  BLACKSMITH_LINE,
   BONUS_CAVES,
   CAVES,
   COMMON_LINES,
@@ -10,6 +11,7 @@ import {
   HPT,
   MARKET_STALLS,
   MAX_HEARTS,
+  MERCHANT_THEO_LINE,
   OBSTACLE_TILES,
   SAVE_KEY,
   SPECIAL_HOUSE_NPCS,
@@ -524,7 +526,7 @@ function genOverworldScreen(world: WorldData, sx: number, sy: number): void {
             kind: 'merchant',
             name: 'Mercador Theo',
             shopId: 'items',
-            s: 'Bem-vindo ao Mercado Central! Pocoes, flechas, bombas e tochas para quem vai enfrentar o Ciclope!',
+            s: MERCHANT_THEO_LINE,
           },
         ];
       } else if (id === 335) {
@@ -536,7 +538,7 @@ function genOverworldScreen(world: WorldData, sx: number, sy: number): void {
             kind: 'blacksmith',
             name: 'Mestre Ferreiro',
             shopId: 'weapons',
-            s: 'Aqui forjamos escudos e laminas dignas do Guerreiro Policolor!',
+            s: BLACKSMITH_LINE,
           },
         ];
       } else if (id === 136) {

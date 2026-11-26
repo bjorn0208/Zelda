@@ -1,4 +1,11 @@
-import { FATHER_INTRO_LINE, SWORD_HINT_LINE, SWORD_PULLED_LINE } from './constants';
+import {
+  AWAKENING_LINE,
+  BLACKSMITH_LINE,
+  FATHER_INTRO_LINE,
+  MERCHANT_THEO_LINE,
+  SWORD_HINT_LINE,
+  SWORD_PULLED_LINE,
+} from './constants';
 import type { DialogState } from './types';
 
 export type TrackName =
@@ -62,6 +69,9 @@ const VOICE_LINES: Array<{ match: string; src: string }> = [
   { match: FATHER_INTRO_LINE, src: '/voice/father.mp3' },
   { match: SWORD_HINT_LINE, src: '/voice/sword_hint.mp3' },
   { match: SWORD_PULLED_LINE, src: '/voice/sword_pulled.mp3' },
+  { match: AWAKENING_LINE, src: '/voice/awakening_line.mp3' },
+  { match: MERCHANT_THEO_LINE, src: '/voice/theo_line.mp3' },
+  { match: BLACKSMITH_LINE, src: '/voice/blacksmith_line.mp3' },
 ];
 
 /** Diálogos com gravação não mostram legenda. */

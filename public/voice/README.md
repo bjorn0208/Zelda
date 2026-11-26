@@ -1,15 +1,20 @@
 # Vozes do jogo
 
-Existem apenas **duas** gravações, adicionadas uma a uma:
+Todas as falas com áudio vêm do SpeechGen e ficam em `VOICE_LINES` em
+`src/game/audio.ts`. O texto completo de cada fala é comparado antes da
+paginação, então a gravação toca uma vez mesmo quando o diálogo ocupa várias
+páginas. Falas gravadas não mostram legenda. Não há síntese de voz do navegador
+(`speechSynthesis`).
 
-- `father.mp3` — fala de abertura do pai, gerada no SpeechGen (share
-  `25960696-73519657713394292739`, voz Davis BR). 10,8 s, 48 kHz mono.
-  Fonte: `https://speechgen.io/texttomp3/20261126/p_25960696_568.mp3`.
-- `story.mp3` — narração das cinco primeiras páginas da história, gerada no
-  SpeechGen (share `25961153-57771565857976539919`, voz Laomedeia BR).
-  27,4 s, 48 kHz mono. Fonte:
-  `https://speechgen.io/texttomp3/20261126/p_25961153_718.mp3`.
+| Arquivo | Fala | Share SpeechGen | Duração |
+| --- | --- | --- | --- |
+| `father.mp3` | Fala de abertura do pai | `25960696-73519657713394292739` | 10,8 s |
+| `story.mp3` | Narração das cinco primeiras páginas da história | `25961153-57771565857976539919` | 27,4 s |
+| `sword_hint.mp3` | Dica da Espada Lendária (ancião) | `25970815-35366554272342999166` | 7,4 s |
+| `sword_pulled.mp3` | Retirada da Espada Lendária | `25970925-65217794182329725257` | 7,8 s |
+| `awakening_line.mp3` | Despertar em casa | `25971016-86528394343912262928` | 8,9 s |
+| `theo_line.mp3` | Mercador Theo, ao abrir a loja de itens | `25971172-18193281236764162354` | 6,0 s |
+| `blacksmith_line.mp3` | Mestre Ferreiro, ao abrir a forja | `25971313-13674451594234622831` | 3,0 s |
 
-As outras falas não têm voz: aparecem apenas como texto. Não há síntese de voz
-do navegador (`speechSynthesis`). Para adicionar uma nova gravação, inclua uma
-entrada em `VOICE_LINES` em `src/game/audio.ts` com o texto completo da fala.
+Para adicionar uma nova gravação, coloque o MP3 aqui, inclua a constante do
+texto em `src/game/constants.ts` e uma entrada em `VOICE_LINES`.
