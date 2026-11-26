@@ -64,6 +64,7 @@ import {
   SecondaryTool,
   ShieldTier,
   SwordTier,
+  VoiceId,
   WorldData,
 } from './types';
 import { createWeatherState, stepWeather, triggerLightningNow } from './weather';
@@ -128,6 +129,7 @@ export class GameEngine {
   private weather = createWeatherState();
 
   private lastMapSaved = -1;
+  private transitionTimer = 0;
   private stuckFrames = 0;
   private victoryShown = false;
   private sleepTimer = 0;
@@ -525,16 +527,7 @@ export class GameEngine {
     }
     if (this.st === 'game') {
       if (this.G.dlg) {
-        this.G.dlg.i++;
-        this.audio.bp(700, 0.04);
-        if (this.G.dlg.i >= this.G.dlg.p.length) {
-          this.G.dlg = null;
-          if (this.V.fl.win && !this.victoryShown) {
-            this.victoryShown = true;
-            this.victorySel = 0;
-            this.st = 'victory';
-          }
-        }
+        this.advanceDialog();
       } else if (this.G.sleeping && (this.G.wakeTimer ?? 0) === 0) {
         this.startWakeAnimation();
       }
@@ -596,26 +589,62 @@ export class GameEngine {
     return raw.replace(/\b[Hh]er[oó]i\b/g, this.hn);
   }
 
-  private talk(raw: string): void {
+  private talk(raw: string, voice: VoiceId = 'narrator', speaker?: string): void {
     const formatted = this.formatDialogText(raw);
     const lines = wrapText(formatted, 26);
     const pages: string[][] = [];
     for (let i = 0; i < lines.length; i += 3) {
       pages.push(lines.slice(i, i + 3));
     }
-    this.G.dlg = { p: pages, i: 0 };
+    this.G.dlg = {
+      p: pages,
+      i: 0,
+      voice,
+      speaker: speaker ?? (voice === 'narrator' ? undefined : voice),
+      full: formatted,
+      v: pages.map((page) => page.join(' ')),
+    };
+    this.audio.playDialogVoice(this.G.dlg);
   }
 
-  private talkChain(linesRaw: string[]): void {
+  private talkChain(linesRaw: string[], voice: VoiceId = 'narrator', speaker?: string): void {
+    const formatted = linesRaw.map((part) => this.formatDialogText(part));
     const pages: string[][] = [];
-    for (const part of linesRaw) {
-      const lines = wrapText(this.formatDialogText(part), 26);
+    for (const part of formatted) {
+      const lines = wrapText(part, 26);
       for (let i = 0; i < lines.length; i += 3) {
         pages.push(lines.slice(i, i + 3));
       }
     }
     if (pages.length) {
-      this.G.dlg = { p: pages, i: 0 };
+      this.G.dlg = {
+        p: pages,
+        i: 0,
+        voice,
+        speaker: speaker ?? (voice === 'narrator' ? undefined : voice),
+        full: formatted.join(' '),
+        v: pages.map((page) => page.join(' ')),
+      };
+      this.audio.playDialogVoice(this.G.dlg);
+    }
+  }
+
+  /** Avança uma página do diálogo, trocando a fala quando necessário. */
+  private advanceDialog(): void {
+    const d = this.G.dlg;
+    if (!d) return;
+    d.i++;
+    this.audio.bp(700, 0.04);
+    if (d.i >= d.p.length) {
+      this.audio.stopVoice();
+      this.G.dlg = null;
+      if (this.V.fl.win && !this.victoryShown) {
+        this.victoryShown = true;
+        this.victorySel = 0;
+        this.st = 'victory';
+      }
+    } else {
+      this.audio.playDialogVoice(d);
     }
   }
 
@@ -685,7 +714,7 @@ export class GameEngine {
     this.analog.x = 0;
     this.analog.y = 0;
     this.audio.bp(700, 0.05);
-    this.talkChain([FATHER_INTRO_LINE]);
+    this.talkChain([FATHER_INTRO_LINE], 'father', 'Pai');
   }
 
   private spawn(): void {
@@ -1126,8 +1155,16 @@ export class GameEngine {
     return true;
   }
 
+  private voiceForNpc(n: Npc): VoiceId {
+    if (n.name === 'Pai') return 'father';
+    return n.kind ?? 'villager';
+  }
+
   private interactNpc(n: Npc): void {
+    const voice = this.voiceForNpc(n);
+    const speaker = n.name;
     if (n.shopId) {
+      this.audio.playLine(n.s, voice, speaker);
       this.shopId = n.shopId;
       this.shopSel = 0;
       this.st = 'shop';
@@ -1140,6 +1177,8 @@ export class GameEngine {
     if (n.el && !this.V.sword) {
       this.talk(
         'Você precisa da Espada Lendária! Vá até a praça no centro da Vila Central e puxe a espada cravada no meio dela.',
+        voice,
+        speaker,
       );
       return;
     }
@@ -1151,19 +1190,23 @@ export class GameEngine {
           : f
             ? `Você tem ${f} de 3 fragmentos. Cavernas: floresta (leste), ruínas (nordeste) e gelo (noroeste).`
             : n.s,
+        voice,
+        speaker,
       );
       return;
     }
     if (n.q === 'maria' && !this.V.sword) {
       this.talk(
         'Essa espada está cravada no meio da minha casa há séculos! Ninguém nunca conseguiu puxá-la... Tente você, Herói!',
+        voice,
+        speaker,
       );
       return;
     }
     if (q) {
       const s = this.V.fl[n.q!] | 0;
       if (s === 2) {
-        this.talk(q.done);
+        this.talk(q.done, voice, speaker);
         return;
       }
       if ((this.V.it[q.need] | 0) >= q.n) {
@@ -1187,16 +1230,16 @@ export class GameEngine {
           this.V.equipped = 'sword';
         }
         this.audio.bp(900, 0.4);
-        this.talk(q.ok);
+        this.talk(q.ok, voice, speaker);
         return;
       }
       this.V.fl[n.q!] = 1;
-      this.talk(q.ask);
+      this.talk(q.ask, voice, speaker);
       return;
     }
 
     if (n.chat && n.chat.length > 0 && Math.random() < 0.65) {
-      this.talkChain([n.s, ...n.chat]);
+      this.talkChain([n.s, ...n.chat], voice, speaker);
       return;
     }
 
@@ -1205,7 +1248,7 @@ export class GameEngine {
       isNight && this.G.map < 100 && Math.random() < 0.45
         ? ' A noite chegou: acenda uma tocha com X se for explorar cavernas!'
         : '';
-    this.talk(n.s + nightExtra + (n.heal ? ' (Vida restaurada!)' : ''));
+    this.talk(n.s + nightExtra + (n.heal ? ' (Vida restaurada!)' : ''), voice, speaker);
   }
 
   private pullSword(a: number, b: number): void {
@@ -1845,18 +1888,7 @@ export class GameEngine {
 
     if (this.G.dlg) {
       this.G.shielding = false;
-      if (this.pressed.a || this.pressed.s || this.pressed.b) {
-        this.G.dlg.i++;
-        this.audio.bp(700, 0.04);
-        if (this.G.dlg.i >= this.G.dlg.p.length) {
-          this.G.dlg = null;
-          if (this.V.fl.win && !this.victoryShown) {
-            this.victoryShown = true;
-            this.victorySel = 0;
-            this.st = 'victory';
-          }
-        }
-      }
+      if (this.pressed.a || this.pressed.s || this.pressed.b) this.advanceDialog();
       return;
     }
 

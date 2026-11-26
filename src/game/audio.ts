@@ -1,3 +1,6 @@
+import { FATHER_INTRO_LINE } from './constants';
+import type { DialogState, VoiceId } from './types';
+
 export type TrackName =
   | ''
   | 'prologue'
@@ -38,6 +41,47 @@ const TRACK_FILES: Partial<Record<Exclude<TrackName, ''>, string>> = {
   // (the Cyclops interlude uses `cyclops` for the story beat).
   cave: '/music/cyclops.mp3',
 };
+
+/**
+ * Falas com gravação própria (SpeechGen). O texto completo é comparado antes
+ * da paginação, então a dublagem toca uma vez mesmo quando a fala ocupa
+ * várias páginas na caixa de diálogo. O que não estiver aqui usa a síntese
+ * de voz do navegador, em português.
+ */
+const VOICE_LINES: Array<{ match: string; src: string }> = [
+  { match: FATHER_INTRO_LINE, src: '/voice/father.mp3' },
+];
+
+interface VoiceProfile {
+  lang: string;
+  rate: number;
+  pitch: number;
+  volume: number;
+}
+
+/** Cada tipo de personagem tem um timbre diferente; o nome dá uma variação extra. */
+const VOICE_PROFILES: Record<VoiceId, VoiceProfile> = {
+  father: { lang: 'pt-BR', rate: 0.92, pitch: 0.75, volume: 0.95 },
+  narrator: { lang: 'pt-BR', rate: 1.0, pitch: 1.0, volume: 0.9 },
+  elder: { lang: 'pt-BR', rate: 0.88, pitch: 0.72, volume: 0.95 },
+  villager: { lang: 'pt-BR', rate: 1.02, pitch: 1.02, volume: 0.95 },
+  guard: { lang: 'pt-BR', rate: 0.96, pitch: 0.82, volume: 0.95 },
+  merchant: { lang: 'pt-BR', rate: 1.08, pitch: 1.06, volume: 0.92 },
+  blacksmith: { lang: 'pt-BR', rate: 0.9, pitch: 0.7, volume: 0.95 },
+  child: { lang: 'pt-BR', rate: 1.18, pitch: 1.42, volume: 0.92 },
+  mage: { lang: 'pt-BR', rate: 0.95, pitch: 1.16, volume: 0.92 },
+  explorer: { lang: 'pt-BR', rate: 1.05, pitch: 1.1, volume: 0.94 },
+};
+
+function hashText(s: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619);
+  return h >>> 0;
+}
+
+function cleanSpeechText(s: string): string {
+  return s.replace(/\s+/g, ' ').trim();
+}
 
 const TRACKS: Partial<Record<Exclude<TrackName, ''>, TrackDef>> = {
   menu: {
@@ -183,6 +227,13 @@ export class RetroAudio {
   // the first gesture anywhere unmutes it without restarting the song.
   private fileWaitingGesture = false;
 
+  // --- dialogue voices ------------------------------------------------------
+  private voiceEl: HTMLAudioElement | null = null;
+  private voiceWaitingGesture = false;
+  private voiceSpeaking = false;
+  /** invalida falas agendadas quando o diálogo avança ou é fechado */
+  private voiceToken = 0;
+
   /** Best-effort play of a streamed track; never throws into the game loop. */
   private playTrackFile(wanted: TrackName, src: string): void {
     if (typeof document === 'undefined' || typeof Audio === 'undefined') return;
@@ -260,6 +311,130 @@ export class RetroAudio {
     }
   }
 
+  // --- dialogue voices ------------------------------------------------------
+
+  /** Corta a fala atual (áudio gravado ou síntese) sem afetar a música. */
+  public stopVoice(): void {
+    this.voiceToken++;
+    this.voiceSpeaking = false;
+    this.voiceWaitingGesture = false;
+    if (this.voiceEl) {
+      try {
+        this.voiceEl.pause();
+        this.voiceEl.src = '';
+      } catch {
+        // Ignore teardown errors
+      }
+      this.voiceEl = null;
+    }
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      try {
+        window.speechSynthesis.cancel();
+      } catch {
+        // Speech synthesis is optional
+      }
+    }
+  }
+
+  private playVoiceFile(src: string, token: number): void {
+    if (typeof document === 'undefined' || typeof Audio === 'undefined') return;
+    try {
+      const el = new Audio(src);
+      el.volume = 0.95;
+      el.preload = 'auto';
+      el.muted = false;
+      this.voiceEl = el;
+      this.voiceWaitingGesture = false;
+      el.addEventListener('ended', () => {
+        if (this.voiceEl === el) this.voiceEl = null;
+      });
+      const p = el.play();
+      if (p && typeof p.catch === 'function') {
+        p.catch(() => {
+          if (token !== this.voiceToken) return;
+          // Autoplay bloqueado: deixa mudo agora e libera no primeiro gesto.
+          this.voiceWaitingGesture = true;
+          el.muted = true;
+          const retry = el.play();
+          if (retry && typeof retry.catch === 'function') retry.catch(() => undefined);
+        });
+      }
+    } catch {
+      this.voiceEl = null;
+    }
+  }
+
+  private speak(
+    text: string,
+    voice: VoiceId,
+    speaker: string | undefined,
+    token: number,
+  ): void {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+    const Ctor = (
+      window as unknown as { SpeechSynthesisUtterance?: typeof SpeechSynthesisUtterance }
+    ).SpeechSynthesisUtterance;
+    if (!Ctor) return;
+    const clean = cleanSpeechText(text);
+    if (!clean) return;
+    try {
+      const synth = window.speechSynthesis;
+      const profile = VOICE_PROFILES[voice] ?? VOICE_PROFILES.narrator;
+      // Nomes diferentes ganham pequenas variações de tom/velocidade.
+      const seed = hashText(`${voice}:${speaker ?? ''}`);
+      const u = new Ctor(clean);
+      u.lang = profile.lang;
+      u.rate = profile.rate * (0.97 + (seed % 5) * 0.015);
+      u.pitch = profile.pitch * (0.95 + ((seed >>> 3) % 6) * 0.02);
+      u.volume = profile.volume;
+      const available = synth.getVoices();
+      const ptBr =
+        available.find((v) => v.lang.toLowerCase().replace('_', '-').startsWith('pt-br')) ??
+        available.find((v) => v.lang.toLowerCase().startsWith('pt'));
+      if (ptBr) u.voice = ptBr;
+      this.voiceSpeaking = true;
+      const finish = () => {
+        if (token === this.voiceToken) this.voiceSpeaking = false;
+      };
+      u.onend = finish;
+      u.onerror = finish;
+      // O Chrome recusa falas imediatamente após cancel(); um tick resolve.
+      setTimeout(() => {
+        if (token !== this.voiceToken || this.mute) return;
+        try {
+          synth.speak(u);
+        } catch {
+          finish();
+        }
+      }, 20);
+    } catch {
+      this.voiceSpeaking = false;
+    }
+  }
+
+  /** Fala uma linha avulsa (ex.: saudação da loja) sem abrir diálogo. */
+  public playLine(text: string, voice: VoiceId = 'narrator', speaker?: string): void {
+    this.playDialogVoice({ p: [[text]], i: 0, voice, speaker, full: text, v: [text] });
+  }
+
+  /** Fala a página atual do diálogo, respeitando mute e o gesto de desbloqueio. */
+  public playDialogVoice(d: DialogState): void {
+    this.stopVoice();
+    if (this.mute || !d.p[d.i]) return;
+    const token = this.voiceToken;
+    const page = cleanSpeechText(d.v?.[d.i] ?? d.p[d.i].join(' '));
+    if (!page) return;
+    const full = cleanSpeechText(d.full ?? page);
+    const recorded = VOICE_LINES.find((v) => full.includes(v.match));
+    // A gravação cobre a fala inteira: toca uma vez e não troca de voz nas
+    // páginas seguintes (que são só a continuação visual do mesmo texto).
+    if (recorded) {
+      if (d.i === 0) this.playVoiceFile(recorded.src, token);
+      return;
+    }
+    this.speak(page, d.voice ?? 'narrator', d.speaker, token);
+  }
+
   private ensureContext(): AudioContext | null {
     if (typeof window === 'undefined') return null;
     if (!this.ac) {
@@ -290,11 +465,28 @@ export class RetroAudio {
         }
       }
     }
+    if (this.voiceWaitingGesture && this.voiceEl) {
+      this.voiceWaitingGesture = false;
+      this.voiceEl.muted = this.mute;
+      if (this.voiceEl.paused) {
+        const p = this.voiceEl.play();
+        if (p && typeof p.catch === 'function') p.catch(() => undefined);
+      }
+    }
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      try {
+        window.speechSynthesis.resume();
+      } catch {
+        // Speech synthesis is optional
+      }
+    }
   }
 
   public toggleMute(): boolean {
     this.mute = !this.mute;
+    if (this.mute) this.stopVoice();
     if (this.fileEl) this.fileEl.muted = this.mute || this.fileWaitingGesture;
+    if (this.voiceEl) this.voiceEl.muted = this.mute || this.voiceWaitingGesture;
     this.updateRainGain(this.mute ? 0 : this.currentRainLevel);
     return this.mute;
   }

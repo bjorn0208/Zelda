@@ -26,6 +26,9 @@ export type NpcKind =
   | 'mage'
   | 'explorer';
 
+/** Identificador usado para escolher a voz de cada falante. */
+export type VoiceId = NpcKind | 'father' | 'narrator';
+
 // 0: slime, 1: bat, 2: scorpion, 3: skeleton, 4: boss Vorak, 5: golem, 6: dark_mage
 export type EnemyKind = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 
@@ -157,6 +160,12 @@ export interface DialogState {
   p: string[][];
   i: number;
   speaker?: string;
+  /** Voz associada ao falante; usada pela camada de áudio. */
+  voice?: VoiceId;
+  /** Texto completo da fala (antes da paginação), para dublagens gravadas. */
+  full?: string;
+  /** Texto falado de cada página já paginada. */
+  v?: string[];
 }
 
 export interface FallingItem {
