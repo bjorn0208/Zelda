@@ -23,6 +23,7 @@ import {
   STORY_TONES,
   SWORD_HINT_LINE,
   SWORD_MAP,
+  SWORD_PULLED_LINE,
   SWORD_STATS,
   SWORD_TILE,
   T,
@@ -1278,9 +1279,7 @@ export class GameEngine {
     // Mesmo jingle de item do baú — sem fanfarra antiga por cima.
     this.audio.playItemGet();
     this.burst(a * 16 + 8, b * 16 + 4, '#ffd84a', true, 16);
-    this.talk(
-      'Com força e coragem, Herói puxa a ESPADA LENDÁRIA! Os três Dominics despertam em você. A chuva lá fora parou e o Ciclope vai tremer!',
-    );
+    this.talk(SWORD_PULLED_LINE);
     saveGame(this.hn, this.G, this.V, this.world, this.worldTime);
   }
 

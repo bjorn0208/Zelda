@@ -117,6 +117,10 @@ export const FATHER_INTRO_LINE =
 export const SWORD_HINT_LINE =
   'Você precisa da Espada Lendária! Vá até a praça no centro da Vila Central e puxe a espada cravada no meio dela.';
 
+/** Fala ao retirar a Espada Lendária do pedestal (com dublagem própria). */
+export const SWORD_PULLED_LINE =
+  'Com força e coragem, Herói puxa a ESPADA LENDÁRIA! Apenas você podia retirá-la. A chuva lá fora parou!';
+
 export const SWORD_STATS: Record<SwordTier, { name: string; dmg: number; blade: string; edge: string }> = {
   none: { name: 'SEM ESPADA', dmg: 0, blade: '#888', edge: '#555' },
   lendaria: { name: 'ESPADA LENDARIA', dmg: 1, blade: '#dff0ff', edge: '#8fa8d8' },

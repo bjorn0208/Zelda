@@ -1,4 +1,4 @@
-import { FATHER_INTRO_LINE, SWORD_HINT_LINE } from './constants';
+import { FATHER_INTRO_LINE, SWORD_HINT_LINE, SWORD_PULLED_LINE } from './constants';
 import type { DialogState } from './types';
 
 export type TrackName =
@@ -61,6 +61,7 @@ const MUSIC_VOLUME = 0.55;
 const VOICE_LINES: Array<{ match: string; src: string }> = [
   { match: FATHER_INTRO_LINE, src: '/voice/father.mp3' },
   { match: SWORD_HINT_LINE, src: '/voice/sword_hint.mp3' },
+  { match: SWORD_PULLED_LINE, src: '/voice/sword_pulled.mp3' },
 ];
 
 /** Diálogos com gravação não mostram legenda. */
