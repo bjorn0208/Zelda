@@ -35,6 +35,7 @@ import {
   W,
 } from './constants';
 import {
+  drawDialog,
   drawGame,
   drawGameOver,
   drawHelp,
@@ -1183,15 +1184,14 @@ export class GameEngine {
 
   private interactNpc(n: Npc): void {
     if (n.shopId) {
-      // Os lojistas com gravação própria falam ao abrir a loja; a fala não
-      // vira legenda nem diálogo, apenas o MP3 toca uma vez.
+      // Lojistas com gravação própria também ganham legenda de filme ao falar.
       if (
         n.s === MERCHANT_THEO_LINE ||
         n.s === BLACKSMITH_LINE ||
         n.s === TAILOR_LINE ||
         n.s === BAZAAR_LINE
       ) {
-        this.audio.playDialogVoice({ p: [[n.s]], i: 0, full: n.s });
+        this.talk(n.s);
       }
       this.shopId = n.shopId;
       this.shopSel = 0;
@@ -2577,6 +2577,11 @@ export class GameEngine {
   private stepShop(): void {
     this.syncAnalogToMenuPressed();
     if (this.V.mt > 0) this.V.mt--;
+    // A legenda do lojista aparece sobre a loja; qualquer botão a encerra.
+    if (this.G.dlg) {
+      this.advanceDialog();
+      return;
+    }
     const count = SHOPS[this.shopId].items.length;
     if (this.pressed.b || this.pressed.s || this.pressed.i) {
       this.st = 'game';
@@ -2856,6 +2861,7 @@ export class GameEngine {
         this.dust,
       );
       drawShop(g, this.shopId, this.shopSel, this.G, this.V);
+      if (this.G.dlg) drawDialog(g, this.G, this.t);
     } else if (this.st === 'mg' && this.mg) {
       drawMinigame(g, this.mg);
     } else if (this.st === 'over') {

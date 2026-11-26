@@ -781,6 +781,13 @@ export default function App() {
     hasBear: false,
   });
 
+  // A fonte medieval das legendas precisa estar pronta antes do canvas desenhá-la.
+  useEffect(() => {
+    if (typeof document !== 'undefined' && document.fonts) {
+      void document.fonts.load('12px MedievalSharp');
+    }
+  }, []);
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;

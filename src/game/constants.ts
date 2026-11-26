@@ -10,6 +10,8 @@ export const H = 160;
 export const GAME_ZOOM = 1;
 export const T = 16;
 export const FONT = '8px "Press Start 2P", monospace';
+/** Fonte das legendas de filme: branca, medieval e sem caixa de fundo. */
+export const SUBTITLE_FONT = '12px "MedievalSharp", Georgia, serif';
 export const SAVE_KEY = 'lh_save';
 
 /** Vida sempre começa com 12 corações (24 meios-corações). */

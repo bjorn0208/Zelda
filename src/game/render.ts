@@ -11,6 +11,7 @@ import {
   SHOPS,
   STORY_INTERLUDE_AT,
   STORY_PAGES,
+  SUBTITLE_FONT,
   SWORD_MAP,
   SWORD_STATS,
   SWORD_TILE,
@@ -18,7 +19,6 @@ import {
   W,
   WALL_PALETTES,
 } from './constants';
-import { isRecordedDialog } from './audio';
 import {
   DustMote,
   Enemy,
@@ -2669,15 +2669,59 @@ function drawHud(
   }
 }
 
-function drawDialog(g: CanvasRenderingContext2D, G: HeroState, t: number): void {
+/**
+ * Legenda estilo filme dublado: texto branco em fonte medieval, centralizado
+ * na parte de baixo, sem caixa nem faixa escura. Vale também para as falas
+ * gravadas — a dublagem não esconde mais a legenda.
+ */
+function drawMovieSubtitle(g: CanvasRenderingContext2D, lines: string[], t: number): void {
+  g.font = SUBTITLE_FONT;
+  const wrapped: string[] = [];
+  for (const raw of lines) {
+    let cur = '';
+    for (const word of raw.split(/\s+/).filter(Boolean)) {
+      const candidate = cur ? `${cur} ${word}` : word;
+      if (!cur || g.measureText(candidate).width <= 224) {
+        cur = candidate;
+      } else {
+        wrapped.push(cur);
+        cur = word;
+      }
+    }
+    if (cur) wrapped.push(cur);
+  }
+  if (!wrapped.length) return;
+
+  g.textAlign = 'center';
+  g.textBaseline = 'top';
+  const lineH = 15;
+  const top = H - (wrapped.length * lineH + 8);
+  wrapped.forEach((line, i) => {
+    const y = top + i * lineH;
+    // Contorno fino só para leitura sobre a imagem; nenhum fundo é desenhado.
+    g.fillStyle = '#000000';
+    for (const [dx, dy] of [
+      [1, 0],
+      [-1, 0],
+      [0, 1],
+      [0, -1],
+    ]) {
+      g.fillText(line, W / 2 + dx, y + dy);
+    }
+    g.fillStyle = '#ffffff';
+    g.fillText(line, W / 2, y);
+  });
+  if ((t >> 4) & 1) {
+    g.font = FONT;
+    g.fillStyle = '#ffffff';
+    g.fillText('v', W - 12, H - 12);
+  }
+}
+
+export function drawDialog(g: CanvasRenderingContext2D, G: HeroState, t: number): void {
   const d = G.dlg;
   if (!d) return;
-  // Falas com dublagem própria não mostram legenda.
-  if (isRecordedDialog(d)) return;
-  R(g, '#f0d060', 4, H - 50, W - 8, 46);
-  R(g, '#2b2350', 6, H - 48, W - 12, 42);
-  d.p[d.i].forEach((l, j) => tx(g, l, 12, H - 42 + j * 11));
-  if ((t >> 4) & 1) tx(g, 'v', W - 18, H - 18, '#ffd84a');
+  drawMovieSubtitle(g, d.p[d.i] ?? [], t);
 }
 
 export function drawIntro(

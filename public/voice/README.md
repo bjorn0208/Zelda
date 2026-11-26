@@ -3,7 +3,8 @@
 Todas as falas com áudio vêm do SpeechGen e ficam em `VOICE_LINES` em
 `src/game/audio.ts`. O texto completo de cada fala é comparado antes da
 paginação, então a gravação toca uma vez mesmo quando o diálogo ocupa várias
-páginas. Falas gravadas não mostram legenda. Não há síntese de voz do navegador
+páginas. Todas as falas — inclusive as gravadas — exibem legenda branca em
+fonte medieval, sem caixa ou faixa de fundo. Não há síntese de voz do navegador
 (`speechSynthesis`).
 
 | Arquivo | Fala | Share SpeechGen | Duração |

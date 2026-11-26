@@ -80,7 +80,7 @@ const VOICE_LINES: Array<{ match: string; src: string }> = [
   { match: GUARD_LINE, src: '/voice/guard_line.mp3' },
 ];
 
-/** Diálogos com gravação não mostram legenda. */
+/** Identifica diálogos que possuem gravação própria. */
 export function isRecordedDialog(d: DialogState): boolean {
   const text = cleanSpeechText(d.full ?? d.p[d.i]?.join(' ') ?? '');
   return VOICE_LINES.some((v) => text.includes(v.match));
@@ -397,7 +397,7 @@ export class RetroAudio {
   public playDialogVoice(d: DialogState, onEnd?: () => void): void {
     this.stopVoice();
     if (this.mute) {
-      // Sem áudio e sem legenda, a fala gravada não deve travar o jogo.
+      // Sem áudio, a fala gravada não deve travar o jogo.
       if (isRecordedDialog(d)) onEnd?.();
       return;
     }
