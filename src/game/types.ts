@@ -268,6 +268,7 @@ export interface ShopItem {
 export interface EngineUIState {
   screen: ScreenState;
   introPhase: IntroPhase;
+  menuSel: number;
   muted: boolean;
   hasSave: boolean;
   heroName: string;

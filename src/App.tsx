@@ -42,6 +42,14 @@ import { bio, forest, lake } from './game/world';
 type MovePadMode = 'both' | 'dpad' | 'analog';
 const PAD_MODE_KEY = 'aurora_pad_mode_v1';
 
+/** Áreas clicáveis sobre os botões já desenhados no vídeo do menu (1112x834). */
+const MENU_VIDEO_BUTTONS = [
+  { label: 'JOGAR', x: 24.3, y: 59.0, w: 21.6, h: 6.5 },
+  { label: 'CONTINUAR', x: 24.3, y: 68.1, w: 38.7, h: 6.2 },
+  { label: 'MINIJOGOS', x: 24.3, y: 74.3, w: 39.6, h: 6.6 },
+  { label: 'CONTROLES', x: 24.3, y: 86.1, w: 37.8, h: 6.2 },
+] as const;
+
 const KEY_MAP: Record<string, KeyCode> = {
   arrowup: 'u',
   w: 'u',
@@ -689,6 +697,8 @@ export default function App() {
   const [stickEngaged, setStickEngaged] = useState(false);
   // Se o GIF da Dominic Games falhar, o logo desenhado no canvas continua visível.
   const [logoBroken, setLogoBroken] = useState(false);
+  // Sem vídeo, o menu desenhado no canvas permanece como fallback.
+  const [menuVideoBroken, setMenuVideoBroken] = useState(false);
 
   const [padMode, setPadMode] = useState<MovePadMode>(() => {
     try {
@@ -718,6 +728,7 @@ export default function App() {
   const [ui, setUi] = useState<EngineUIState>({
     screen: 'intro',
     introPhase: 'logo',
+    menuSel: 0,
     muted: false,
     hasSave: false,
     heroName: '',
@@ -1038,6 +1049,52 @@ export default function App() {
               onError={() => setLogoBroken(true)}
               className="animate-logo-fade pointer-events-none absolute inset-0 h-full w-full bg-black object-contain"
             />
+          )}
+
+          {ui.screen === 'menu' && !menuVideoBroken && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div
+                className="relative h-full max-w-full overflow-hidden"
+                style={{ aspectRatio: '1112 / 834' }}
+              >
+                <video
+                  key="menu-video"
+                  src="/menu_video.mp4"
+                  className="pointer-events-none absolute inset-0 h-full w-full bg-black"
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  preload="auto"
+                  onError={() => setMenuVideoBroken(true)}
+                />
+                {MENU_VIDEO_BUTTONS.map((b, idx) => (
+                  <button
+                    key={b.label}
+                    type="button"
+                    aria-label={b.label}
+                    title={b.label}
+                    onClick={() => engineRef.current?.activateMenuButton(idx)}
+                    className={`absolute cursor-pointer touch-none rounded-sm border-2 transition-colors ${
+                      ui.menuSel === idx
+                        ? 'border-[#ffd84a] bg-[#ffd84a22] shadow-[0_0_12px_rgba(255,216,74,0.45)]'
+                        : 'border-transparent hover:border-[#ffd84a88]'
+                    }`}
+                    style={{
+                      left: `${b.x}%`,
+                      top: `${b.y}%`,
+                      width: `${b.w}%`,
+                      height: `${b.h}%`,
+                    }}
+                  />
+                ))}
+                {!ui.hasSave && (
+                  <span className="pointer-events-none absolute bottom-[2%] left-[3%] text-[9px] font-bold text-red-400/90">
+                    SEM JOGO SALVO
+                  </span>
+                )}
+              </div>
+            </div>
           )}
         </div>
 

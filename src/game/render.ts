@@ -2743,7 +2743,7 @@ export function drawMenu(
 ): void {
   drawKingdom(g, t, stars, 0, 1);
   drawTitle(g, t, 1);
-  drawPanel(g, ['JOGAR', 'CARREGAR', 'MINIJOGOS', 'CONTROLES'], menuSel, 96);
+  drawPanel(g, ['JOGAR', 'CONTINUAR', 'MINIJOGOS', 'CONTROLES'], menuSel, 96);
   if (noSaveTimer > 0) {
     R(g, '#1a0a16dd', 48, 76, 144, 13);
     tx(g, 'SEM JOGO SALVO', 120, 79, '#ff6a6a', 'center');

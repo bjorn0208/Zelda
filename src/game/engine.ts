@@ -229,6 +229,7 @@ export class GameEngine {
     return {
       screen: this.st,
       introPhase: this.introPhase,
+      menuSel: this.menuSel,
       muted: this.audio.mute,
       hasSave: hasSavedGame(),
       heroName: this.hn,
@@ -278,7 +279,7 @@ export class GameEngine {
     const nx = (ui.heroNormX * 16) | 0;
     const ny = (ui.heroNormY * 12) | 0;
     const tf = (ui.torchFuelRatio * 10) | 0;
-    const sig = `${ui.screen}|${ui.introPhase}|${ui.muted}|${ui.hasSave}|${ui.heroName}|${ui.secondary}|${ui.torchLit}|${ui.isNight}|${ui.currentMap}|${ui.overworldMap}|${ui.explored.length}|${ui.rp}|${ui.fragments}|${ui.pot}|${ui.arrows}|${ui.bombs}|${ui.torches}|${ui.swordName}|${ui.shieldName}|${nx}|${ny}|${ui.heroDir}|${ui.hp}|${ui.maxHp}|${tf}|${ui.isCave}|${ui.invSel}|${ui.invHeroDir}|${ui.hasSword}|${ui.equippedSword}|${ui.swordTier}|${ui.shieldTier}|${ui.outfit}|${ui.ownedSwords.length}|${ui.ownedShields.length}|${ui.ownedOutfits.length}|${ui.mushrooms}|${ui.hasRing}|${ui.hasOre}|${ui.hasBear}`;
+    const sig = `${ui.screen}|${ui.introPhase}|${ui.menuSel}|${ui.muted}|${ui.hasSave}|${ui.heroName}|${ui.secondary}|${ui.torchLit}|${ui.isNight}|${ui.currentMap}|${ui.overworldMap}|${ui.explored.length}|${ui.rp}|${ui.fragments}|${ui.pot}|${ui.arrows}|${ui.bombs}|${ui.torches}|${ui.swordName}|${ui.shieldName}|${nx}|${ny}|${ui.heroDir}|${ui.hp}|${ui.maxHp}|${tf}|${ui.isCave}|${ui.invSel}|${ui.invHeroDir}|${ui.hasSword}|${ui.equippedSword}|${ui.swordTier}|${ui.shieldTier}|${ui.outfit}|${ui.ownedSwords.length}|${ui.ownedShields.length}|${ui.ownedOutfits.length}|${ui.mushrooms}|${ui.hasRing}|${ui.hasOre}|${ui.hasBear}`;
     if (sig !== this.lastBroadcast) {
       this.lastBroadcast = sig;
       this.onStateChange(ui);
@@ -395,6 +396,14 @@ export class GameEngine {
       return true;
     }
     return false;
+  }
+
+  /** Botões do menu em cima do vídeo: seleciona e executa a opção. */
+  public activateMenuButton(index: number): void {
+    if (this.st !== 'menu') return;
+    this.audio.unlock();
+    this.menuSel = Math.max(0, Math.min(3, index));
+    this.activateMenu();
   }
 
   public handleCanvasTap(cx: number, cy: number): void {
