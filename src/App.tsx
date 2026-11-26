@@ -1051,16 +1051,17 @@ export default function App() {
             />
           )}
 
-          {ui.screen === 'menu' && !menuVideoBroken && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div
-                className="relative h-full max-w-full overflow-hidden"
-                style={{ aspectRatio: '1112 / 834' }}
-              >
+          {ui.screen === 'menu' && (
+            <div className="absolute inset-0 overflow-hidden bg-black">
+              {menuVideoBroken ? (
+                <div className="pointer-events-none absolute inset-0 flex items-start justify-center pt-[12%]">
+                  <span className="text-sm font-bold tracking-[0.3em] text-[#ffd84a]">MITRIBUQUE</span>
+                </div>
+              ) : (
                 <video
                   key="menu-video"
                   src="/menu_video.mp4"
-                  className="pointer-events-none absolute inset-0 h-full w-full bg-black"
+                  className="pointer-events-none absolute inset-0 h-full w-full bg-black object-fill"
                   autoPlay
                   muted
                   loop
@@ -1068,32 +1069,34 @@ export default function App() {
                   preload="auto"
                   onError={() => setMenuVideoBroken(true)}
                 />
-                {MENU_VIDEO_BUTTONS.map((b, idx) => (
-                  <button
-                    key={b.label}
-                    type="button"
-                    aria-label={b.label}
-                    title={b.label}
-                    onClick={() => engineRef.current?.activateMenuButton(idx)}
-                    className={`absolute cursor-pointer touch-none rounded-sm border-2 transition-colors ${
-                      ui.menuSel === idx
-                        ? 'border-[#ffd84a] bg-[#ffd84a22] shadow-[0_0_12px_rgba(255,216,74,0.45)]'
-                        : 'border-transparent hover:border-[#ffd84a88]'
-                    }`}
-                    style={{
-                      left: `${b.x}%`,
-                      top: `${b.y}%`,
-                      width: `${b.w}%`,
-                      height: `${b.h}%`,
-                    }}
-                  />
-                ))}
-                {!ui.hasSave && (
-                  <span className="pointer-events-none absolute bottom-[2%] left-[3%] text-[9px] font-bold text-red-400/90">
-                    SEM JOGO SALVO
-                  </span>
-                )}
-              </div>
+              )}
+              {MENU_VIDEO_BUTTONS.map((b, idx) => (
+                <button
+                  key={b.label}
+                  type="button"
+                  aria-label={b.label}
+                  title={b.label}
+                  onClick={() => engineRef.current?.activateMenuButton(idx)}
+                  className={`absolute flex cursor-pointer touch-none items-center justify-center rounded-sm border-2 transition-colors ${
+                    ui.menuSel === idx
+                      ? 'border-[#ffd84a] bg-[#ffd84a22] shadow-[0_0_12px_rgba(255,216,74,0.45)]'
+                      : 'border-transparent hover:border-[#ffd84a88]'
+                  } ${menuVideoBroken ? 'bg-[#0a071bcc] text-[11px] font-bold text-white' : ''}`}
+                  style={{
+                    left: `${b.x}%`,
+                    top: `${b.y}%`,
+                    width: `${b.w}%`,
+                    height: `${b.h}%`,
+                  }}
+                >
+                  {menuVideoBroken && b.label}
+                </button>
+              ))}
+              {!ui.hasSave && (
+                <span className="pointer-events-none absolute bottom-[2%] left-[3%] text-[9px] font-bold text-red-400/90">
+                  SEM JOGO SALVO
+                </span>
+              )}
             </div>
           )}
         </div>

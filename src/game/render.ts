@@ -2734,22 +2734,6 @@ export function drawIntro(
   }
 }
 
-export function drawMenu(
-  g: CanvasRenderingContext2D,
-  t: number,
-  stars: Star[],
-  menuSel: number,
-  noSaveTimer: number,
-): void {
-  drawKingdom(g, t, stars, 0, 1);
-  drawTitle(g, t, 1);
-  drawPanel(g, ['JOGAR', 'CONTINUAR', 'MINIJOGOS', 'CONTROLES'], menuSel, 96);
-  if (noSaveTimer > 0) {
-    R(g, '#1a0a16dd', 48, 76, 144, 13);
-    tx(g, 'SEM JOGO SALVO', 120, 79, '#ff6a6a', 'center');
-  }
-}
-
 export function drawMgMenu(
   g: CanvasRenderingContext2D,
   t: number,

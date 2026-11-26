@@ -34,7 +34,6 @@ import {
   drawGameOver,
   drawHelp,
   drawIntro,
-  drawMenu,
   drawMgMenu,
   drawMinigame,
   drawNameEntry,
@@ -2602,8 +2601,8 @@ export class GameEngine {
     // A história inteira usa "Element Appears" (story_intro.mp3).
     if (this.st === 'story') return 'storyIntro';
 
-    // "Pueblo de terror" (awakening.mp3) só entra quando o herói acorda,
-    // depois do fim da história, e continua até a espada ser retirada.
+    // "In the Field" só entra quando o herói acorda, depois do fim da história,
+    // e continua até a espada ser retirada.
     const pastName = this.st === 'game' || this.st === 'inv' || this.st === 'shop';
     if (pastName && !this.V.sword) {
       return 'awakening';
@@ -2611,7 +2610,7 @@ export class GameEngine {
     if (this.st === 'mg') return 'mini';
     if (this.st === 'game' || this.st === 'inv' || this.st === 'shop') {
       const m = this.G.map;
-      if (isHouse(m) || m === 35 || m === 36) return this.V.sword ? 'ezlo' : 'calm';
+      if (isHouse(m) || m === 35 || m === 36) return this.V.sword ? 'postSword' : 'calm';
       if (m >= 200) {
         return this.world.enemies[m] && this.world.enemies[m][1] === 4 && !this.V.fl['b' + m]
           ? 'boss'
@@ -2621,9 +2620,9 @@ export class GameEngine {
       const x = m & 7;
       const y = m >> 3;
       const calm = lake(x, y) || bio(x, y) === 'n';
-      // Once the sword is obtained, the overworld theme becomes "ezlo".
-      // Caves, bosses and the minigame keep their own dedicated tracks.
-      return this.V.sword ? 'ezlo' : calm ? 'calm' : 'field';
+      // Depois da espada, o campo e as casas usam "Hyrule Castle".
+      // Cavernas, chefes e minijogos mantêm suas faixas próprias.
+      return this.V.sword ? 'postSword' : calm ? 'calm' : 'field';
     }
     if (this.st === 'over') return '';
     return 'menu';
@@ -2645,7 +2644,8 @@ export class GameEngine {
       this.audio.playThunder(intensity);
     });
 
-    this.audio.setRainAmbience(weatherMode === 'story' ? 0.045 : weatherMode === 'overworld' ? 0.032 : 0);
+    // Sem chuva audível durante a narração inicial da história.
+    this.audio.setRainAmbience(weatherMode === 'overworld' ? 0.032 : 0);
 
     // Personagem falando: música cai pela metade e volta ao normal ao fechar.
     this.audio.setMusicDucked(Boolean(this.G.dlg));
@@ -2812,7 +2812,9 @@ export class GameEngine {
     if (this.st === 'intro') {
       drawIntro(g, this.t, this.stars, this.introPhase, this.introTick);
     } else if (this.st === 'menu') {
-      drawMenu(g, this.t, this.stars, this.menuSel, this.noSaveTimer);
+      // O menu agora é o vídeo em HTML; o canvas só limpa o fundo.
+      g.fillStyle = '#000';
+      g.fillRect(0, 0, W, H);
     } else if (this.st === 'mgmenu') {
       drawMgMenu(g, this.t, this.stars, this.mgSel);
     } else if (this.st === 'help') {
