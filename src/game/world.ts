@@ -8,6 +8,7 @@ import {
   FLOOR_TILES,
   HOUSE_LINES,
   HPT,
+  MARKET_STALLS,
   MAX_HEARTS,
   OBSTACLE_TILES,
   SAVE_KEY,
@@ -542,6 +543,23 @@ function genOverworldScreen(world: WorldData, sx: number, sy: number): void {
         shopId: 'bazaar',
         s: 'Troco suas rupias por escudos resistentes, pocoes e tochas!',
       });
+
+      // Dez barracas interativas: duas fileiras de cinco no centro do jogo.
+      for (const stall of MARKET_STALLS) {
+        world.npcs[i].push({
+          x: stall.x,
+          y: stall.y,
+          c: stall.awning,
+          kind: 'merchant',
+          name: stall.name,
+          shopId: stall.shopId,
+          stall: { awning: stall.awning, stripe: stall.stripe },
+          s: `Bem-vindo à barraca de ${stall.name}! Aqui vendo ${stall.goods}.`,
+        });
+        // Marca apenas o piso da barraca (nunca paredes da loja acima).
+        const walkable = ['p', '.', 's', 'n', 'c', 'g', 'f', 'Y'];
+        if (walkable.includes(m[stall.y][stall.x])) m[stall.y][stall.x] = 'Y';
+      }
     }
   } else {
     const hsd = vil ? [0, 1] : b === 'd' || ci != null || bn ? [] : r() < 0.4 ? [r() < 0.5 ? 0 : 1] : [];

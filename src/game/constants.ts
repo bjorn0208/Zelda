@@ -1,4 +1,4 @@
-import { DominicKind, OutfitId, ShieldTier, ShopItem, SwordTier } from './types';
+import { DominicKind, OutfitId, ShieldTier, ShopId, ShopItem, SwordTier } from './types';
 
 export const W = 240;
 export const H = 160;
@@ -175,7 +175,7 @@ export const OUTFIT_COLORS: Record<
   },
 };
 
-export const SHOPS: Record<'items' | 'weapons' | 'tailor' | 'bazaar', { title: string; items: ShopItem[] }> = {
+export const SHOPS: Record<ShopId, { title: string; items: ShopItem[] }> = {
   items: {
     title: 'MERCADO CENTRAL',
     items: [
@@ -214,7 +214,113 @@ export const SHOPS: Record<'items' | 'weapons' | 'tailor' | 'bazaar', { title: s
       { id: 'baz_arr', name: '15 FLECHAS', desc: 'Municao para o arco', price: 25, kind: 'arrows', amount: 15 },
     ],
   },
+  fruits: {
+    title: 'FRUTAS E VERDURAS',
+    items: [
+      { id: 'fr_mac', name: 'MACAS FRESCAS', desc: 'Doces e revigorantes', price: 8, kind: 'pot', amount: 1 },
+      { id: 'fr_per', name: 'PERAS DOCES', desc: 'Recupera toda a energia', price: 10, kind: 'pot', amount: 1 },
+      { id: 'fr_ver', name: 'CESTO DE VERDURAS', desc: 'Duas pocoes naturais', price: 16, kind: 'pot', amount: 2 },
+    ],
+  },
+  clothes: {
+    title: 'ROUPAS',
+    items: [
+      { id: 'cl_car', name: 'TUNICA CARMESIM', desc: 'Manto rubi dos campeoes', price: 50, kind: 'outfit', tier: 'carmesim' },
+      { id: 'cl_saf', name: 'TUNICA SAFIRA', desc: 'Veste noturna azulada', price: 65, kind: 'outfit', tier: 'safira' },
+      { id: 'cl_dou', name: 'ARMADURA DOURADA', desc: 'Armadura de elite', price: 120, kind: 'outfit', tier: 'dourada' },
+    ],
+  },
+  armory: {
+    title: 'ARMAS',
+    items: [
+      { id: 'ar_mad', name: 'ESCUDO MADEIRA', desc: 'Bloqueia ataques com B', price: 35, kind: 'shield', tier: 'madeira' },
+      { id: 'ar_fer', name: 'ESCUDO DE FERRO', desc: 'Alta resistencia fisica', price: 55, kind: 'shield', tier: 'ferro' },
+      { id: 'ar_run', name: 'ESPADA RUNICA', desc: 'Dano 3 e brilho azul', price: 95, kind: 'sword', tier: 'runica' },
+      { id: 'ar_sol', name: 'LAMINA SOLAR', desc: 'Dano 4, forja suprema', price: 160, kind: 'sword', tier: 'solar' },
+    ],
+  },
+  potions: {
+    title: 'POCOES',
+    items: [
+      { id: 'po_vid', name: 'POCAO DE VIDA', desc: 'Restaura todos os coracoes', price: 20, kind: 'pot', amount: 1 },
+      { id: 'po_dua', name: 'POCAO DUPLA', desc: 'Duas pocoes de vida', price: 36, kind: 'pot', amount: 2 },
+      { id: 'po_gel', name: 'ELIXIR AZUL', desc: 'Tres pocoes de vida', price: 50, kind: 'pot', amount: 3 },
+    ],
+  },
+  bakery: {
+    title: 'PADARIA',
+    items: [
+      { id: 'bk_pao', name: 'PAO QUENTE', desc: 'Restaura toda a energia', price: 9, kind: 'pot', amount: 1 },
+      { id: 'bk_bro', name: 'BROA DE MEL', desc: 'Duas pocoes de energia', price: 16, kind: 'pot', amount: 2 },
+      { id: 'bk_tor', name: 'TOCHAS DE CERA', desc: 'Ilumina cavernas escuras', price: 18, kind: 'torch', amount: 3 },
+    ],
+  },
+  flowers: {
+    title: 'FLORES E PLANTAS',
+    items: [
+      { id: 'fl_cha', name: 'CHA DE ERVAS', desc: 'Restaura toda a energia', price: 12, kind: 'pot', amount: 1 },
+      { id: 'fl_ros', name: 'ROSAS CURATIVAS', desc: 'Duas pocoes naturais', price: 20, kind: 'pot', amount: 2 },
+      { id: 'fl_tor', name: 'RAMO LUMINOSO', desc: 'Tres tochas perfumadas', price: 22, kind: 'torch', amount: 3 },
+    ],
+  },
+  jewelry: {
+    title: 'JOIAS',
+    items: [
+      { id: 'jo_ane', name: 'ANEL DE RUBI', desc: 'Brilho dos campeoes', price: 60, kind: 'outfit', tier: 'carmesim' },
+      { id: 'jo_col', name: 'COLAR DOURADO', desc: 'Armadura reluzente', price: 120, kind: 'outfit', tier: 'dourada' },
+      { id: 'jo_esp', name: 'AMULETO ESPELHO', desc: 'Escudo lendario (DEF 4)', price: 130, kind: 'shield', tier: 'espelhado' },
+    ],
+  },
+  ceramics: {
+    title: 'CERAMICA',
+    items: [
+      { id: 'ce_pot', name: 'POTE DE AGUA', desc: 'Restaura toda a energia', price: 10, kind: 'pot', amount: 1 },
+      { id: 'ce_jar', name: 'JARRA DE BARRO', desc: 'Duas pocoes de energia', price: 18, kind: 'pot', amount: 2 },
+      { id: 'ce_vas', name: 'VASO ACESO', desc: 'Tres tochas de oleo', price: 20, kind: 'torch', amount: 3 },
+    ],
+  },
+  books: {
+    title: 'LIVRARIA',
+    items: [
+      { id: 'li_liv', name: 'LIVRO DE CURA', desc: 'Restaura toda a energia', price: 14, kind: 'pot', amount: 1 },
+      { id: 'li_map', name: 'MAPA DO REINO', desc: 'Guia do guerreiro', price: 24, kind: 'pot', amount: 2 },
+      { id: 'li_per', name: 'PERGAMINHO', desc: 'Tres tochas de leitura', price: 26, kind: 'torch', amount: 3 },
+    ],
+  },
+  fabrics: {
+    title: 'TECIDOS',
+    items: [
+      { id: 'te_lin', name: 'LINHO AZUL', desc: 'Tunica safira', price: 65, kind: 'outfit', tier: 'safira' },
+      { id: 'te_sed', name: 'SEDA CARMESIM', desc: 'Manto dos campeoes', price: 50, kind: 'outfit', tier: 'carmesim' },
+      { id: 'te_oup', name: 'TAPETE DOURADO', desc: 'Armadura de elite', price: 120, kind: 'outfit', tier: 'dourada' },
+    ],
+  },
 };
+
+/** Barracas do mercado no centro do jogo (mapa 36), em duas fileiras. */
+export interface MarketStall {
+  id: string;
+  name: string;
+  shopId: ShopId;
+  x: number;
+  y: number;
+  awning: string;
+  stripe: string;
+  goods: string;
+}
+
+export const MARKET_STALLS: MarketStall[] = [
+  { id: 'frutas', name: 'Frutas e Verduras', shopId: 'fruits', x: 2, y: 4, awning: '#d6453d', stripe: '#fff5e6', goods: 'maca, peras e vegetais' },
+  { id: 'roupas', name: 'Roupas', shopId: 'clothes', x: 2, y: 5, awning: '#2e6fc8', stripe: '#f4f8ff', goods: 'tunicas e vestimentas medievais' },
+  { id: 'armas', name: 'Armas', shopId: 'armory', x: 2, y: 6, awning: '#2f8f46', stripe: '#9adba6', goods: 'espadas, machados e escudos' },
+  { id: 'pocoes', name: 'Pocoes', shopId: 'potions', x: 2, y: 7, awning: '#7b3fb5', stripe: '#c69ae8', goods: 'frascos de pocoes magicas' },
+  { id: 'padaria', name: 'Padaria', shopId: 'bakery', x: 2, y: 8, awning: '#e4862b', stripe: '#fff2dd', goods: 'paes e alimentos assados' },
+  { id: 'flores', name: 'Flores e Plantas', shopId: 'flowers', x: 12, y: 4, awning: '#3f9b46', stripe: '#f2d13c', goods: 'flores, vasos e plantas' },
+  { id: 'joias', name: 'Joias', shopId: 'jewelry', x: 12, y: 5, awning: '#7b3fb5', stripe: '#f08ec0', goods: 'colares, aneis e pedras preciosas' },
+  { id: 'ceramica', name: 'Ceramica', shopId: 'ceramics', x: 12, y: 6, awning: '#c9a26a', stripe: '#fdf6e6', goods: 'potes, vasos e recipientes' },
+  { id: 'livraria', name: 'Livraria', shopId: 'books', x: 12, y: 7, awning: '#2f8f46', stripe: '#f4fff6', goods: 'livros, mapas e pergaminhos' },
+  { id: 'tecidos', name: 'Tecidos', shopId: 'fabrics', x: 12, y: 8, awning: '#2e6fc8', stripe: '#f4f8ff', goods: 'tecidos, tapetes e costura' },
+];
 
 export const COMMON_LINES = [
   'O Cristal de Luz se partiu em tres fragmentos! Dizem que a Vila Central tem tudo para a jornada.',

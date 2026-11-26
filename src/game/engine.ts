@@ -60,6 +60,7 @@ import {
   ProgressState,
   Projectile,
   ScreenState,
+  ShopId,
   SecondaryTool,
   ShieldTier,
   SwordTier,
@@ -104,7 +105,7 @@ export class GameEngine {
   private victorySel = 0;
   private invSel = 0;
   private invHeroDir = 2;
-  private shopId: 'items' | 'weapons' | 'tailor' | 'bazaar' = 'items';
+  private shopId: ShopId = 'items';
   private shopSel = 0;
   private noSaveTimer = 0;
 

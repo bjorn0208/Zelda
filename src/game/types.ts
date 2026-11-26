@@ -52,7 +52,9 @@ export interface Npc {
   heal?: number;
   q?: string;
   el?: number;
-  shopId?: 'items' | 'weapons' | 'tailor' | 'bazaar';
+  shopId?: ShopId;
+  /** Barraca do mercado central: cores da cobertura listrada. */
+  stall?: { awning: string; stripe: string };
   chat?: string[];
   /** Pessoas ao redor da espada: afastam-se quando o herói chega perto. */
   swordCrowd?: boolean;
@@ -238,6 +240,22 @@ export interface WorldData {
   doors: Record<number, Door[]>;
   enemies: Record<number, [number, EnemyKind]>;
 }
+
+export type ShopId =
+  | 'items'
+  | 'weapons'
+  | 'tailor'
+  | 'bazaar'
+  | 'fruits'
+  | 'clothes'
+  | 'armory'
+  | 'potions'
+  | 'bakery'
+  | 'flowers'
+  | 'jewelry'
+  | 'ceramics'
+  | 'books'
+  | 'fabrics';
 
 export interface ShopItem {
   id: string;

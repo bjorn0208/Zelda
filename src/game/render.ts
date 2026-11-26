@@ -31,6 +31,7 @@ import {
   Particle,
   ProgressState,
   Projectile,
+  ShopId,
   ShieldTier,
   SwordTier,
   WeatherState,
@@ -49,7 +50,9 @@ export type Star = [number, number, number];
 const HOUSE_IMAGE = '/rooms/hero_house.png';
 const SHOP_IMAGE = '/rooms/shop_interior.png';
 const START_IMAGE = '/rooms/start_village.png';
+const CENTER_IMAGE = '/rooms/market_center.png';
 const ROOM_IMAGES: Record<number, string> = {
+  36: CENTER_IMAGE, // Centro do jogo: mercado com dez barracas interativas
   51: START_IMAGE, // Vila inicial: primeira tela ao sair da casa do pai
   135: SHOP_IMAGE, // Mercado Central
   136: SHOP_IMAGE, // Alfaiataria
@@ -1425,6 +1428,17 @@ function drawPerson(g: CanvasRenderingContext2D, n: Npc, t: number): void {
   // Soft ground contact shadow
   R(g, '#0005', x + 2, y + 14, 12, 2);
   R(g, '#0003', x + 3, y + 13, 10, 1);
+
+  // Cobertura listrada das barracas do mercado central.
+  if (n.stall) {
+    const { awning, stripe } = n.stall;
+    R(g, '#2a1a1055', x - 3, y - 7, 22, 2);
+    R(g, awning, x - 2, y - 6, 20, 5);
+    for (let sx = 0; sx < 20; sx += 4) R(g, stripe, x - 2 + sx, y - 6, 2, 5);
+    R(g, '#ffffff44', x - 2, y - 6, 20, 1);
+    for (let sx = 0; sx < 20; sx += 4) R(g, stripe, x - 2 + sx, y - 1, 2, 2);
+    R(g, awning, x - 1, y - 3, 18, 1);
+  }
 
   if (k === 'child') {
     // Detailed Child Sprite (Lino / Village Kid)
@@ -3205,7 +3219,8 @@ export function drawGame(
           ch === 'G' ||
           ch === 'g' ||
           (ch === 'C' && G.map !== 451) ||
-          (G.map === 51 && (ch === 'D' || ch === 'L' || ch === 'Y'))
+          ((G.map === 51 || G.map === 36) && (ch === 'D' || ch === 'L')) ||
+          (G.map === 51 && ch === 'Y')
         ) {
           drawTile(g, world, V, G, t, ch, x, y, weather, nightFactor);
         }
@@ -3699,7 +3714,7 @@ export function drawInventory(
 
 export function drawShop(
   g: CanvasRenderingContext2D,
-  shopId: 'items' | 'weapons' | 'tailor' | 'bazaar',
+  shopId: ShopId,
   shopSel: number,
   G: HeroState,
   V: ProgressState,
