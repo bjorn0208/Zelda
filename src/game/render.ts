@@ -14,6 +14,7 @@ import {
   STORY_INTERLUDE_IMAGE,
   STORY_PAGES,
   SWORD_STATS,
+  SWORD_TILE,
   T,
   W,
   WALL_PALETTES,
@@ -1741,8 +1742,8 @@ function drawPerson(g: CanvasRenderingContext2D, n: Npc, t: number): void {
 
   // Curiosos da espada: braços estendidos e pequenos puxões rítmicos.
   if (n.swordCrowd && n.home && n.x === n.home.x && n.y === n.home.y) {
-    const dx = 7 - n.x;
-    const dy = 5 - n.y;
+    const dx = SWORD_TILE.x - n.x;
+    const dy = SWORD_TILE.y - n.y;
     const ax = dx > 0 ? x + 13 : dx < 0 ? x + 1 : x + 7;
     const ay = dy > 0 ? Y + 10 : dy < 0 ? Y + 2 : Y + 6;
     const tug = Math.sin(t / 7 + phase) > 0 ? 1 : 0;
@@ -3588,7 +3589,7 @@ export function drawInventory(
     {
       title: V.sword ? swDef.name : 'ESPADA (VAZIO)',
       desc: !V.sword
-        ? 'Cravada na casa ao lado'
+        ? 'Cravada na praça central'
         : V.equipped === 'sword'
           ? `ATQ ${V.dmg}. A: Trocar/Guardar`
           : 'Guardada. A: Equipar',

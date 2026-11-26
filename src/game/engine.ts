@@ -23,7 +23,9 @@ import {
   STORY_INTERLUDE_AT,
   STORY_PAGES,
   STORY_TONES,
+  SWORD_MAP,
   SWORD_STATS,
+  SWORD_TILE,
   T,
   W,
 } from './constants';
@@ -618,11 +620,11 @@ export class GameEngine {
 
   /** Curiosos ao redor da espada saem do caminho quando o herói se aproxima. */
   private updateSwordCrowd(): void {
-    if (this.G.map !== 351 || this.V.sword || this.t % 6 !== 0) return;
-    const crowd = (this.world.npcs[351] || []).filter((n) => n.swordCrowd && n.home);
+    if (this.G.map !== SWORD_MAP || this.V.sword || this.t % 6 !== 0) return;
+    const crowd = (this.world.npcs[SWORD_MAP] || []).filter((n) => n.swordCrowd && n.home);
     if (!crowd.length) return;
-    const sx = 7 * 16 + 8;
-    const sy = 5 * 16 + 8;
+    const sx = SWORD_TILE.x * T + T / 2;
+    const sy = SWORD_TILE.y * T + T / 2;
     const near = Math.hypot(this.G.x + 8 - sx, this.G.y + 8 - sy) < 54;
     const heroTx = (this.G.x + 8) >> 4;
     const heroTy = (this.G.y + 8) >> 4;
@@ -916,7 +918,7 @@ export class GameEngine {
     this.st = 'game';
     this.lastMapSaved = this.G.map;
     this.talk(
-      'Você desperta com o som dos trovões lá fora... Hora de levantar, descer as escadas e ir à casa ao lado puxar a Espada Lendária!',
+      'Você desperta com o som dos trovões lá fora... Hora de levantar, descer as escadas e ir ao centro da Vila Central puxar a Espada Lendária!',
     );
     saveGame(this.hn, this.G, this.V, this.world, this.worldTime);
   }
@@ -1136,7 +1138,7 @@ export class GameEngine {
     if (n.heal) this.G.hp = this.V.mh * 2;
     if (n.el && !this.V.sword) {
       this.talk(
-        'Você precisa da Espada Lendária! Vá até a casa ao lado da sua e puxe a espada cravada no meio da sala.',
+        'Você precisa da Espada Lendária! Vá até a praça no centro da Vila Central e puxe a espada cravada no meio dela.',
       );
       return;
     }

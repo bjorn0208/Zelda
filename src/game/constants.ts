@@ -15,6 +15,10 @@ export const SAVE_KEY = 'lh_save';
 /** Vida sempre começa com 12 corações (24 meios-corações). */
 export const MAX_HEARTS = 12;
 
+/** A Espada Lendária fica cravada no meio da praça da Vila Central. */
+export const SWORD_MAP = 36;
+export const SWORD_TILE = { x: 7, y: 5 } as const;
+
 /** Cores do raio disparado com a barra cheia, conforme o Dominic atual. */
 export const DOMINIC_BEAM_COLORS: Record<
   DominicKind,
@@ -107,7 +111,7 @@ export const SPECIAL_HOUSE_NPCS: Record<number, string> = {
 export const FATHER_TILE = { x: 8, y: 8 } as const;
 export const FATHER_INTRO_FLAG = 'pai_intro';
 export const FATHER_INTRO_LINE =
-  'Pai: Filho, vá atrás da espada na casa ao lado. Só assim a tempestade irá parar e a sua aventura poderá começar.';
+  'Pai: Filho, vá ao centro da Vila Central, ao norte, e puxe a Espada Lendária cravada na praça. Só assim a tempestade irá parar e a sua aventura poderá começar.';
 
 export const SWORD_STATS: Record<SwordTier, { name: string; dmg: number; blade: string; edge: string }> = {
   none: { name: 'SEM ESPADA', dmg: 0, blade: '#888', edge: '#555' },

@@ -12,6 +12,8 @@ import {
   OBSTACLE_TILES,
   SAVE_KEY,
   SPECIAL_HOUSE_NPCS,
+  SWORD_MAP,
+  SWORD_TILE,
   VILLAGES,
 } from './constants';
 import { DominicKind, EnemyKind, HeroState, Npc, NpcKind, ProgressState, WorldData } from './types';
@@ -35,7 +37,7 @@ export const dungeonTheme = (m: number): number =>
 export function mapDisplayName(m: number): string {
   if (m === 451) return 'SEU QUARTO (2o ANDAR)';
   if (m === 151) return 'SUA CASA (1o ANDAR)';
-  if (m === 351) return 'CASA AO LADO';
+  if (m === 351) return 'CASA DE MARIA';
   if (m === 135) return 'MERCADO CENTRAL';
   if (m === 335) return 'FORJA REAL';
   if (m === 136) return 'ALFAIATARIA REAL';
@@ -272,9 +274,6 @@ function createRoom(
         for (let x = 5; x < 10; x++) m[y][x] = 'r';
       }
       m[7][7] = 'r';
-      if (id === 351) {
-        m[5][7] = 'S';
-      }
       if (id !== 451) {
         m[7][13] = 'E'; // Escada para o quarto (2o andar)
       }
@@ -464,6 +463,9 @@ function genOverworldScreen(world: WorldData, sx: number, sy: number): void {
     m[4][9] = 'L';
   }
 
+  // A Espada Lendária é o centro da praça da Vila Central.
+  if (i === SWORD_MAP) m[SWORD_TILE.y][SWORD_TILE.x] = 'S';
+
   world.doors[i] = [];
   world.npcs[i] = [];
 
@@ -585,26 +587,6 @@ function genOverworldScreen(world: WorldData, sx: number, sy: number): void {
             s: FATHER_INTRO_LINE,
           },
         ];
-      }
-      if (id === 351) {
-        // Curiosos ao redor da espada cravada no centro da casa.
-        const around: Array<[number, number, string]> = [
-          [6, 4, '#d0a84a'],
-          [8, 4, '#a866c8'],
-          [6, 6, '#4a90c8'],
-          [9, 5, '#c85a52'],
-        ];
-        for (const [x, y, c] of around) {
-          world.npcs[id].push({
-            x,
-            y,
-            c,
-            kind: 'villager',
-            swordCrowd: true,
-            home: { x, y },
-            s: 'Eu também tentei puxar essa espada... não houve jeito. Vai você, Herói!',
-          });
-        }
       }
     }
 
@@ -733,7 +715,7 @@ function genOverworldScreen(world: WorldData, sx: number, sy: number): void {
         c: '#2e86c1',
         kind: 'guard',
         name: 'Sentinela',
-        s: 'A casa da direita guarda a Espada Lendaria! Depois siga ao norte ate a Vila Central para se equipar.',
+        s: 'A Espada Lendaria esta cravada na praca do centro da Vila Central, ao norte! La voce tambem pode se equipar.',
         chat: [
           'Sentinela: Voce ouviu o Anciao? Ninguem alem de voce consegue puxar aquela espada.',
           'Anciao Aldor: E nao esqueca de levar tochas antes de entrar nas cavernas!',
@@ -750,6 +732,27 @@ function genOverworldScreen(world: WorldData, sx: number, sy: number): void {
         kind: 'explorer',
         s: 'Sou o cacador. Traga-me 10 essencias de gosma!',
         q: 'hunter',
+      });
+    }
+  }
+
+  // Curiosos cercando a espada no centro da praça (não bloqueiam os lados).
+  if (i === SWORD_MAP) {
+    const around: Array<[number, number, string]> = [
+      [6, 4, '#d0a84a'],
+      [8, 4, '#a866c8'],
+      [6, 6, '#4a90c8'],
+      [8, 6, '#c85a52'],
+    ];
+    for (const [x, y, c] of around) {
+      world.npcs[i].push({
+        x,
+        y,
+        c,
+        kind: 'villager',
+        swordCrowd: true,
+        home: { x, y },
+        s: 'Eu também tentei puxar essa espada... não houve jeito. Vai você, Herói!',
       });
     }
   }
@@ -918,9 +921,28 @@ export function loadSavedGame(): {
 
     const baseMaps = world.maps;
     world.maps = parsed.M.map((m) => (m ? m.map((r) => [...r]) : [])) as string[][][];
-    for (const refreshId of [35, 36, 51, 135, 335, 136, 451]) {
+    for (const refreshId of [35, 36, 51, 135, 335, 136, 351, 451]) {
       if (baseMaps[refreshId]?.length) {
         world.maps[refreshId] = baseMaps[refreshId];
+      }
+    }
+    // A espada mudou da casa 351 para a praça: saves antigos não podem
+    // deixar o pedestal antigo nem fazer a espada reaparecer depois de puxada.
+    if (V.sword) {
+      if (world.maps[SWORD_MAP]?.[SWORD_TILE.y]) {
+        world.maps[SWORD_MAP][SWORD_TILE.y][SWORD_TILE.x] = 'r';
+      }
+      // A multidão não volta a tentar puxar uma espada que já foi retirada.
+      for (const list of world.npcs) {
+        if (!list) continue;
+        for (const n of list) {
+          if (!n.swordCrowd) continue;
+          if (n.home) {
+            n.x = n.home.x;
+            n.y = n.home.y;
+          }
+          n.swordCrowd = false;
+        }
       }
     }
     // Older saves had the pre-image bedroom layout; realign its physics too.
