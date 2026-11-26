@@ -19,6 +19,7 @@ import {
   W,
   WALL_PALETTES,
 } from './constants';
+import { isRecordedDialog } from './audio';
 import {
   DustMote,
   Enemy,
@@ -2610,6 +2611,8 @@ function drawHud(
 function drawDialog(g: CanvasRenderingContext2D, G: HeroState, t: number): void {
   const d = G.dlg;
   if (!d) return;
+  // Falas com dublagem própria não mostram legenda.
+  if (isRecordedDialog(d)) return;
   R(g, '#f0d060', 4, H - 50, W - 8, 46);
   R(g, '#2b2350', 6, H - 48, W - 12, 42);
   d.p[d.i].forEach((l, j) => tx(g, l, 12, H - 42 + j * 11));

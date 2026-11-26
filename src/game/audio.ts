@@ -52,6 +52,22 @@ const VOICE_LINES: Array<{ match: string; src: string }> = [
   { match: FATHER_INTRO_LINE, src: '/voice/father.mp3' },
 ];
 
+/** Diálogos com gravação não mostram legenda. */
+export function isRecordedDialog(d: DialogState): boolean {
+  const text = cleanSpeechText(d.full ?? d.p[d.i]?.join(' ') ?? '');
+  return VOICE_LINES.some((v) => text.includes(v.match));
+}
+
+/**
+ * Narração da história: cinco frases em um único MP3. Os tempos são os
+ * silêncios entre frases detectados no áudio do share 25961153.
+ */
+const STORY_VOICE = {
+  src: '/voice/story.mp3',
+  starts: [0, 5.457, 10.954, 17.081, 22.486] as const,
+  end: 27.376,
+};
+
 interface VoiceProfile {
   lang: string;
   rate: number;
@@ -234,6 +250,10 @@ export class RetroAudio {
   /** invalida falas agendadas quando o diálogo avança ou é fechado */
   private voiceToken = 0;
 
+  private storyEl: HTMLAudioElement | null = null;
+  private storyWaitingGesture = false;
+  private storyToken = 0;
+
   /** Best-effort play of a streamed track; never throws into the game loop. */
   private playTrackFile(wanted: TrackName, src: string): void {
     if (typeof document === 'undefined' || typeof Audio === 'undefined') return;
@@ -318,6 +338,7 @@ export class RetroAudio {
     this.voiceToken++;
     this.voiceSpeaking = false;
     this.voiceWaitingGesture = false;
+    this.stopStoryVoice();
     if (this.voiceEl) {
       try {
         this.voiceEl.pause();
@@ -336,8 +357,11 @@ export class RetroAudio {
     }
   }
 
-  private playVoiceFile(src: string, token: number): void {
-    if (typeof document === 'undefined' || typeof Audio === 'undefined') return;
+  private playVoiceFile(src: string, token: number, onEnd?: () => void): void {
+    if (typeof document === 'undefined' || typeof Audio === 'undefined') {
+      onEnd?.();
+      return;
+    }
     try {
       const el = new Audio(src);
       el.volume = 0.95;
@@ -346,7 +370,9 @@ export class RetroAudio {
       this.voiceEl = el;
       this.voiceWaitingGesture = false;
       el.addEventListener('ended', () => {
+        if (token !== this.voiceToken) return;
         if (this.voiceEl === el) this.voiceEl = null;
+        onEnd?.();
       });
       const p = el.play();
       if (p && typeof p.catch === 'function') {
@@ -418,9 +444,14 @@ export class RetroAudio {
   }
 
   /** Fala a página atual do diálogo, respeitando mute e o gesto de desbloqueio. */
-  public playDialogVoice(d: DialogState): void {
+  public playDialogVoice(d: DialogState, onEnd?: () => void): void {
     this.stopVoice();
-    if (this.mute || !d.p[d.i]) return;
+    if (this.mute) {
+      // Sem áudio e sem legenda, a fala gravada não deve travar o jogo.
+      if (isRecordedDialog(d)) onEnd?.();
+      return;
+    }
+    if (!d.p[d.i]) return;
     const token = this.voiceToken;
     const page = cleanSpeechText(d.v?.[d.i] ?? d.p[d.i].join(' '));
     if (!page) return;
@@ -429,10 +460,74 @@ export class RetroAudio {
     // A gravação cobre a fala inteira: toca uma vez e não troca de voz nas
     // páginas seguintes (que são só a continuação visual do mesmo texto).
     if (recorded) {
-      if (d.i === 0) this.playVoiceFile(recorded.src, token);
+      if (d.i === 0) this.playVoiceFile(recorded.src, token, onEnd);
       return;
     }
     this.speak(page, d.voice ?? 'narrator', d.speaker, token);
+  }
+
+  /** Corta a narração da história sem mexer na música nem nas falas. */
+  public stopStoryVoice(): void {
+    this.storyToken++;
+    this.storyWaitingGesture = false;
+    if (this.storyEl) {
+      try {
+        this.storyEl.pause();
+        this.storyEl.src = '';
+      } catch {
+        // Ignore teardown errors
+      }
+      this.storyEl = null;
+    }
+  }
+
+  /**
+   * Toca apenas o trecho da página atual da narração. Quando o trecho termina
+   * (ou o jogador pula), o motor avança a página seguinte da história.
+   */
+  public playStoryVoice(page: number, onSegmentEnd?: () => void): void {
+    this.stopStoryVoice();
+    if (this.mute || page < 0 || page >= STORY_VOICE.starts.length) return;
+    if (typeof document === 'undefined' || typeof Audio === 'undefined') return;
+    const token = this.storyToken;
+    const start = STORY_VOICE.starts[page];
+    const end = page + 1 < STORY_VOICE.starts.length ? STORY_VOICE.starts[page + 1] : STORY_VOICE.end;
+    try {
+      const el = new Audio(STORY_VOICE.src);
+      el.volume = 0.95;
+      el.preload = 'auto';
+      el.muted = false;
+      this.storyEl = el;
+      this.storyWaitingGesture = false;
+      const seek = () => {
+        try {
+          el.currentTime = start;
+        } catch {
+          // Seek can fail before metadata is ready; the handler retries below.
+        }
+      };
+      if (el.readyState >= 1) seek();
+      else el.addEventListener('loadedmetadata', seek, { once: true });
+      const done = () => {
+        if (token !== this.storyToken || el.currentTime < end) return;
+        this.stopStoryVoice();
+        onSegmentEnd?.();
+      };
+      el.addEventListener('timeupdate', done);
+      el.addEventListener('ended', done);
+      const p = el.play();
+      if (p && typeof p.catch === 'function') {
+        p.catch(() => {
+          if (token !== this.storyToken) return;
+          this.storyWaitingGesture = true;
+          el.muted = true;
+          const retry = el.play();
+          if (retry && typeof retry.catch === 'function') retry.catch(() => undefined);
+        });
+      }
+    } catch {
+      this.storyEl = null;
+    }
   }
 
   private ensureContext(): AudioContext | null {
@@ -473,6 +568,14 @@ export class RetroAudio {
         if (p && typeof p.catch === 'function') p.catch(() => undefined);
       }
     }
+    if (this.storyWaitingGesture && this.storyEl) {
+      this.storyWaitingGesture = false;
+      this.storyEl.muted = this.mute;
+      if (this.storyEl.paused) {
+        const p = this.storyEl.play();
+        if (p && typeof p.catch === 'function') p.catch(() => undefined);
+      }
+    }
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       try {
         window.speechSynthesis.resume();
@@ -487,6 +590,7 @@ export class RetroAudio {
     if (this.mute) this.stopVoice();
     if (this.fileEl) this.fileEl.muted = this.mute || this.fileWaitingGesture;
     if (this.voiceEl) this.voiceEl.muted = this.mute || this.voiceWaitingGesture;
+    if (this.storyEl) this.storyEl.muted = this.mute || this.storyWaitingGesture;
     this.updateRainGain(this.mute ? 0 : this.currentRainLevel);
     return this.mute;
   }

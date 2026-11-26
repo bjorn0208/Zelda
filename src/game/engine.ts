@@ -117,6 +117,7 @@ export class GameEngine {
   private sc = 0;
   private pg = 0;
   private ch = 0;
+  private storyInterludeTimer = 0;
   private tn = 0.22;
   private lastBlipChar = -1;
 
@@ -596,7 +597,7 @@ export class GameEngine {
     for (let i = 0; i < lines.length; i += 3) {
       pages.push(lines.slice(i, i + 3));
     }
-    this.G.dlg = {
+    const d = {
       p: pages,
       i: 0,
       voice,
@@ -604,7 +605,10 @@ export class GameEngine {
       full: formatted,
       v: pages.map((page) => page.join(' ')),
     };
-    this.audio.playDialogVoice(this.G.dlg);
+    this.G.dlg = d;
+    this.audio.playDialogVoice(d, () => {
+      if (this.G.dlg === d) this.finishDialog();
+    });
   }
 
   private talkChain(linesRaw: string[], voice: VoiceId = 'narrator', speaker?: string): void {
@@ -617,7 +621,7 @@ export class GameEngine {
       }
     }
     if (pages.length) {
-      this.G.dlg = {
+      const d = {
         p: pages,
         i: 0,
         voice,
@@ -625,7 +629,21 @@ export class GameEngine {
         full: formatted.join(' '),
         v: pages.map((page) => page.join(' ')),
       };
-      this.audio.playDialogVoice(this.G.dlg);
+      this.G.dlg = d;
+      this.audio.playDialogVoice(d, () => {
+        if (this.G.dlg === d) this.finishDialog();
+      });
+    }
+  }
+
+  private finishDialog(): void {
+    if (!this.G.dlg) return;
+    this.audio.stopVoice();
+    this.G.dlg = null;
+    if (this.V.fl.win && !this.victoryShown) {
+      this.victoryShown = true;
+      this.victorySel = 0;
+      this.st = 'victory';
     }
   }
 
@@ -635,17 +653,8 @@ export class GameEngine {
     if (!d) return;
     d.i++;
     this.audio.bp(700, 0.04);
-    if (d.i >= d.p.length) {
-      this.audio.stopVoice();
-      this.G.dlg = null;
-      if (this.V.fl.win && !this.victoryShown) {
-        this.victoryShown = true;
-        this.victorySel = 0;
-        this.st = 'victory';
-      }
-    } else {
-      this.audio.playDialogVoice(d);
-    }
+    if (d.i >= d.p.length) this.finishDialog();
+    else this.audio.playDialogVoice(d);
   }
 
   /** Curiosos ao redor da espada saem do caminho quando o herói se aproxima. */
@@ -961,9 +970,11 @@ export class GameEngine {
     this.ch = 0;
     this.tn = STORY_TONES[0];
     this.lastBlipChar = -1;
+    this.storyInterludeTimer = 0;
     this.weather = createWeatherState();
     triggerLightningNow(this.weather, 14, 1.15);
     this.audio.bp(900, 0.2);
+    this.audio.playStoryVoice(0, () => this.storyVoicePageDone());
   }
 
   private startMinigame(id: 1 | 2, from: 'game' | 'mgmenu'): void {
@@ -1030,7 +1041,16 @@ export class GameEngine {
     }
   }
 
+  /** Fim de um trecho narrado: mostra a frase inteira e vira a página. */
+  private storyVoicePageDone(): void {
+    if (this.st !== 'story') return;
+    const s = STORY_PAGES[this.pg].replace('{N}', this.hn);
+    this.ch = s.length;
+    this.advanceStoryPage();
+  }
+
   private advanceStoryPage(): void {
+    this.audio.stopStoryVoice();
     const s = STORY_PAGES[this.pg].replace('{N}', this.hn);
     if (this.ch < s.length) {
       this.ch = s.length;
@@ -1039,6 +1059,7 @@ export class GameEngine {
       this.pg++;
       this.ch = 0;
       this.lastBlipChar = -1;
+      this.storyInterludeTimer = 0;
       if (this.pg >= STORY_PAGES.length) {
         this.pg = STORY_PAGES.length - 1;
         this.audio.bp(880, 0.14);
@@ -1048,6 +1069,15 @@ export class GameEngine {
         this.audio.bp(700, 0.06);
         if (this.pg === 1 || this.pg === 3) {
           triggerLightningNow(this.weather, 10, 1.2);
+        }
+        if (this.pg === STORY_INTERLUDE_AT) {
+          // O Ciclope aparece sem texto enquanto a narração termina.
+          this.storyInterludeTimer = 150;
+        } else if (this.pg < STORY_INTERLUDE_AT) {
+          this.audio.playStoryVoice(this.pg, () => this.storyVoicePageDone());
+        } else if (this.pg > STORY_INTERLUDE_AT) {
+          // Última frase cita o nome do herói: não existe no MP3 fixo.
+          this.audio.playLine(STORY_PAGES[this.pg].replace('{N}', this.hn));
         }
       }
     }
@@ -1064,6 +1094,11 @@ export class GameEngine {
         this.lastBlipChar = ci;
         this.audio.playTypeBlip(ci);
       }
+    }
+
+    if (this.pg === STORY_INTERLUDE_AT && this.storyInterludeTimer > 0) {
+      this.storyInterludeTimer--;
+      if (this.storyInterludeTimer === 0) this.advanceStoryPage();
     }
 
     if (this.pressed.a || this.pressed.s) {
