@@ -397,6 +397,17 @@ function drawPixels(
   }
 }
 
+/** Espada Lendária em pixel-art, cravada no pedestal da praça central. */
+export function drawWorldSword(g: CanvasRenderingContext2D, x: number, y: number): void {
+  // A lâmina fica virada para baixo, como a espada cravada na pedra.
+  const map = [...SWORD_MAP].reverse();
+  const shadow = { a: '#11111c', b: '#08080f', g: '#2a1d08', c: '#1a0f06' };
+  const sw = SWORD_STATS.lendaria;
+  const metal = { a: sw.blade, b: sw.edge, g: '#ffd84a', c: '#6b3f1d' };
+  drawPixels(g, map, shadow, x + 1, y + 1);
+  drawPixels(g, map, metal, x, y);
+}
+
 /** Relics share one cell: owned ones are composited like a stacked pile. */
 function drawRelics(g: CanvasRenderingContext2D, s: InvItemState): void {
   const pile: Array<{ map: readonly string[]; pal: Record<string, string> }> = [];

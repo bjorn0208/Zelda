@@ -11,6 +11,7 @@ import {
   SHOPS,
   STORY_INTERLUDE_AT,
   STORY_PAGES,
+  SWORD_MAP,
   SWORD_STATS,
   SWORD_TILE,
   T,
@@ -37,7 +38,13 @@ import {
   WorldData,
 } from './types';
 import { dungeonTheme, getEnemyMaxHp, hs, isHouse, p3 } from './world';
-import { drawInvItem, INV_SLOT_COUNT, invItemStateFromProgress, invItemTag } from './items';
+import {
+  drawInvItem,
+  drawWorldSword,
+  INV_SLOT_COUNT,
+  invItemStateFromProgress,
+  invItemTag,
+} from './items';
 
 export type Star = [number, number, number];
 
@@ -947,30 +954,24 @@ function drawTile(
     return;
   }
 
-  if (ch === 'S' && hh) {
+  if (ch === 'S' && (hh || M_ === SWORD_MAP)) {
     drawTile(g, world, V, G, t, 'r', a, b, weather, nightFactor);
     if (!V.sword) {
       const pulse = 0.22 + 0.1 * Math.sin(t / 10);
       g.fillStyle = `rgba(143, 208, 255, ${pulse})`;
       g.fillRect(x, y - 10, T, 25);
     }
-    // Larger sacred altar pedestal + towering Legendary Sword
+    // Altar sagrado: a espada em pixel-art é desenhada por cima do desenho
+    // da praça, com a ponta cravada no pedestal.
     R(g, '#0005', x, y + 12, T, 4);
     R(g, '#3e3e52', x + 1, y + 7, 14, 8);
     R(g, '#7a7a96', x + 2, y + 5, 12, 6);
     R(g, '#b6b6d0', x + 3, y + 5, 10, 2);
     R(g, '#ffd84a', x + 7, y + 9, 2, 2);
     if (!V.sword) {
-      // Towering blade rising above the pedestal
-      R(g, '#7a96c8', x + 6, y - 4, 4, 11);
-      R(g, '#e8f4ff', x + 7, y - 4, 2, 11);
-      R(g, '#b8860b', x + 2, y - 5, 12, 2);
-      R(g, '#ffd84a', x + 2, y - 6, 12, 2);
-      R(g, '#6b3f1d', x + 7, y - 10, 2, 4);
-      R(g, '#ffd84a', x + 5, y - 12, 6, 2);
-      R(g, '#ff4a55', x + 7, y - 12, 2, 1);
-      if ((t >> 3) & 1) R(g, '#fff', x + 12, y - 6, 2, 2);
-      if ((t >> 4) & 1) R(g, '#9ee6ff', x + 2, y - 2, 2, 2);
+      drawWorldSword(g, x, y - 10);
+      if ((t >> 3) & 1) R(g, '#fff', x + 13, y - 5, 1, 1);
+      if ((t >> 4) & 1) R(g, '#9ee6ff', x + 2, y, 1, 2);
     }
     return;
   }
@@ -2690,26 +2691,8 @@ export function drawIntro(
   g.globalAlpha = 1;
   g.globalCompositeOperation = 'source-over';
 
-  if (phase === 'logo' || phase === 'fade') {
-    R(g, '#000', 0, 0, W, H);
-    const a =
-      phase === 'logo'
-        ? Math.min(1, phaseTick / 24)
-        : phaseTick < 22
-          ? phaseTick / 22
-          : phaseTick > 78
-            ? Math.max(0, (100 - phaseTick) / 22)
-            : 1;
-    g.save();
-    g.globalAlpha = a;
-    drawMedievalFrame(g, 30, 46, 180, 68, 'gold');
-    framedLabel(g, 'CLAUDE GAMES', 120, 70, 1.6, '#ffe98a', '#2a1608');
-    framedLabel(g, 'apresenta', 120, 96, 1, '#d8c8a0', '#2a1608');
-    g.restore();
-    return;
-  }
-
-  // Sem filme: o card CLAUDE GAMES dá lugar direto ao menu em HTML.
+  // O GIF da Dominic e o vídeo da Cloud Games são overlays em HTML; o canvas
+  // só mantém o fundo preto para não vazar nenhum quadro antigo.
   R(g, '#000', 0, 0, W, H);
 }
 
@@ -3250,6 +3233,10 @@ export function drawGame(
 
   const drawables: Array<[number, () => void]> = [];
   for (const n of world.npcs[G.map] || []) {
+    // Os vendedores foram removidos da praça. Os registros continuam aqui
+    // (com stall/shopId) para que as seis barracas abram as lojas normalmente;
+    // apenas a pessoa em si deixa de ser desenhada.
+    if (n.stall) continue;
     drawables.push([n.y * 16, () => drawPerson(g, n, t)]);
   }
   for (const e of G.en) {
@@ -3666,7 +3653,7 @@ export function drawInventory(
     },
     {
       title: `FRAGMENTOS (${frag}/3)`,
-      desc: frag >= 3 ? 'Abra o portao de Vorak!' : 'Derrote chefes das cavernas',
+      desc: frag >= 3 ? 'Abra o castelo do Ciclope!' : 'Derrote chefes das cavernas',
       badge: `${frag}/3`,
     },
     {

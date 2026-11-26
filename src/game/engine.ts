@@ -10,8 +10,8 @@ import {
   FATHER_TILE,
   FONT,
   H,
-  INTRO_FADE_FRAMES,
   INTRO_LOGO_FRAMES,
+  INTRO_VIDEO_FRAMES,
   MAX_HEARTS,
   NAME_ROWS,
   QUESTS,
@@ -566,18 +566,19 @@ export class GameEngine {
   private advanceIntro(): void {
     this.audio.bp(700, 0.06);
     if (this.introPhase === 'logo') {
-      this.introPhase = 'fade';
+      // Dominic Games -> vídeo da Cloud Games -> menu.
+      this.introPhase = 'video';
       this.introTick = 0;
     } else {
-      // Dominic Games -> CLAUDE GAMES -> menu (sem filme intermediary).
       this.st = 'menu';
       this.menuSel = 0;
+      this.broadcastUI();
     }
   }
 
-  /** Compatibilidade: o intro não tem mais vídeo; segue direto para o menu. */
+  /** Chamado quando o vídeo da logo termina (ou falha): vai direto ao menu. */
   public introVideoDone(): void {
-    if (this.st === 'intro') {
+    if (this.st === 'intro' && this.introPhase === 'video') {
       this.st = 'menu';
       this.menuSel = 0;
       this.broadcastUI();
@@ -942,7 +943,7 @@ export class GameEngine {
     this.st = 'game';
     this.lastMapSaved = this.G.map;
     this.talk(
-      'Você desperta com o som dos trovões lá fora... Hora de levantar, descer as escadas e ir ao centro da Vila Central puxar a Espada Lendária!',
+      'Você desperta com o som dos trovões lá fora... Levante, desça as escadas e vá à praça da Vila Central. A Espada Lendária espera por você!',
     );
     saveGame(this.hn, this.G, this.V, this.world, this.worldTime);
   }
@@ -1188,7 +1189,7 @@ export class GameEngine {
     if (n.heal) this.G.hp = this.V.mh * 2;
     if (n.el && !this.V.sword) {
       this.talk(
-        'Você precisa da Espada Lendária! Vá até a praça no centro da Vila Central e puxe a espada cravada no meio dela.',
+        'Você precisa da Espada Lendária! Vá até a praça no centro da Vila Central e puxe a espada cravada no pedestal. Os três Dominics contam com você!',
       );
       return;
     }
@@ -1196,7 +1197,7 @@ export class GameEngine {
       const f = this.V.it.fragmento | 0;
       this.talk(
         f >= 3
-          ? 'Você tem os 3 fragmentos! Vá ao castelo, ao norte, e derrote Vorak!'
+          ? 'Você tem os 3 fragmentos! Vá ao castelo, ao norte, e derrote o Ciclope para salvar Mitribuque!'
           : f
             ? `Você tem ${f} de 3 fragmentos. Cavernas: floresta (leste), ruínas (nordeste) e gelo (noroeste).`
             : n.s,
@@ -1205,7 +1206,7 @@ export class GameEngine {
     }
     if (n.q === 'maria' && !this.V.sword) {
       this.talk(
-        'Essa espada está cravada no meio da minha casa há séculos! Ninguém nunca conseguiu puxá-la... Tente você, Herói!',
+        'Minha casa já não guarda a espada: ela foi cravada na praça central. Ninguém além de você consegue retirá-la, Herói!',
       );
       return;
     }
@@ -1279,7 +1280,7 @@ export class GameEngine {
     this.audio.playItemGet();
     this.burst(a * 16 + 8, b * 16 + 4, '#ffd84a', true, 16);
     this.talk(
-      'Com força e coragem, Herói puxa a ESPADA LENDÁRIA! Apenas você podia retirá-la. A chuva lá fora parou!',
+      'Com força e coragem, Herói puxa a ESPADA LENDÁRIA! Os três Dominics despertam em você. A chuva lá fora parou e o Ciclope vai tremer!',
     );
     saveGame(this.hn, this.G, this.V, this.world, this.worldTime);
   }
@@ -2052,12 +2053,12 @@ export class GameEngine {
       } else if (tile === 'y') {
         this.audio.bp(520, 0.08, 'triangle');
         this.talk(
-          'Uma TV de tubo conectada ao seu videogame estilo PS2! A luz azul continua acesa... Melhor salvar Aurora antes de jogar!',
+          'Uma TV de tubo conectada ao seu videogame estilo PS2! A luz azul continua acesa... Melhor salvar Mitribuque antes de jogar!',
         );
       } else if (tile === 'q' && this.G.map === 451) {
         this.audio.bp(640, 0.05);
         this.talk(
-          'Sua estante com livros antigos sobre a Lenda de Aurora, mapas do reino e os Três Fragmentos.',
+          'Sua estante com livros antigos sobre a Lenda dos Três Dominics, mapas de Mitribuque e os Fragmentos do Cristal.',
         );
       } else if (tile === 'e') {
         this.G.hp = this.V.mh * 2;
@@ -2263,7 +2264,7 @@ export class GameEngine {
       if (this.G.map === 261) {
         this.V.fl.win = 1;
         this.talk(
-          'Vorak foi derrotado e o Cristal de Luz brilha de novo! O reino de Aurora está salvo!',
+          'O Ciclope foi derrotado e os três Dominics brilham de novo! Mitribuque está salva, Herói!',
         );
       } else if (this.G.map === 202) {
         // 1º chefe: Fragmento + Roupa Branca ficam no baú da própria sala
@@ -2690,9 +2691,10 @@ export class GameEngine {
         return;
       }
       if (this.introPhase === 'logo' && this.introTick >= INTRO_LOGO_FRAMES) {
-        this.introPhase = 'fade';
+        this.introPhase = 'video';
         this.introTick = 0;
-      } else if (this.introPhase === 'fade' && this.introTick >= INTRO_FADE_FRAMES) {
+      } else if (this.introPhase === 'video' && this.introTick >= INTRO_VIDEO_FRAMES) {
+        // Autoplay bloqueado ou arquivo ausente: segue para o menu mesmo assim.
         this.st = 'menu';
         this.menuSel = 0;
       }

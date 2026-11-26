@@ -14,7 +14,7 @@ export type ScreenState =
   | 'over'
   | 'victory';
 
-export type IntroPhase = 'logo' | 'fade';
+export type IntroPhase = 'logo' | 'video';
 
 export type NpcKind =
   | 'elder'

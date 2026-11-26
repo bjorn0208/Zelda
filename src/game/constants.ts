@@ -286,38 +286,38 @@ export const MARKET_STALLS: MarketStall[] = [
 ];
 
 export const COMMON_LINES = [
-  'O Cristal de Luz se partiu em tres fragmentos! Dizem que a Vila Central tem tudo para a jornada.',
-  'Vorak, o feiticeiro, vive no castelo ao norte. Leve tochas e bombas para as cavernas!',
-  'Corte arbustos: as vezes caem cogumelos e rupias.',
-  'Nas cavernas a escuridao e total! Acenda uma tocha ou siga as tochas da parede.',
+  'Os tres Dominics despertaram em Mitribuque! O Guerreiro Policolor precisa da Espada Lendaria da praca para enfrentar o Ciclope.',
+  'A tempestade nasceu no castelo ao norte. Leve tochas e bombas antes de descer as cavernas!',
+  'Corte arbustos: as vezes caem cogumelos e rupias para a sua jornada.',
+  'Nas cavernas a escuridao e total! Acenda uma tocha ou siga as tochas acesas nas paredes.',
   'Use B para erguer o escudo e X para atirar flechas ou jogar bombas!',
-  'No centro da Vila Central ha barracas de frutas, roupas, pocoes, flores, ceramica e livros.',
+  'No centro da Vila Central ha seis barracas - frutas, roupas, pocoes, flores, ceramica e livros - ao redor da espada.',
 ];
 
 export const BIOME_LINES: Record<'n' | 's' | 'g', string[]> = {
   n: [
-    'Brrr! O frio vem do castelo de Vorak. A noite aqui e congelante!',
-    'A caverna de gelo fica no canto noroeste. Golems protegem o cristal!',
+    'Brrr! O frio vem do castelo do Ciclope. A noite aqui e congelante!',
+    'A caverna de gelo fica no canto noroeste. Os servos do Ciclope guardam o caminho!',
     'Esqueletos e slimes gelados rondam a neve a noite.',
   ],
   s: [
     'De dia o sol castiga, mas a noite os escorpioes saem das sombras!',
-    'As ruinas a nordeste guardam um fragmento e varios baus.',
+    'As ruinas a nordeste escondem relikias dos tres Dominics e varios baus.',
     'Leve um bom escudo antes de enfrentar os magos sombrios.',
   ],
   g: [
     'Ha cavernas secretas com tesouros e rochas rachadas para explodir!',
-    'A Vila Central fica bem no coracao do reino, ao norte daqui.',
-    'Os guardas patrulham a praca quando cai a noite.',
+    'A Vila Central fica bem no coracao de Mitribuque, ao norte daqui.',
+    'A praca central fica vazia desde que a espada foi cravada la. Os guardas patrulham a entrada.',
   ],
 };
 
 export const HOUSE_LINES = [
-  'Seja bem-vindo a minha casa! Sinta o calor da lareira.',
-  'Descanse, heroi. Quando a noite cai, monstros ficam mais agitados.',
-  'Meu avo lutou contra Vorak ha cem anos usando um Escudo Real.',
-  'Dizem que o alfaiate da Vila Central faz tunicas incriveis!',
-  'Esta sopa aquecera seu corpo antes de entrar nas cavernas.',
+  'Seja bem-vindo a minha casa! Sinta o calor da lareira enquanto a tempestade passa.',
+  'Descanse, heroi. Quando a noite cai, as sombras do Ciclope ficam mais agitadas.',
+  'Meu avo dizia que so o Guerreiro Policolor consegue unir os tres Dominics.',
+  'Dizem que a costureira da Vila Central faz tunicas que brilham na escuridao!',
+  'Esta sopa aquecera seu corpo antes de descer as cavernas. A espada esta na praca, nao mais aqui.',
 ];
 
 export interface QuestDef {
@@ -333,41 +333,41 @@ export const QUESTS: Record<string, QuestDef> = {
   marta: {
     need: 'cogumelo',
     n: 5,
-    ask: 'Preciso de 5 cogumelos para a sopa! Corte arbustos la fora.',
-    ok: 'Que delicia! Tome uma pocao, 30 rupias e 3 tochas!',
-    done: 'A sopa ficou otima, obrigada!',
+    ask: 'Preciso de 5 cogumelos para a sopa dos viajantes! Corte arbustos la fora.',
+    ok: 'Que delicia! Tome uma pocao, 30 rupias e 3 tochas para a sua jornada!',
+    done: 'A sopa ficou otima, obrigada! Que os tres Dominics te acompanhem.',
     rew: { rp: 30, pot: 1 },
   },
   maria: {
     need: 'anel',
     n: 1,
-    ask: 'Perdi meu anel na caverna do lago, ao sudoeste. Ajude-me!',
-    ok: 'Meu anel! Voce ganha um coracao extra!',
-    done: 'Obrigada por tudo, heroi.',
+    ask: 'Perdi meu anel na caverna do lago, ao sudoeste. Com a tempestade, ninguem mais entra la. Ajude-me!',
+    ok: 'Meu anel! Voce ganha um coracao extra para enfrentar o Ciclope!',
+    done: 'Obrigada, heroi. Minha casa ficou tranquila desde que a espada foi para a praca.',
     rew: { mh: 1 },
   },
   ferreiro: {
     need: 'minerio',
     n: 1,
-    ask: 'Preciso de minerio da caverna da floresta, a leste.',
+    ask: 'Preciso de minerio da caverna da floresta, a leste, para forjar armas contra o Ciclope.',
     ok: 'Perfeito! Forjei a ESPADA DE ACO para voce!',
-    done: 'Aquela espada e minha obra-prima.',
+    done: 'Aquela espada e minha obra-prima. Cuide bem dela na jornada.',
     rew: { dmg: 2 },
   },
   crianca: {
     need: 'ursinho',
     n: 1,
-    ask: 'Perdi meu ursinho na caverna de gelo... Voce busca para mim?',
+    ask: 'Perdi meu ursinho na caverna de gelo... Voce busca para mim, heroi do Guerreiro Policolor?',
     ok: 'Meu ursinho! Ganhe um coracao extra e flechas!',
-    done: 'Eu amo meu ursinho!',
+    done: 'Eu amo meu ursinho! Obrigada por enfrentar o frio por mim.',
     rew: { mh: 1, arrows: 10 },
   },
   hunter: {
     need: 'slime',
     n: 10,
-    ask: 'Cace 10 gosmas nas florestas e traga-me suas essencias!',
+    ask: 'Cace 10 gosmas nas florestas e traga-me suas essencias! O Ciclope envia criaturas a cada noite.',
     ok: 'Incrivel! Tome 50 rupias, flechas e uma pocao!',
-    done: 'Obrigado, heroi. As florestas estao mais seguras.',
+    done: 'Obrigado, heroi. As florestas estao mais seguras para Mitribuque.',
     rew: { rp: 50, arrows: 15, pot: 1 },
   },
 };
@@ -393,8 +393,8 @@ export const STORY_INTERLUDE_AT = 5;
 export const NAME_ROWS = ['ABCDEFGHI', 'JKLMNOPQR', 'STUVWXYZ '] as const;
 
 export const INTRO_LOGO_FRAMES = 180;
-export const INTRO_FADE_FRAMES = 100;
-// Safety cap only: the <video> overlay normally ends the phase via introVideoDone().
-
+// O vídeo da logo normalmente termina via introVideoDone(); este limite só
+// evita que a intro trave se o autoplay for bloqueado ou o arquivo falhar.
+export const INTRO_VIDEO_FRAMES = 900;
 
 export const DAY_CYCLE_FRAMES = 4200; // ~70s full day/dusk/night/dawn cycle

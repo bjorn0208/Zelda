@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowDown,
   ArrowLeft,
@@ -392,7 +392,7 @@ function ResponsiveInventoryModal({
       badge: ui.hasSword ? (ui.equippedSword ? 'EQ' : `${ui.ownedSwords.length}`) : '—',
       active: ui.equippedSword,
       desc: !ui.hasSword
-        ? 'A Espada Lendária está cravada no centro da casa ao lado. Vá até lá para puxá-la e encerrar a tempestade.'
+        ? 'A Espada Lendária está cravada no pedestal da praça, no centro da Vila Central. Vá até lá para puxá-la e encerrar a tempestade.'
         : ui.equippedSword
           ? `Ataque: ${ui.dmg}. Toque novamente ou pressione A para alternar entre suas espadas (${ui.ownedSwords.length}) ou guardar.`
           : 'Espada guardada na maleta. Pressione Equipar (A) para empunhá-la.',
@@ -420,7 +420,7 @@ function ResponsiveInventoryModal({
       desc:
         ui.ownedOutfits.length > 1
           ? `Traje atual: ${outDef.name}. Pressione A ou toque para trocar entre as ${ui.ownedOutfits.length} roupas compradas na Alfaiataria Real.`
-          : 'Túnica inicial de Aurora. Visite a Alfaiataria Real na Vila Central para comprar novos trajes!',
+          : 'Túnica inicial de Mitribuque. Visite a Alfaiataria Real na Vila Central para comprar novos trajes!',
       actionLabel: ui.ownedOutfits.length > 1 ? 'Trocar Roupa' : 'Traje Único',
       accent: 'text-emerald-300',
     },
@@ -468,7 +468,7 @@ function ResponsiveInventoryModal({
       active: ui.fragments > 0,
       desc:
         ui.fragments >= 3
-          ? 'Você reuniu todos os 3 Fragmentos! Vá ao norte até o Portão de Vorak para enfrentar o lorde sombrio.'
+          ? 'Você reuniu todos os 3 Fragmentos! Vá ao norte até o castelo do Ciclope para enfrentar o monstro e salvar Mitribuque.'
           : 'Derrote os guardiões das três grandes cavernas (Floresta, Ruínas do Deserto e Terra Gelada) para reunir os cristais.',
       actionLabel: 'Item de Missão',
       accent: 'text-indigo-300',
@@ -690,6 +690,16 @@ function ResponsiveInventoryModal({
 export default function App() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const engineRef = useRef<GameEngine | null>(null);
+  // Ref estável: o vídeo da logo só é montado na fase de vídeo e não reinicia
+  // quando o React renderiza novamente nem quando o menu é aberto.
+  const attachCloudVideo = useCallback((el: HTMLVideoElement | null) => {
+    if (!el) return;
+    el.currentTime = 0;
+    const p = el.play();
+    if (p && typeof p.catch === 'function') {
+      p.catch(() => engineRef.current?.introVideoDone());
+    }
+  }, []);
 
   const stickZoneRef = useRef<HTMLDivElement | null>(null);
   const stickPointerId = useRef<number | null>(null);
@@ -1026,6 +1036,21 @@ export default function App() {
               alt="Dominic Games"
               onError={() => setLogoBroken(true)}
               className="animate-logo-fade pointer-events-none absolute inset-0 h-full w-full bg-black object-contain"
+            />
+          )}
+
+          {ui.screen === 'intro' && ui.introPhase === 'video' && (
+            <video
+              key="cloud-games-video"
+              ref={attachCloudVideo}
+              src="/cloud_games.mp4"
+              className="pointer-events-none absolute inset-0 h-full w-full bg-black object-contain"
+              autoPlay
+              muted
+              playsInline
+              preload="auto"
+              onEnded={() => engineRef.current?.introVideoDone()}
+              onError={() => engineRef.current?.introVideoDone()}
             />
           )}
 

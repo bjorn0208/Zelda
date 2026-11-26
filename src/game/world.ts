@@ -524,7 +524,7 @@ function genOverworldScreen(world: WorldData, sx: number, sy: number): void {
             kind: 'merchant',
             name: 'Mercador Theo',
             shopId: 'items',
-            s: 'Bem-vindo ao Mercado Central! Tenho pocoes, flechas, bombas e tochas!',
+            s: 'Bem-vindo ao Mercado Central! Pocoes, flechas, bombas e tochas para quem vai enfrentar o Ciclope!',
           },
         ];
       } else if (id === 335) {
@@ -536,7 +536,7 @@ function genOverworldScreen(world: WorldData, sx: number, sy: number): void {
             kind: 'blacksmith',
             name: 'Mestre Ferreiro',
             shopId: 'weapons',
-            s: 'Aqui forjamos os melhores escudos e espadas do reino!',
+            s: 'Aqui forjamos escudos e laminas dignas do Guerreiro Policolor!',
           },
         ];
       } else if (id === 136) {
@@ -548,7 +548,7 @@ function genOverworldScreen(world: WorldData, sx: number, sy: number): void {
             kind: 'merchant',
             name: 'Costureira Clara',
             shopId: 'tailor',
-            s: 'Roupas dignas de um heroi! Veja nossas tunicas e o Escudo Espelho!',
+            s: 'Roupas dignas de um heroi! Veja nossas tunicas e o Escudo Espelho antes de partir!',
           },
         ];
       }
@@ -564,7 +564,7 @@ function genOverworldScreen(world: WorldData, sx: number, sy: number): void {
           name: stall.name,
           shopId: stall.shopId,
           stall: { awning: stall.awning, stripe: stall.stripe },
-          s: `Bem-vindo à barraca de ${stall.name}! Aqui vendo ${stall.goods}.`,
+          s: `Na barraca de ${stall.name} eu vendo ${stall.goods}. Escolha o que levar para a jornada dos tres Dominics!`,
         });
         m[stall.y][stall.x] = 'Y';
       }
@@ -630,7 +630,7 @@ function genOverworldScreen(world: WorldData, sx: number, sy: number): void {
         kind: 'merchant',
         name: i === 51 ? 'Mercador Breno' : 'Mercador da Vila',
         shopId: 'bazaar',
-        s: 'Tenho escudos resistentes, pocoes e tochas em troca de suas rupias!',
+        s: 'Tenho escudos resistentes, pocoes e tochas em troca de suas rupias. O Ciclope nao espera!',
       });
     }
   }
@@ -669,9 +669,9 @@ function genOverworldScreen(world: WorldData, sx: number, sy: number): void {
         c: '#2e86c1',
         kind: 'guard',
         name: 'Guarda Marcos',
-        s: 'A Vila Central esta protegida! Entre nas lojas acima para comprar armas, pocoes e equipamentos.',
+        s: 'A Vila Central resiste a tempestade! Entre nas lojas acima para comprar armas, pocoes e equipamentos.',
         chat: [
-          'Guarda Marcos: Fique atento ao anoitecer! Criaturas sombrias rondam fora das muralhas.',
+          'Guarda Marcos: Fique atento ao anoitecer! Os servos do Ciclope rondam fora das muralhas.',
           'Mercadora (ao lado): Tambem temos bombas que abrem pedras rachadas nas cavernas!',
         ],
       },
@@ -681,7 +681,7 @@ function genOverworldScreen(world: WorldData, sx: number, sy: number): void {
         c: '#27ae60',
         kind: 'villager',
         name: 'Aldea Sofia',
-        s: 'A loja da esquerda vende pocoes, flechas, bombas e tochas. A da direita forja espadas e escudos!',
+        s: 'A loja da esquerda vende pocoes, flechas, bombas e tochas. A da direita forja espadas e escudos para a luta contra o Ciclope!',
       },
     );
   } else if (k === '4,4' && i !== 36) {
@@ -692,9 +692,9 @@ function genOverworldScreen(world: WorldData, sx: number, sy: number): void {
         c: '#8e44ad',
         kind: 'mage',
         name: 'Sabio Orion',
-        s: 'Sabia que o sol e a lua se alternam em Aurora? A noite, acenda uma tocha com X para iluminar o caminho!',
+        s: 'O Guerreiro Policolor desperta quando os tres Dominics se unem. A noite, acenda uma tocha com X para iluminar o caminho!',
         chat: [
-          'Sabio Orion: As cavernas escondem tesouros e fragmentos do Cristal de Luz.',
+          'Sabio Orion: As cavernas escondem relikias dos Dominics e tesouros de Mitribuque.',
           'Crianca Lino: Eu ouvi dizer que a Alfaiataria aqui em cima vende uma Armadura Dourada!',
         ],
       },
@@ -704,7 +704,7 @@ function genOverworldScreen(world: WorldData, sx: number, sy: number): void {
         c: '#e67e22',
         kind: 'child',
         name: 'Lino',
-        s: 'Uau! Quando eu crescer quero ter a Lamina Solar e usar a Tunica Safira!',
+        s: 'Uau! Quando eu crescer quero empunhar a Lamina Solar e usar a Tunica Safira como o Guerreiro Policolor!',
       },
     );
   } else if (b !== 'd' && i !== 36) {
@@ -733,7 +733,7 @@ function genOverworldScreen(world: WorldData, sx: number, sy: number): void {
     if (k === '3,6') {
       nn.name = 'Anciao Aldor';
       nn.s =
-        'Heroi! Vorak partiu o Cristal de Luz em 3 fragmentos. Explore as cavernas e visite a Vila Central ao norte!';
+        'Heroi! Os tres Dominics foram despertados, mas o Ciclope ainda assola Mitribuque. Vá à Vila Central, ao norte, e puxe a espada da praça!';
       // Add a village guard chatting nearby in the starting village
       m[6][10] = fl;
       world.npcs[i].push({
@@ -742,9 +742,9 @@ function genOverworldScreen(world: WorldData, sx: number, sy: number): void {
         c: '#2e86c1',
         kind: 'guard',
         name: 'Sentinela',
-        s: 'A Espada Lendaria esta cravada na praca do centro da Vila Central, ao norte! La voce tambem pode se equipar.',
+        s: 'A Espada Lendaria esta cravada na praca do centro da Vila Central, ao norte! E so dela que o Ciclope teme.',
         chat: [
-          'Sentinela: Voce ouviu o Anciao? Ninguem alem de voce consegue puxar aquela espada.',
+          'Sentinela: Voce ouviu o Anciao? Ninguem alem do Guerreiro Policolor consegue puxar aquela espada.',
           'Anciao Aldor: E nao esqueca de levar tochas antes de entrar nas cavernas!',
         ],
       });
@@ -757,7 +757,7 @@ function genOverworldScreen(world: WorldData, sx: number, sy: number): void {
         y: sp[1],
         c: '#2a6a2a',
         kind: 'explorer',
-        s: 'Sou o cacador. Traga-me 10 essencias de gosma!',
+        s: 'Sou o cacador. Traga-me 10 essencias de gosma para eu estudar as criaturas do Ciclope!',
         q: 'hunter',
       });
     }
