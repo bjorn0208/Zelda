@@ -1020,28 +1020,6 @@ export default function App() {
             style={{ aspectRatio: '3 / 2' }}
           />
 
-          {ui.introPhase === 'video' && (
-            <video
-              key="intro-video"
-              src="/intro_video.mp4"
-              className="pointer-events-none absolute inset-0 h-full w-full bg-black object-contain"
-              autoPlay
-              muted
-              playsInline
-              preload="auto"
-              onEnded={() => engineRef.current?.introVideoDone()}
-              onError={() => engineRef.current?.introVideoDone()}
-              ref={(el) => {
-                if (!el) return;
-                const p = el.play();
-                if (p && typeof p.catch === 'function') {
-                  // Autoplay blocked (common on mobile): never stall the intro
-                  p.catch(() => engineRef.current?.introVideoDone());
-                }
-              }}
-            />
-          )}
-
           {ui.screen === 'intro' && ui.introPhase === 'logo' && !logoBroken && (
             <img
               src="/assets/dominic-games.gif"

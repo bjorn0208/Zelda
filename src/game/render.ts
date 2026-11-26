@@ -2709,14 +2709,7 @@ export function drawIntro(
     return;
   }
 
-  if (phase === 'video') {
-    // The <video> overlay covers the canvas — keep it black underneath so no
-    // stale frame bleeds through, and never fall into the rise animation.
-    R(g, '#000', 0, 0, W, H);
-    return;
-  }
-
-  // Nunca desenhar a tela antiga: o vídeo dá lugar direto ao menu em HTML.
+  // Sem filme: o card CLAUDE GAMES dá lugar direto ao menu em HTML.
   R(g, '#000', 0, 0, W, H);
 }
 

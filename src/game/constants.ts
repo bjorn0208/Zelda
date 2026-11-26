@@ -395,6 +395,6 @@ export const NAME_ROWS = ['ABCDEFGHI', 'JKLMNOPQR', 'STUVWXYZ '] as const;
 export const INTRO_LOGO_FRAMES = 180;
 export const INTRO_FADE_FRAMES = 100;
 // Safety cap only: the <video> overlay normally ends the phase via introVideoDone().
-export const INTRO_VIDEO_FRAMES = 900; // ~15s hard fallback so the intro can never hang
+
 
 export const DAY_CYCLE_FRAMES = 4200; // ~70s full day/dusk/night/dawn cycle

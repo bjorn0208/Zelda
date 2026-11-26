@@ -12,7 +12,6 @@ import {
   H,
   INTRO_FADE_FRAMES,
   INTRO_LOGO_FRAMES,
-  INTRO_VIDEO_FRAMES,
   MAX_HEARTS,
   NAME_ROWS,
   QUESTS,
@@ -569,17 +568,14 @@ export class GameEngine {
     if (this.introPhase === 'logo') {
       this.introPhase = 'fade';
       this.introTick = 0;
-    } else if (this.introPhase === 'fade') {
-      this.introPhase = 'video';
-      this.introTick = 0;
     } else {
-      // Sem tela intermediária: o vídeo dá lugar direto ao menu.
+      // Dominic Games -> CLAUDE GAMES -> menu (sem filme intermediary).
       this.st = 'menu';
       this.menuSel = 0;
     }
   }
 
-  /** Called by the <video> overlay on ended/error/autoplay-rejection. */
+  /** Compatibilidade: o intro não tem mais vídeo; segue direto para o menu. */
   public introVideoDone(): void {
     if (this.st === 'intro') {
       this.st = 'menu';
@@ -2697,10 +2693,6 @@ export class GameEngine {
         this.introPhase = 'fade';
         this.introTick = 0;
       } else if (this.introPhase === 'fade' && this.introTick >= INTRO_FADE_FRAMES) {
-        this.introPhase = 'video';
-        this.introTick = 0;
-      } else if (this.introPhase === 'video' && this.introTick >= INTRO_VIDEO_FRAMES) {
-        // Vídeo não sinalizou (autoplay bloqueado, arquivo ausente...): segue em frente.
         this.st = 'menu';
         this.menuSel = 0;
       }
