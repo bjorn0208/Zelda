@@ -1,4 +1,5 @@
 import {
+  BAZAAR_LINE,
   BIOME_LINES,
   BLACKSMITH_LINE,
   BONUS_CAVES,
@@ -633,7 +634,7 @@ function genOverworldScreen(world: WorldData, sx: number, sy: number): void {
         kind: 'merchant',
         name: i === 51 ? 'Mercador Breno' : 'Mercador da Vila',
         shopId: 'bazaar',
-        s: 'Tenho escudos resistentes, pocoes e tochas em troca de suas rupias. O Ciclope nao espera!',
+        s: BAZAAR_LINE,
       });
     }
   }

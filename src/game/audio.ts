@@ -1,5 +1,6 @@
 import {
   AWAKENING_LINE,
+  BAZAAR_LINE,
   BLACKSMITH_LINE,
   FATHER_INTRO_LINE,
   MERCHANT_THEO_LINE,
@@ -74,6 +75,7 @@ const VOICE_LINES: Array<{ match: string; src: string }> = [
   { match: MERCHANT_THEO_LINE, src: '/voice/theo_line.mp3' },
   { match: BLACKSMITH_LINE, src: '/voice/blacksmith_line.mp3' },
   { match: TAILOR_LINE, src: '/voice/tailor_line.mp3' },
+  { match: BAZAAR_LINE, src: '/voice/bazaar_line.mp3' },
 ];
 
 /** Diálogos com gravação não mostram legenda. */

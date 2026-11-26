@@ -1,6 +1,7 @@
 import { RetroAudio, TrackName } from './audio';
 import {
   AWAKENING_LINE,
+  BAZAAR_LINE,
   BLACKSMITH_LINE,
   CHEST_ITEMS,
   DAY_CYCLE_FRAMES,
@@ -1184,7 +1185,12 @@ export class GameEngine {
     if (n.shopId) {
       // Os lojistas com gravação própria falam ao abrir a loja; a fala não
       // vira legenda nem diálogo, apenas o MP3 toca uma vez.
-      if (n.s === MERCHANT_THEO_LINE || n.s === BLACKSMITH_LINE || n.s === TAILOR_LINE) {
+      if (
+        n.s === MERCHANT_THEO_LINE ||
+        n.s === BLACKSMITH_LINE ||
+        n.s === TAILOR_LINE ||
+        n.s === BAZAAR_LINE
+      ) {
         this.audio.playDialogVoice({ p: [[n.s]], i: 0, full: n.s });
       }
       this.shopId = n.shopId;

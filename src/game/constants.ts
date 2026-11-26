@@ -134,6 +134,9 @@ export const BLACKSMITH_LINE = 'Aqui forjamos os melhores escudos e espadas do r
 /** Fala da Costureira Clara ao abrir a alfaiataria (com dublagem própria). */
 export const TAILOR_LINE = 'Roupas dignas de um heroi! Veja nossas tunicas e o Escudo espelho';
 
+/** Fala do Mercador Breno / Mercador da Vila ao abrir o bazar (com dublagem própria). */
+export const BAZAAR_LINE = 'Tenho escudos resistentes, pocoes e tochas em troca de suas rupias!';
+
 export const SWORD_STATS: Record<SwordTier, { name: string; dmg: number; blade: string; edge: string }> = {
   none: { name: 'SEM ESPADA', dmg: 0, blade: '#888', edge: '#555' },
   lendaria: { name: 'ESPADA LENDARIA', dmg: 1, blade: '#dff0ff', edge: '#8fa8d8' },
