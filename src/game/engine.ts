@@ -2585,22 +2585,21 @@ export class GameEngine {
   }
 
   private wantedTrack(): TrackName {
-    // Two real-file themes around the hero-name screen:
-    //  - before the name (intro/menu/name/help): "prologue" — Minish Cap prologue
-    //  - after confirmName (story/game/inv/shop) until pullSword: "awakening"
+    // Música inicial: do logo da Dominic Games (intro) até a escolha do nome.
     const beforeName =
       this.st === 'intro' || this.st === 'menu' || this.st === 'name' || this.st === 'help';
     if (beforeName) return 'prologue';
 
-    // The text-less Cyclops interlude (story page 5) gets its own track.
-    if (this.st === 'story' && this.pg === STORY_INTERLUDE_AT) return 'cyclops';
+    // A história inteira usa a música do diálogo com o Ciclope.
+    if (this.st === 'story') return 'cyclops';
 
-    const pastName = this.st === 'story' || this.st === 'game' || this.st === 'inv' || this.st === 'shop';
+    // "Pueblo de terror" (awakening.mp3) só entra quando o herói acorda,
+    // depois do fim da história, e continua até a espada ser retirada.
+    const pastName = this.st === 'game' || this.st === 'inv' || this.st === 'shop';
     if (pastName && !this.V.sword) {
       return 'awakening';
     }
     if (this.st === 'mg') return 'mini';
-    if (this.st === 'story') return 'story';
     if (this.st === 'game' || this.st === 'inv' || this.st === 'shop') {
       const m = this.G.map;
       if (isHouse(m) || m === 35 || m === 36) return this.V.sword ? 'ezlo' : 'calm';
@@ -2639,6 +2638,8 @@ export class GameEngine {
 
     this.audio.setRainAmbience(weatherMode === 'story' ? 0.045 : weatherMode === 'overworld' ? 0.032 : 0);
 
+    // Personagem falando: música cai pela metade e volta ao normal ao fechar.
+    this.audio.setMusicDucked(Boolean(this.G.dlg));
     this.audio.tickMusic(this.wantedTrack());
     if (
       this.st === 'game' &&

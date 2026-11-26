@@ -33,14 +33,19 @@ interface TrackDef {
  * the original music rather than silence.
  */
 const TRACK_FILES: Partial<Record<Exclude<TrackName, ''>, string>> = {
+  // Toca desde o logo da Dominic Games até a escolha do nome.
   prologue: '/music/prologue.mp3',
+  // "Pueblo de terror": só começa quando a história termina e o herói acorda.
   awakening: '/music/awakening.mp3',
   ezlo: '/music/ezlo.mp3',
+  // Toda a narração da história usa a mesma música do diálogo com o Ciclope.
   cyclops: '/music/cyclops.mp3',
-  // The same Minish Cap "Inside a Cave" track plays on every cave entry
-  // (the Cyclops interlude uses `cyclops` for the story beat).
+  // A mesma faixa também vale para entradas em cavernas.
   cave: '/music/cyclops.mp3',
 };
+
+/** Volume da música (1 = normal, 0.5 = personagem falando). */
+const MUSIC_VOLUME = 0.55;
 
 /**
  * Única fala de diálogo com gravação própria (SpeechGen). O texto completo é
@@ -205,6 +210,9 @@ export class RetroAudio {
   private trk: TrackName = '';
   private ms = 0;
   private ma = 0;
+  /** Música abaixa para metade enquanto há um diálogo aberto. */
+  private musicDucked = false;
+  private musicVolume = 1;
 
   // --- real audio files (see TRACK_FILES) -----------------------------------
   private fileEl: HTMLAudioElement | null = null;
@@ -239,7 +247,7 @@ export class RetroAudio {
           this.fileEl = new Audio(src);
           this.fileEl.loop = true;
           this.fileEl.preload = 'auto';
-          this.fileEl.volume = 0.55;
+          this.fileEl.volume = MUSIC_VOLUME * this.musicVolume;
         }
         this.fileSrc = src;
         this.fileTrk = wanted;
@@ -274,6 +282,14 @@ export class RetroAudio {
     } catch {
       // Ignore teardown errors
     }
+  }
+
+  /** Abaixa a música pela metade quando um personagem está falando. */
+  public setMusicDucked(ducked: boolean): void {
+    if (this.musicDucked === ducked) return;
+    this.musicDucked = ducked;
+    this.musicVolume = ducked ? 0.5 : 1;
+    if (this.fileEl) this.fileEl.volume = MUSIC_VOLUME * this.musicVolume;
   }
 
   /** One-shot item/chest jingle, independent from the background track. */
@@ -899,7 +915,7 @@ export class RetroAudio {
     }
   }
 
-  private kick(): void {
+  private kick(vol = 1): void {
     if (this.mute) return;
     try {
       const ac = this.ensureContext();
@@ -909,7 +925,7 @@ export class RetroAudio {
       const a = ac.currentTime;
       o.frequency.setValueAtTime(150, a);
       o.frequency.exponentialRampToValueAtTime(40, a + 0.12);
-      gn.gain.setValueAtTime(0.14, a);
+      gn.gain.setValueAtTime(0.14 * vol, a);
       gn.gain.exponentialRampToValueAtTime(0.0001, a + 0.15);
       o.connect(gn);
       gn.connect(ac.destination);
@@ -955,25 +971,26 @@ export class RetroAudio {
       [0, 3, 6],
     ][ch[1]];
     const d = fr / 60;
+    const v = this.musicVolume;
 
     if (!(s & 1)) {
       const n = k.l[s >> 1];
       if (n) {
-        this.nt(n, d * 3, k.w, 0.028);
-        this.nt(n, d * 3, k.w, 0.014, 9);
+        this.nt(n, d * 3, k.w, 0.028 * v);
+        this.nt(n, d * 3, k.w, 0.014 * v, 9);
       }
     }
     if (k.arp) {
-      this.nt(ch[0] + 24 + ct[sp % 3] + (sp & 8 ? 12 : 0), d * 1.4, 'square', 0.011);
+      this.nt(ch[0] + 24 + ct[sp % 3] + (sp & 8 ? 12 : 0), d * 1.4, 'square', 0.011 * v);
     }
     const b = k.bp[sp];
-    if (b === 'x') this.nt(ch[0], d * 1.8, 'triangle', 0.075);
-    else if (b === 'o') this.nt(ch[0] + 12, d * 1.4, 'triangle', 0.055);
-    if (k.pad && !sp) this.nt(ch[0] + 24, d * 14, 'sawtooth', 0.011, 6);
+    if (b === 'x') this.nt(ch[0], d * 1.8, 'triangle', 0.075 * v);
+    else if (b === 'o') this.nt(ch[0] + 12, d * 1.4, 'triangle', 0.055 * v);
+    if (k.pad && !sp) this.nt(ch[0] + 24, d * 14, 'sawtooth', 0.011 * v, 6);
 
     const dm = k.dm;
-    if (dm && dm < 3 && (sp % 8 === 0 || (dm === 2 && sp % 4 === 0))) this.kick();
-    if (dm && dm < 3 && (sp === 4 || sp === 12)) this.nz(0.12, 0.045, 1500);
-    if (dm && (dm === 2 || !(sp & 1))) this.nz(0.04, 0.01, 7000);
+    if (dm && dm < 3 && (sp % 8 === 0 || (dm === 2 && sp % 4 === 0))) this.kick(v);
+    if (dm && dm < 3 && (sp === 4 || sp === 12)) this.nz(0.12, 0.045 * v, 1500);
+    if (dm && (dm === 2 || !(sp & 1))) this.nz(0.04, 0.01 * v, 7000);
   }
 }

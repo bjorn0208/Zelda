@@ -687,6 +687,8 @@ export default function App() {
   const stickPointerId = useRef<number | null>(null);
   const [knobOffset, setKnobOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [stickEngaged, setStickEngaged] = useState(false);
+  // Se o GIF da Dominic Games falhar, o logo desenhado no canvas continua visível.
+  const [logoBroken, setLogoBroken] = useState(false);
 
   const [padMode, setPadMode] = useState<MovePadMode>(() => {
     try {
@@ -1029,6 +1031,14 @@ export default function App() {
             />
           )}
 
+          {ui.screen === 'intro' && ui.introPhase === 'logo' && !logoBroken && (
+            <img
+              src="/assets/dominic-games.gif"
+              alt="Dominic Games"
+              onError={() => setLogoBroken(true)}
+              className="animate-logo-fade pointer-events-none absolute inset-0 h-full w-full bg-black object-contain"
+            />
+          )}
         </div>
 
         {/* Fixed Large Controls Directly Below Screen */}
