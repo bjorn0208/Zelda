@@ -2804,25 +2804,27 @@ export function drawStory(
     ln(g, 44, 92, 196, 92, '#8a2a20', 1);
     framedLabel(g, 'A SOMBRA DEVORA O REINO', 120, 106, 1, '#e0a080', '#2a0608');
   } else {
-    drawMedievalFrame(g, 22, 6, 196, 76, pg === 4 ? 'crimson' : 'gold');
-    framedLabel(g, STORY_TITLES[pg] ?? 'A HISTÓRIA', 120, 32, 1.5, FRAME_COLORS.gold.ink, '#2a1608');
-    ln(g, 42, 54, 198, 54, '#a8782a', 1);
+    // Uma única placa: título, capítulo e o texto falado ficam dentro dela.
+    const style: FrameStyle = pg === 4 ? 'crimson' : 'gold';
+    drawMedievalFrame(g, 12, 6, 216, 112, style);
+    framedLabel(g, STORY_TITLES[pg] ?? 'A HISTÓRIA', 120, 24, 1.4, FRAME_COLORS[style].ink, '#2a1608');
+    ln(g, 32, 38, 208, 38, '#a8782a', 1);
     const shown = pg > STORY_INTERLUDE_AT ? pg : pg + 1;
-    framedLabel(g, `CAPITULO ${shown}`, 120, 68, 1, '#d8c8a0', '#2a1608');
+    framedLabel(g, `CAPITULO ${shown}`, 120, 46, 0.85, '#7a5a20', '#2a1608');
+    ln(g, 32, 58, 208, 58, '#a8782a', 1);
   }
 
-  // Story text on a translucent strip so it stays readable
+  // O texto narrado é escrito na própria placa — nunca como legenda inferior.
   let n = ch | 0;
   if (!interlude) {
-    wrapText(s, 34).forEach((line, i) => {
-      R(g, '#000000cc', 6, 94 + i * 14, W - 12, 13);
-      tx(g, line.slice(0, Math.max(0, n)), 8, 97 + i * 14, '#ffd84a');
+    const paper = pg === 4 ? FRAME_COLORS.crimson.paper : FRAME_COLORS.gold.paper;
+    wrapText(s, 32).forEach((line, i) => {
+      tx(g, line.slice(0, Math.max(0, n)), 20, 64 + i * 12, '#3a2a10', 'left', paper);
       n -= line.length + 1;
     });
   }
 
-  // Page counter (the interlude is not counted as a phase) + navigation hint
-  R(g, '#000000cc', 0, H - 14, W, 14);
+  // Contador e dica de controle (interface, não legenda da narração).
   if (!interlude) {
     const shown = pg > STORY_INTERLUDE_AT ? pg : pg + 1;
     tx(g, `${shown}/${count - 1}`, 6, H - 11, '#ffd84a');
