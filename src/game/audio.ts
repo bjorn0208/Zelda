@@ -3,6 +3,7 @@ import {
   BAZAAR_LINE,
   BLACKSMITH_LINE,
   FATHER_INTRO_LINE,
+  GUARD_LINE,
   MERCHANT_THEO_LINE,
   SWORD_HINT_LINE,
   SWORD_PULLED_LINE,
@@ -76,6 +77,7 @@ const VOICE_LINES: Array<{ match: string; src: string }> = [
   { match: BLACKSMITH_LINE, src: '/voice/blacksmith_line.mp3' },
   { match: TAILOR_LINE, src: '/voice/tailor_line.mp3' },
   { match: BAZAAR_LINE, src: '/voice/bazaar_line.mp3' },
+  { match: GUARD_LINE, src: '/voice/guard_line.mp3' },
 ];
 
 /** Diálogos com gravação não mostram legenda. */

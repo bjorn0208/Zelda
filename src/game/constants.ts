@@ -137,6 +137,10 @@ export const TAILOR_LINE = 'Roupas dignas de um heroi! Veja nossas tunicas e o E
 /** Fala do Mercador Breno / Mercador da Vila ao abrir o bazar (com dublagem própria). */
 export const BAZAAR_LINE = 'Tenho escudos resistentes, pocoes e tochas em troca de suas rupias!';
 
+/** Fala do Guarda Marcos sobre a Vila Central (com dublagem própria). */
+export const GUARD_LINE =
+  'A Vila Central esta protegida! Entre nas lojas acima para comprar armas, pocoes e equipamentos.';
+
 export const SWORD_STATS: Record<SwordTier, { name: string; dmg: number; blade: string; edge: string }> = {
   none: { name: 'SEM ESPADA', dmg: 0, blade: '#888', edge: '#555' },
   lendaria: { name: 'ESPADA LENDARIA', dmg: 1, blade: '#dff0ff', edge: '#8fa8d8' },

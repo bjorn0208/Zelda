@@ -8,6 +8,7 @@ import {
   FATHER_INTRO_LINE,
   FATHER_TILE,
   FLOOR_TILES,
+  GUARD_LINE,
   HOUSE_LINES,
   HPT,
   MARKET_STALLS,
@@ -673,7 +674,7 @@ function genOverworldScreen(world: WorldData, sx: number, sy: number): void {
         c: '#2e86c1',
         kind: 'guard',
         name: 'Guarda Marcos',
-        s: 'A Vila Central resiste a tempestade! Entre nas lojas acima para comprar armas, pocoes e equipamentos.',
+        s: GUARD_LINE,
         chat: [
           'Guarda Marcos: Fique atento ao anoitecer! Os servos do Ciclope rondam fora das muralhas.',
           'Mercadora (ao lado): Tambem temos bombas que abrem pedras rachadas nas cavernas!',

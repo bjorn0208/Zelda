@@ -17,6 +17,7 @@ páginas. Falas gravadas não mostram legenda. Não há síntese de voz do naveg
 | `blacksmith_line.mp3` | Mestre Ferreiro, ao abrir a forja | `25971313-13674451594234622831` | 3,0 s |
 | `tailor_line.mp3` | Costureira Clara, ao abrir a alfaiataria | `25971381-55128331781214282691` | 4,8 s |
 | `bazaar_line.mp3` | Mercador Breno / Mercador da Vila, ao abrir o bazar | `25971468-84141777222596648878` | 3,9 s |
+| `guard_line.mp3` | Guarda Marcos, sobre a Vila Central | `25971654-48999644567233282135` | 7,6 s |
 
 Para adicionar uma nova gravação, coloque o MP3 aqui, inclua a constante do
 texto em `src/game/constants.ts` e uma entrada em `VOICE_LINES`.
