@@ -2590,8 +2590,8 @@ export class GameEngine {
       this.st === 'intro' || this.st === 'menu' || this.st === 'name' || this.st === 'help';
     if (beforeName) return 'prologue';
 
-    // A história inteira usa a música do diálogo com o Ciclope.
-    if (this.st === 'story') return 'cyclops';
+    // A história inteira usa "Element Appears" (story_intro.mp3).
+    if (this.st === 'story') return 'storyIntro';
 
     // "Pueblo de terror" (awakening.mp3) só entra quando o herói acorda,
     // depois do fim da história, e continua até a espada ser retirada.

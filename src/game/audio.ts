@@ -7,6 +7,7 @@ export type TrackName =
   | 'awakening'
   | 'ezlo'
   | 'cyclops'
+  | 'storyIntro'
   | 'menu'
   | 'field'
   | 'calm'
@@ -38,9 +39,11 @@ const TRACK_FILES: Partial<Record<Exclude<TrackName, ''>, string>> = {
   // "Pueblo de terror": só começa quando a história termina e o herói acorda.
   awakening: '/music/awakening.mp3',
   ezlo: '/music/ezlo.mp3',
-  // Toda a narração da história usa a mesma música do diálogo com o Ciclope.
+  // "Element Appears": trilha da introdução da história (páginas narradas,
+  // interlúdio do Ciclope e frase final).
+  storyIntro: '/music/story_intro.mp3',
+  // Faixa do Ciclope, usada nas cavernas.
   cyclops: '/music/cyclops.mp3',
-  // A mesma faixa também vale para entradas em cavernas.
   cave: '/music/cyclops.mp3',
 };
 
