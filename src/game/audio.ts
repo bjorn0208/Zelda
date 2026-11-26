@@ -37,11 +37,11 @@ interface TrackDef {
 const TRACK_FILES: Partial<Record<Exclude<TrackName, ''>, string>> = {
   // Toca desde o logo da Dominic Games até a escolha do nome.
   prologue: '/music/prologue.mp3',
-  // "In the Field": toca quando a história termina e o herói acorda.
-  awakening: '/music/in_the_field.mp3',
+  // "Hyrule Castle": toca durante a chuva, ao acordar, até pegar a espada.
+  awakening: '/music/hyrule_castle.mp3',
   ezlo: '/music/ezlo.mp3',
-  // "Hyrule Castle": trilha da fase após a espada ser retirada.
-  postSword: '/music/hyrule_castle.mp3',
+  // "In the Field": trilha da fase após a espada ser retirada.
+  postSword: '/music/in_the_field.mp3',
   // "Element Appears": trilha da introdução da história (páginas narradas,
   // interlúdio do Ciclope e frase final).
   storyIntro: '/music/story_intro.mp3',

@@ -2716,22 +2716,8 @@ export function drawIntro(
     return;
   }
 
-  const p = Math.min(1, phaseTick / 108);
-  const eased = 1 - Math.pow(1 - p, 3);
-  const riseOffset = 135 * (1 - eased);
-  const skyReveal = Math.min(1, phaseTick / 75);
-
-  drawKingdom(g, t, stars, riseOffset, skyReveal);
-
-  if (phaseTick >= 86) {
-    const ta = Math.min(1, (phaseTick - 86) / 34);
-    drawTitle(g, t, ta, (1 - ta) * -4);
-    const flash = Math.max(0, 1 - (phaseTick - 86) / 22) * 0.45;
-    if (flash > 0) {
-      g.fillStyle = `rgba(255, 250, 220, ${flash})`;
-      g.fillRect(0, 0, W, H);
-    }
-  }
+  // Nunca desenhar a tela antiga: o vídeo dá lugar direto ao menu em HTML.
+  R(g, '#000', 0, 0, W, H);
 }
 
 export function drawMgMenu(

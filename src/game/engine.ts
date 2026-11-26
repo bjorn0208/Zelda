@@ -12,7 +12,6 @@ import {
   H,
   INTRO_FADE_FRAMES,
   INTRO_LOGO_FRAMES,
-  INTRO_RISE_FRAMES,
   INTRO_VIDEO_FRAMES,
   MAX_HEARTS,
   NAME_ROWS,
@@ -573,11 +572,8 @@ export class GameEngine {
     } else if (this.introPhase === 'fade') {
       this.introPhase = 'video';
       this.introTick = 0;
-    } else if (this.introPhase === 'video') {
-      // Player skipped the intro video
-      this.introPhase = 'rise';
-      this.introTick = 0;
     } else {
+      // Sem tela intermediária: o vídeo dá lugar direto ao menu.
       this.st = 'menu';
       this.menuSel = 0;
     }
@@ -585,9 +581,9 @@ export class GameEngine {
 
   /** Called by the <video> overlay on ended/error/autoplay-rejection. */
   public introVideoDone(): void {
-    if (this.st === 'intro' && this.introPhase === 'video') {
-      this.introPhase = 'rise';
-      this.introTick = 0;
+    if (this.st === 'intro') {
+      this.st = 'menu';
+      this.menuSel = 0;
       this.broadcastUI();
     }
   }
@@ -2601,7 +2597,7 @@ export class GameEngine {
     // A história inteira usa "Element Appears" (story_intro.mp3).
     if (this.st === 'story') return 'storyIntro';
 
-    // "In the Field" só entra quando o herói acorda, depois do fim da história,
+    // "Hyrule Castle" só entra quando o herói acorda, durante a chuva,
     // e continua até a espada ser retirada.
     const pastName = this.st === 'game' || this.st === 'inv' || this.st === 'shop';
     if (pastName && !this.V.sword) {
@@ -2620,7 +2616,7 @@ export class GameEngine {
       const x = m & 7;
       const y = m >> 3;
       const calm = lake(x, y) || bio(x, y) === 'n';
-      // Depois da espada, o campo e as casas usam "Hyrule Castle".
+      // Depois da espada, o campo e as casas usam "In the Field".
       // Cavernas, chefes e minijogos mantêm suas faixas próprias.
       return this.V.sword ? 'postSword' : calm ? 'calm' : 'field';
     }
@@ -2704,10 +2700,7 @@ export class GameEngine {
         this.introPhase = 'video';
         this.introTick = 0;
       } else if (this.introPhase === 'video' && this.introTick >= INTRO_VIDEO_FRAMES) {
-        // Video never signalled (blocked autoplay, missing file, ...): move on anyway
-        this.introPhase = 'rise';
-        this.introTick = 0;
-      } else if (this.introPhase === 'rise' && this.introTick >= INTRO_RISE_FRAMES) {
+        // Vídeo não sinalizou (autoplay bloqueado, arquivo ausente...): segue em frente.
         this.st = 'menu';
         this.menuSel = 0;
       }
