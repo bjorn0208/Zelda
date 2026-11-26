@@ -2771,6 +2771,44 @@ const STORY_TITLES = [
   'DESPERTE',
 ] as const;
 
+/**
+ * Quebra a narração pela largura real da fonte (e não por número de caracteres),
+ * para que nenhuma linha ultrapasse as bordas da placa da história.
+ */
+function wrapStoryText(g: CanvasRenderingContext2D, text: string, maxW: number): string[] {
+  g.font = FONT;
+  const words = text.split(/\s+/).filter(Boolean);
+  const lines: string[] = [];
+  let cur = '';
+  for (const word of words) {
+    const candidate = cur ? `${cur} ${word}` : word;
+    if (!cur || g.measureText(candidate).width <= maxW) {
+      cur = candidate;
+    } else {
+      lines.push(cur);
+      cur = word;
+    }
+  }
+  if (cur) lines.push(cur);
+
+  // Uma palavra isolada maior que a placa (ex.: nome longo) é cortada por letra.
+  return lines.flatMap((line) => {
+    if (g.measureText(line).width <= maxW) return [line];
+    const parts: string[] = [];
+    let part = '';
+    for (const c of line) {
+      if (part && g.measureText(part + c).width > maxW) {
+        parts.push(part);
+        part = c;
+      } else {
+        part += c;
+      }
+    }
+    if (part) parts.push(part);
+    return parts;
+  });
+}
+
 export function drawStory(
   g: CanvasRenderingContext2D,
   t: number,
@@ -2818,8 +2856,11 @@ export function drawStory(
   let n = ch | 0;
   if (!interlude) {
     const paper = pg === 4 ? FRAME_COLORS.crimson.paper : FRAME_COLORS.gold.paper;
-    wrapText(s, 32).forEach((line, i) => {
-      tx(g, line.slice(0, Math.max(0, n)), 20, 64 + i * 12, '#3a2a10', 'left', paper);
+    const lines = wrapStoryText(g, s, 196);
+    // Com mais linhas, o espaçamento diminui para o texto continuar dentro da moldura.
+    const lineH = Math.max(1, Math.min(12, Math.floor(46 / lines.length)));
+    lines.forEach((line, i) => {
+      tx(g, line.slice(0, Math.max(0, n)), 20, 64 + i * lineH, '#3a2a10', 'left', paper);
       n -= line.length + 1;
     });
   }
