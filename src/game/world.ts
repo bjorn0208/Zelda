@@ -17,6 +17,7 @@ import {
   SPECIAL_HOUSE_NPCS,
   SWORD_MAP,
   SWORD_TILE,
+  TAILOR_LINE,
   VILLAGES,
 } from './constants';
 import { DominicKind, EnemyKind, HeroState, Npc, NpcKind, ProgressState, WorldData } from './types';
@@ -550,7 +551,7 @@ function genOverworldScreen(world: WorldData, sx: number, sy: number): void {
             kind: 'merchant',
             name: 'Costureira Clara',
             shopId: 'tailor',
-            s: 'Roupas dignas de um heroi! Veja nossas tunicas e o Escudo Espelho antes de partir!',
+            s: TAILOR_LINE,
           },
         ];
       }

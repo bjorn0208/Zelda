@@ -5,6 +5,7 @@ import {
   MERCHANT_THEO_LINE,
   SWORD_HINT_LINE,
   SWORD_PULLED_LINE,
+  TAILOR_LINE,
 } from './constants';
 import type { DialogState } from './types';
 
@@ -72,6 +73,7 @@ const VOICE_LINES: Array<{ match: string; src: string }> = [
   { match: AWAKENING_LINE, src: '/voice/awakening_line.mp3' },
   { match: MERCHANT_THEO_LINE, src: '/voice/theo_line.mp3' },
   { match: BLACKSMITH_LINE, src: '/voice/blacksmith_line.mp3' },
+  { match: TAILOR_LINE, src: '/voice/tailor_line.mp3' },
 ];
 
 /** Diálogos com gravação não mostram legenda. */

@@ -131,6 +131,9 @@ export const MERCHANT_THEO_LINE = 'Bem-vindo ao Mercado Central! Tenho poções,
 /** Fala do Mestre Ferreiro ao abrir a forja (com dublagem própria). */
 export const BLACKSMITH_LINE = 'Aqui forjamos os melhores escudos e espadas do reino!';
 
+/** Fala da Costureira Clara ao abrir a alfaiataria (com dublagem própria). */
+export const TAILOR_LINE = 'Roupas dignas de um heroi! Veja nossas tunicas e o Escudo espelho';
+
 export const SWORD_STATS: Record<SwordTier, { name: string; dmg: number; blade: string; edge: string }> = {
   none: { name: 'SEM ESPADA', dmg: 0, blade: '#888', edge: '#555' },
   lendaria: { name: 'ESPADA LENDARIA', dmg: 1, blade: '#dff0ff', edge: '#8fa8d8' },

@@ -15,6 +15,7 @@ páginas. Falas gravadas não mostram legenda. Não há síntese de voz do naveg
 | `awakening_line.mp3` | Despertar em casa | `25971016-86528394343912262928` | 8,9 s |
 | `theo_line.mp3` | Mercador Theo, ao abrir a loja de itens | `25971172-18193281236764162354` | 6,0 s |
 | `blacksmith_line.mp3` | Mestre Ferreiro, ao abrir a forja | `25971313-13674451594234622831` | 3,0 s |
+| `tailor_line.mp3` | Costureira Clara, ao abrir a alfaiataria | `25971381-55128331781214282691` | 4,8 s |
 
 Para adicionar uma nova gravação, coloque o MP3 aqui, inclua a constante do
 texto em `src/game/constants.ts` e uma entrada em `VOICE_LINES`.

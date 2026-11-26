@@ -30,6 +30,7 @@ import {
   SWORD_STATS,
   SWORD_TILE,
   T,
+  TAILOR_LINE,
   W,
 } from './constants';
 import {
@@ -1181,9 +1182,9 @@ export class GameEngine {
 
   private interactNpc(n: Npc): void {
     if (n.shopId) {
-      // Os dois lojistas com gravação própria falam ao abrir a loja; a fala
-      // não vira legenda nem diálogo, apenas o MP3 toca uma vez.
-      if (n.s === MERCHANT_THEO_LINE || n.s === BLACKSMITH_LINE) {
+      // Os lojistas com gravação própria falam ao abrir a loja; a fala não
+      // vira legenda nem diálogo, apenas o MP3 toca uma vez.
+      if (n.s === MERCHANT_THEO_LINE || n.s === BLACKSMITH_LINE || n.s === TAILOR_LINE) {
         this.audio.playDialogVoice({ p: [[n.s]], i: 0, full: n.s });
       }
       this.shopId = n.shopId;
