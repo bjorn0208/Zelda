@@ -248,14 +248,10 @@ export type ShopId =
   | 'bazaar'
   | 'fruits'
   | 'clothes'
-  | 'armory'
   | 'potions'
-  | 'bakery'
   | 'flowers'
-  | 'jewelry'
   | 'ceramics'
-  | 'books'
-  | 'fabrics';
+  | 'books';
 
 export interface ShopItem {
   id: string;

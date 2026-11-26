@@ -217,9 +217,9 @@ export const SHOPS: Record<ShopId, { title: string; items: ShopItem[] }> = {
   fruits: {
     title: 'FRUTAS E VERDURAS',
     items: [
-      { id: 'fr_mac', name: 'MACAS FRESCAS', desc: 'Doces e revigorantes', price: 8, kind: 'pot', amount: 1 },
+      { id: 'fr_mac', name: 'MAÇÃS FRESCAS', desc: 'Doces e revigorantes', price: 8, kind: 'pot', amount: 1 },
       { id: 'fr_per', name: 'PERAS DOCES', desc: 'Recupera toda a energia', price: 10, kind: 'pot', amount: 1 },
-      { id: 'fr_ver', name: 'CESTO DE VERDURAS', desc: 'Duas pocoes naturais', price: 16, kind: 'pot', amount: 2 },
+      { id: 'fr_ver', name: 'CESTO DE VERDURAS', desc: 'Duas poções naturais', price: 16, kind: 'pot', amount: 2 },
     ],
   },
   clothes: {
@@ -230,74 +230,41 @@ export const SHOPS: Record<ShopId, { title: string; items: ShopItem[] }> = {
       { id: 'cl_dou', name: 'ARMADURA DOURADA', desc: 'Armadura de elite', price: 120, kind: 'outfit', tier: 'dourada' },
     ],
   },
-  armory: {
-    title: 'ARMAS',
-    items: [
-      { id: 'ar_mad', name: 'ESCUDO MADEIRA', desc: 'Bloqueia ataques com B', price: 35, kind: 'shield', tier: 'madeira' },
-      { id: 'ar_fer', name: 'ESCUDO DE FERRO', desc: 'Alta resistencia fisica', price: 55, kind: 'shield', tier: 'ferro' },
-      { id: 'ar_run', name: 'ESPADA RUNICA', desc: 'Dano 3 e brilho azul', price: 95, kind: 'sword', tier: 'runica' },
-      { id: 'ar_sol', name: 'LAMINA SOLAR', desc: 'Dano 4, forja suprema', price: 160, kind: 'sword', tier: 'solar' },
-    ],
-  },
   potions: {
-    title: 'POCOES',
+    title: 'POÇÕES',
     items: [
-      { id: 'po_vid', name: 'POCAO DE VIDA', desc: 'Restaura todos os coracoes', price: 20, kind: 'pot', amount: 1 },
-      { id: 'po_dua', name: 'POCAO DUPLA', desc: 'Duas pocoes de vida', price: 36, kind: 'pot', amount: 2 },
-      { id: 'po_gel', name: 'ELIXIR AZUL', desc: 'Tres pocoes de vida', price: 50, kind: 'pot', amount: 3 },
-    ],
-  },
-  bakery: {
-    title: 'PADARIA',
-    items: [
-      { id: 'bk_pao', name: 'PAO QUENTE', desc: 'Restaura toda a energia', price: 9, kind: 'pot', amount: 1 },
-      { id: 'bk_bro', name: 'BROA DE MEL', desc: 'Duas pocoes de energia', price: 16, kind: 'pot', amount: 2 },
-      { id: 'bk_tor', name: 'TOCHAS DE CERA', desc: 'Ilumina cavernas escuras', price: 18, kind: 'torch', amount: 3 },
+      { id: 'po_vid', name: 'POÇÃO DE VIDA', desc: 'Restaura todos os corações', price: 20, kind: 'pot', amount: 1 },
+      { id: 'po_dua', name: 'POÇÃO DUPLA', desc: 'Duas poções de vida', price: 36, kind: 'pot', amount: 2 },
+      { id: 'po_gel', name: 'ELIXIR AZUL', desc: 'Três poções de vida', price: 50, kind: 'pot', amount: 3 },
     ],
   },
   flowers: {
-    title: 'FLORES E PLANTAS',
+    title: 'FLORES',
     items: [
-      { id: 'fl_cha', name: 'CHA DE ERVAS', desc: 'Restaura toda a energia', price: 12, kind: 'pot', amount: 1 },
-      { id: 'fl_ros', name: 'ROSAS CURATIVAS', desc: 'Duas pocoes naturais', price: 20, kind: 'pot', amount: 2 },
-      { id: 'fl_tor', name: 'RAMO LUMINOSO', desc: 'Tres tochas perfumadas', price: 22, kind: 'torch', amount: 3 },
-    ],
-  },
-  jewelry: {
-    title: 'JOIAS',
-    items: [
-      { id: 'jo_ane', name: 'ANEL DE RUBI', desc: 'Brilho dos campeoes', price: 60, kind: 'outfit', tier: 'carmesim' },
-      { id: 'jo_col', name: 'COLAR DOURADO', desc: 'Armadura reluzente', price: 120, kind: 'outfit', tier: 'dourada' },
-      { id: 'jo_esp', name: 'AMULETO ESPELHO', desc: 'Escudo lendario (DEF 4)', price: 130, kind: 'shield', tier: 'espelhado' },
+      { id: 'fl_cha', name: 'CHÁ DE ERVAS', desc: 'Restaura toda a energia', price: 12, kind: 'pot', amount: 1 },
+      { id: 'fl_ros', name: 'ROSAS CURATIVAS', desc: 'Duas poções naturais', price: 20, kind: 'pot', amount: 2 },
+      { id: 'fl_tor', name: 'RAMO LUMINOSO', desc: 'Três tochas perfumadas', price: 22, kind: 'torch', amount: 3 },
     ],
   },
   ceramics: {
-    title: 'CERAMICA',
+    title: 'CERÂMICA',
     items: [
-      { id: 'ce_pot', name: 'POTE DE AGUA', desc: 'Restaura toda a energia', price: 10, kind: 'pot', amount: 1 },
-      { id: 'ce_jar', name: 'JARRA DE BARRO', desc: 'Duas pocoes de energia', price: 18, kind: 'pot', amount: 2 },
-      { id: 'ce_vas', name: 'VASO ACESO', desc: 'Tres tochas de oleo', price: 20, kind: 'torch', amount: 3 },
+      { id: 'ce_pot', name: 'POTE DE ÁGUA', desc: 'Restaura toda a energia', price: 10, kind: 'pot', amount: 1 },
+      { id: 'ce_jar', name: 'JARRA DE BARRO', desc: 'Duas poções de energia', price: 18, kind: 'pot', amount: 2 },
+      { id: 'ce_vas', name: 'VASO ACESO', desc: 'Três tochas de óleo', price: 20, kind: 'torch', amount: 3 },
     ],
   },
   books: {
-    title: 'LIVRARIA',
+    title: 'LIVROS E PERGAMINHOS',
     items: [
       { id: 'li_liv', name: 'LIVRO DE CURA', desc: 'Restaura toda a energia', price: 14, kind: 'pot', amount: 1 },
       { id: 'li_map', name: 'MAPA DO REINO', desc: 'Guia do guerreiro', price: 24, kind: 'pot', amount: 2 },
-      { id: 'li_per', name: 'PERGAMINHO', desc: 'Tres tochas de leitura', price: 26, kind: 'torch', amount: 3 },
-    ],
-  },
-  fabrics: {
-    title: 'TECIDOS',
-    items: [
-      { id: 'te_lin', name: 'LINHO AZUL', desc: 'Tunica safira', price: 65, kind: 'outfit', tier: 'safira' },
-      { id: 'te_sed', name: 'SEDA CARMESIM', desc: 'Manto dos campeoes', price: 50, kind: 'outfit', tier: 'carmesim' },
-      { id: 'te_oup', name: 'TAPETE DOURADO', desc: 'Armadura de elite', price: 120, kind: 'outfit', tier: 'dourada' },
+      { id: 'li_per', name: 'PERGAMINHO', desc: 'Três tochas de leitura', price: 26, kind: 'torch', amount: 3 },
     ],
   },
 };
 
-/** Barracas do mercado no centro do jogo (mapa 36), em duas fileiras. */
+/** Barracas do novo centro (mapa 36). Posições adaptadas da grade 20x20 da imagem para a tela 15x10. */
 export interface MarketStall {
   id: string;
   name: string;
@@ -310,16 +277,12 @@ export interface MarketStall {
 }
 
 export const MARKET_STALLS: MarketStall[] = [
-  { id: 'frutas', name: 'Frutas e Verduras', shopId: 'fruits', x: 2, y: 4, awning: '#d6453d', stripe: '#fff5e6', goods: 'maca, peras e vegetais' },
-  { id: 'roupas', name: 'Roupas', shopId: 'clothes', x: 2, y: 5, awning: '#2e6fc8', stripe: '#f4f8ff', goods: 'tunicas e vestimentas medievais' },
-  { id: 'armas', name: 'Armas', shopId: 'armory', x: 2, y: 6, awning: '#2f8f46', stripe: '#9adba6', goods: 'espadas, machados e escudos' },
-  { id: 'pocoes', name: 'Pocoes', shopId: 'potions', x: 2, y: 7, awning: '#7b3fb5', stripe: '#c69ae8', goods: 'frascos de pocoes magicas' },
-  { id: 'padaria', name: 'Padaria', shopId: 'bakery', x: 2, y: 8, awning: '#e4862b', stripe: '#fff2dd', goods: 'paes e alimentos assados' },
-  { id: 'flores', name: 'Flores e Plantas', shopId: 'flowers', x: 12, y: 4, awning: '#3f9b46', stripe: '#f2d13c', goods: 'flores, vasos e plantas' },
-  { id: 'joias', name: 'Joias', shopId: 'jewelry', x: 12, y: 5, awning: '#7b3fb5', stripe: '#f08ec0', goods: 'colares, aneis e pedras preciosas' },
-  { id: 'ceramica', name: 'Ceramica', shopId: 'ceramics', x: 12, y: 6, awning: '#c9a26a', stripe: '#fdf6e6', goods: 'potes, vasos e recipientes' },
-  { id: 'livraria', name: 'Livraria', shopId: 'books', x: 12, y: 7, awning: '#2f8f46', stripe: '#f4fff6', goods: 'livros, mapas e pergaminhos' },
-  { id: 'tecidos', name: 'Tecidos', shopId: 'fabrics', x: 12, y: 8, awning: '#2e6fc8', stripe: '#f4f8ff', goods: 'tecidos, tapetes e costura' },
+  { id: 'frutas', name: 'Frutas e Verduras', shopId: 'fruits', x: 3, y: 1, awning: '#d6453d', stripe: '#fff5e6', goods: 'maçãs, peras e vegetais' },
+  { id: 'roupas', name: 'Roupas', shopId: 'clothes', x: 3, y: 4, awning: '#2e6fc8', stripe: '#f4f8ff', goods: 'túnicas e vestimentas medievais' },
+  { id: 'pocoes', name: 'Poções', shopId: 'potions', x: 3, y: 7, awning: '#7b3fb5', stripe: '#c69ae8', goods: 'frascos de poções mágicas' },
+  { id: 'flores', name: 'Flores', shopId: 'flowers', x: 11, y: 1, awning: '#3f9b46', stripe: '#f2d13c', goods: 'flores, vasos e plantas' },
+  { id: 'ceramica', name: 'Cerâmica', shopId: 'ceramics', x: 11, y: 4, awning: '#c9a26a', stripe: '#fdf6e6', goods: 'potes, vasos e recipientes' },
+  { id: 'livros', name: 'Livros e Pergaminhos', shopId: 'books', x: 11, y: 7, awning: '#2f8f46', stripe: '#f4fff6', goods: 'livros, mapas e pergaminhos' },
 ];
 
 export const COMMON_LINES = [
@@ -328,7 +291,7 @@ export const COMMON_LINES = [
   'Corte arbustos: as vezes caem cogumelos e rupias.',
   'Nas cavernas a escuridao e total! Acenda uma tocha ou siga as tochas da parede.',
   'Use B para erguer o escudo e X para atirar flechas ou jogar bombas!',
-  'Na Vila Central ha lojas de pocoes, armas, escudos e roupas novas.',
+  'No centro da Vila Central ha barracas de frutas, roupas, pocoes, flores, ceramica e livros.',
 ];
 
 export const BIOME_LINES: Record<'n' | 's' | 'g', string[]> = {

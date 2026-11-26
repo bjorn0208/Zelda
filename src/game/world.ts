@@ -447,18 +447,41 @@ function genOverworldScreen(world: WorldData, sx: number, sy: number): void {
     }
   }
 
-  // Central Village grand cobblestone plaza & lanterns
+  // Novo centro: quadrado murado com quatro saídas e sem postes.
   if (isCentral) {
-    for (let y = 4; y <= 6; y++) {
-      for (let x = 1; x < 14; x++) m[y][x] = 'p';
+    if (i === SWORD_MAP) {
+      for (let x = 0; x < 15; x++) {
+        m[0][x] = 'W';
+        m[9][x] = 'W';
+      }
+      for (let y = 0; y < 10; y++) {
+        m[y][0] = 'W';
+        m[y][14] = 'W';
+      }
+      for (let y = 1; y < 9; y++) {
+        for (let x = 1; x < 14; x++) m[y][x] = 'p';
+      }
+      // Portões alinhados com as saídas do mundo (norte, sul, oeste, leste).
+      for (const x of [6, 7, 8]) {
+        m[0][x] = 'p';
+        m[9][x] = 'p';
+      }
+      for (const y of [4, 5]) {
+        m[y][0] = 'p';
+        m[y][14] = 'p';
+      }
+    } else {
+      for (let y = 4; y <= 6; y++) {
+        for (let x = 1; x < 14; x++) m[y][x] = 'p';
+      }
+      for (let y = 1; y < 9; y++) {
+        for (let x = 6; x <= 8; x++) m[y][x] = 'p';
+      }
+      m[5][5] = 'L';
+      m[5][9] = 'L';
+      m[7][5] = 'L';
+      m[7][9] = 'L';
     }
-    for (let y = 1; y < 9; y++) {
-      for (let x = 6; x <= 8; x++) m[y][x] = 'p';
-    }
-    m[5][5] = 'L';
-    m[5][9] = 'L';
-    m[7][5] = 'L';
-    m[7][9] = 'L';
   } else if (vil) {
     m[4][5] = 'L';
     m[4][9] = 'L';
@@ -477,17 +500,19 @@ function genOverworldScreen(world: WorldData, sx: number, sy: number): void {
   }
 
   if (i === 35 || i === 36) {
-    // Grand Stores (5x3 storefronts — clearly distinct from normal houses!)
+    // Grand Stores: só o mapa 35 mantém fachadas. O novo centro é um pátio murado.
     const stores = i === 35 ? [0, 1] : [0];
     for (const s of stores) {
       const x0 = s ? 9 : 1;
       const id = (s ? 300 : 100) + i;
-      for (let y = 1; y <= 3; y++) {
-        for (let x = x0; x < x0 + 5; x++) {
-          m[y][x] = y < 3 ? 'U' : x === x0 + 2 ? 'D' : 'V';
+      if (i !== 36) {
+        for (let y = 1; y <= 3; y++) {
+          for (let x = x0; x < x0 + 5; x++) {
+            m[y][x] = y < 3 ? 'U' : x === x0 + 2 ? 'D' : 'V';
+          }
         }
+        world.doors[i].push({ x: x0 + 2, y: 3, to: id, px: 112, py: 112 });
       }
-      world.doors[i].push({ x: x0 + 2, y: 3, to: id, px: 112, py: 112 });
       createRoom(world, id, true, rg(id), {});
 
       if (id === 135) {
@@ -529,22 +554,7 @@ function genOverworldScreen(world: WorldData, sx: number, sy: number): void {
       }
     }
     if (i === 36) {
-      // Outdoor Bazaar Merchant Stall on East Plaza
-      m[2][10] = 'Y';
-      m[2][11] = 'Y';
-      m[3][10] = 'p';
-      m[3][11] = 'p';
-      world.npcs[i].push({
-        x: 10,
-        y: 3,
-        c: '#d98a2a',
-        kind: 'merchant',
-        name: 'Mercador Caio',
-        shopId: 'bazaar',
-        s: 'Troco suas rupias por escudos resistentes, pocoes e tochas!',
-      });
-
-      // Dez barracas interativas: duas fileiras de cinco no centro do jogo.
+      // Seis barracas interativas: grade 20x20 da imagem adaptada para a tela 15x10.
       for (const stall of MARKET_STALLS) {
         world.npcs[i].push({
           x: stall.x,
@@ -556,9 +566,7 @@ function genOverworldScreen(world: WorldData, sx: number, sy: number): void {
           stall: { awning: stall.awning, stripe: stall.stripe },
           s: `Bem-vindo à barraca de ${stall.name}! Aqui vendo ${stall.goods}.`,
         });
-        // Marca apenas o piso da barraca (nunca paredes da loja acima).
-        const walkable = ['p', '.', 's', 'n', 'c', 'g', 'f', 'Y'];
-        if (walkable.includes(m[stall.y][stall.x])) m[stall.y][stall.x] = 'Y';
+        m[stall.y][stall.x] = 'Y';
       }
     }
   } else {
@@ -609,7 +617,8 @@ function genOverworldScreen(world: WorldData, sx: number, sy: number): void {
     }
 
     // Outdoor Merchant Stall & interactive Merchant NPC in all villages!
-    if (vil) {
+    // O novo centro (36) não tem mercador avulso: só as seis barracas.
+    if (vil && i !== 36) {
       m[6][12] = 'Y';
       m[6][13] = 'Y';
       m[7][12] = fl;
@@ -675,7 +684,7 @@ function genOverworldScreen(world: WorldData, sx: number, sy: number): void {
         s: 'A loja da esquerda vende pocoes, flechas, bombas e tochas. A da direita forja espadas e escudos!',
       },
     );
-  } else if (k === '4,4') {
+  } else if (k === '4,4' && i !== 36) {
     world.npcs[i].push(
       {
         x: 4,
@@ -698,7 +707,7 @@ function genOverworldScreen(world: WorldData, sx: number, sy: number): void {
         s: 'Uau! Quando eu crescer quero ter a Lamina Solar e usar a Tunica Safira!',
       },
     );
-  } else if (b !== 'd') {
+  } else if (b !== 'd' && i !== 36) {
     const sp = [
       [3, 7],
       [2, 7],
@@ -750,27 +759,6 @@ function genOverworldScreen(world: WorldData, sx: number, sy: number): void {
         kind: 'explorer',
         s: 'Sou o cacador. Traga-me 10 essencias de gosma!',
         q: 'hunter',
-      });
-    }
-  }
-
-  // Curiosos cercando a espada no centro da praça (não bloqueiam os lados).
-  if (i === SWORD_MAP) {
-    const around: Array<[number, number, string]> = [
-      [6, 4, '#d0a84a'],
-      [8, 4, '#a866c8'],
-      [6, 6, '#4a90c8'],
-      [8, 6, '#c85a52'],
-    ];
-    for (const [x, y, c] of around) {
-      world.npcs[i].push({
-        x,
-        y,
-        c,
-        kind: 'villager',
-        swordCrowd: true,
-        home: { x, y },
-        s: 'Eu também tentei puxar essa espada... não houve jeito. Vai você, Herói!',
       });
     }
   }
