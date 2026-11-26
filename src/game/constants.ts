@@ -387,11 +387,7 @@ export const STORY_PAGES = [
 // poisons every colour calculation that follows.
 export const STORY_TONES = [0.22, 0.85, 0.95, 0.72, 0.48, 0.9, 0.3] as const;
 
-// Single illustration shown on its own during the story.
-export const STORY_IMAGE = '/cavalier_intro.gif';
-// Shown alone on the text-less interlude between phase 5 and phase 6.
-export const STORY_INTERLUDE_IMAGE = '/cyclops_intro.gif';
-// Index of the interlude inside STORY_PAGES.
+// Index of the text-less interlude inside STORY_PAGES.
 export const STORY_INTERLUDE_AT = 5;
 
 export const NAME_ROWS = ['ABCDEFGHI', 'JKLMNOPQR', 'STUVWXYZ '] as const;

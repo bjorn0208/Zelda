@@ -24,15 +24,4 @@
   image-rendering: crisp-edges;
 }
 
-@keyframes logoFadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
 
-.animate-logo-fade {
-  animation: logoFadeIn 0.55s ease-out forwards;
-}

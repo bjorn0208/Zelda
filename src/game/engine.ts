@@ -64,7 +64,6 @@ import {
   SecondaryTool,
   ShieldTier,
   SwordTier,
-  VoiceId,
   WorldData,
 } from './types';
 import { createWeatherState, stepWeather, triggerLightningNow } from './weather';
@@ -117,7 +116,8 @@ export class GameEngine {
   private sc = 0;
   private pg = 0;
   private ch = 0;
-  private storyInterludeTimer = 0;
+  /** Frames restantes antes de virar a página sem narração (interlúdio/final). */
+  private storyWaitTimer = 0;
   private tn = 0.22;
   private lastBlipChar = -1;
 
@@ -229,7 +229,6 @@ export class GameEngine {
     return {
       screen: this.st,
       introPhase: this.introPhase,
-      showLogoGif: this.st === 'intro' && this.introPhase === 'logo',
       muted: this.audio.mute,
       hasSave: hasSavedGame(),
       heroName: this.hn,
@@ -279,7 +278,7 @@ export class GameEngine {
     const nx = (ui.heroNormX * 16) | 0;
     const ny = (ui.heroNormY * 12) | 0;
     const tf = (ui.torchFuelRatio * 10) | 0;
-    const sig = `${ui.screen}|${ui.introPhase}|${ui.showLogoGif}|${ui.muted}|${ui.hasSave}|${ui.heroName}|${ui.secondary}|${ui.torchLit}|${ui.isNight}|${ui.currentMap}|${ui.overworldMap}|${ui.explored.length}|${ui.rp}|${ui.fragments}|${ui.pot}|${ui.arrows}|${ui.bombs}|${ui.torches}|${ui.swordName}|${ui.shieldName}|${nx}|${ny}|${ui.heroDir}|${ui.hp}|${ui.maxHp}|${tf}|${ui.isCave}|${ui.invSel}|${ui.invHeroDir}|${ui.hasSword}|${ui.equippedSword}|${ui.swordTier}|${ui.shieldTier}|${ui.outfit}|${ui.ownedSwords.length}|${ui.ownedShields.length}|${ui.ownedOutfits.length}|${ui.mushrooms}|${ui.hasRing}|${ui.hasOre}|${ui.hasBear}`;
+    const sig = `${ui.screen}|${ui.introPhase}|${ui.muted}|${ui.hasSave}|${ui.heroName}|${ui.secondary}|${ui.torchLit}|${ui.isNight}|${ui.currentMap}|${ui.overworldMap}|${ui.explored.length}|${ui.rp}|${ui.fragments}|${ui.pot}|${ui.arrows}|${ui.bombs}|${ui.torches}|${ui.swordName}|${ui.shieldName}|${nx}|${ny}|${ui.heroDir}|${ui.hp}|${ui.maxHp}|${tf}|${ui.isCave}|${ui.invSel}|${ui.invHeroDir}|${ui.hasSword}|${ui.equippedSword}|${ui.swordTier}|${ui.shieldTier}|${ui.outfit}|${ui.ownedSwords.length}|${ui.ownedShields.length}|${ui.ownedOutfits.length}|${ui.mushrooms}|${ui.hasRing}|${ui.hasOre}|${ui.hasBear}`;
     if (sig !== this.lastBroadcast) {
       this.lastBroadcast = sig;
       this.onStateChange(ui);
@@ -590,28 +589,21 @@ export class GameEngine {
     return raw.replace(/\b[Hh]er[oó]i\b/g, this.hn);
   }
 
-  private talk(raw: string, voice: VoiceId = 'narrator', speaker?: string): void {
+  private talk(raw: string): void {
     const formatted = this.formatDialogText(raw);
     const lines = wrapText(formatted, 26);
     const pages: string[][] = [];
     for (let i = 0; i < lines.length; i += 3) {
       pages.push(lines.slice(i, i + 3));
     }
-    const d = {
-      p: pages,
-      i: 0,
-      voice,
-      speaker: speaker ?? (voice === 'narrator' ? undefined : voice),
-      full: formatted,
-      v: pages.map((page) => page.join(' ')),
-    };
+    const d = { p: pages, i: 0, full: formatted };
     this.G.dlg = d;
     this.audio.playDialogVoice(d, () => {
       if (this.G.dlg === d) this.finishDialog();
     });
   }
 
-  private talkChain(linesRaw: string[], voice: VoiceId = 'narrator', speaker?: string): void {
+  private talkChain(linesRaw: string[]): void {
     const formatted = linesRaw.map((part) => this.formatDialogText(part));
     const pages: string[][] = [];
     for (const part of formatted) {
@@ -621,14 +613,7 @@ export class GameEngine {
       }
     }
     if (pages.length) {
-      const d = {
-        p: pages,
-        i: 0,
-        voice,
-        speaker: speaker ?? (voice === 'narrator' ? undefined : voice),
-        full: formatted.join(' '),
-        v: pages.map((page) => page.join(' ')),
-      };
+      const d = { p: pages, i: 0, full: formatted.join(' ') };
       this.G.dlg = d;
       this.audio.playDialogVoice(d, () => {
         if (this.G.dlg === d) this.finishDialog();
@@ -723,7 +708,7 @@ export class GameEngine {
     this.analog.x = 0;
     this.analog.y = 0;
     this.audio.bp(700, 0.05);
-    this.talkChain([FATHER_INTRO_LINE], 'father', 'Pai');
+    this.talkChain([FATHER_INTRO_LINE]);
   }
 
   private spawn(): void {
@@ -970,7 +955,7 @@ export class GameEngine {
     this.ch = 0;
     this.tn = STORY_TONES[0];
     this.lastBlipChar = -1;
-    this.storyInterludeTimer = 0;
+    this.storyWaitTimer = 0;
     this.weather = createWeatherState();
     triggerLightningNow(this.weather, 14, 1.15);
     this.audio.bp(900, 0.2);
@@ -1059,7 +1044,7 @@ export class GameEngine {
       this.pg++;
       this.ch = 0;
       this.lastBlipChar = -1;
-      this.storyInterludeTimer = 0;
+      this.storyWaitTimer = 0;
       if (this.pg >= STORY_PAGES.length) {
         this.pg = STORY_PAGES.length - 1;
         this.audio.bp(880, 0.14);
@@ -1071,13 +1056,13 @@ export class GameEngine {
           triggerLightningNow(this.weather, 10, 1.2);
         }
         if (this.pg === STORY_INTERLUDE_AT) {
-          // O Ciclope aparece sem texto enquanto a narração termina.
-          this.storyInterludeTimer = 150;
+          // O Ciclope aparece sem texto; não há narração gravada para esta página.
+          this.storyWaitTimer = 150;
         } else if (this.pg < STORY_INTERLUDE_AT) {
           this.audio.playStoryVoice(this.pg, () => this.storyVoicePageDone());
-        } else if (this.pg > STORY_INTERLUDE_AT) {
-          // Última frase cita o nome do herói: não existe no MP3 fixo.
-          this.audio.playLine(STORY_PAGES[this.pg].replace('{N}', this.hn));
+        } else {
+          // A última frase cita o nome do herói e não está no MP3: só texto.
+          this.storyWaitTimer = 180;
         }
       }
     }
@@ -1096,9 +1081,9 @@ export class GameEngine {
       }
     }
 
-    if (this.pg === STORY_INTERLUDE_AT && this.storyInterludeTimer > 0) {
-      this.storyInterludeTimer--;
-      if (this.storyInterludeTimer === 0) this.advanceStoryPage();
+    if (this.storyWaitTimer > 0) {
+      this.storyWaitTimer--;
+      if (this.storyWaitTimer === 0) this.advanceStoryPage();
     }
 
     if (this.pressed.a || this.pressed.s) {
@@ -1190,16 +1175,8 @@ export class GameEngine {
     return true;
   }
 
-  private voiceForNpc(n: Npc): VoiceId {
-    if (n.name === 'Pai') return 'father';
-    return n.kind ?? 'villager';
-  }
-
   private interactNpc(n: Npc): void {
-    const voice = this.voiceForNpc(n);
-    const speaker = n.name;
     if (n.shopId) {
-      this.audio.playLine(n.s, voice, speaker);
       this.shopId = n.shopId;
       this.shopSel = 0;
       this.st = 'shop';
@@ -1212,8 +1189,6 @@ export class GameEngine {
     if (n.el && !this.V.sword) {
       this.talk(
         'Você precisa da Espada Lendária! Vá até a praça no centro da Vila Central e puxe a espada cravada no meio dela.',
-        voice,
-        speaker,
       );
       return;
     }
@@ -1225,23 +1200,19 @@ export class GameEngine {
           : f
             ? `Você tem ${f} de 3 fragmentos. Cavernas: floresta (leste), ruínas (nordeste) e gelo (noroeste).`
             : n.s,
-        voice,
-        speaker,
       );
       return;
     }
     if (n.q === 'maria' && !this.V.sword) {
       this.talk(
         'Essa espada está cravada no meio da minha casa há séculos! Ninguém nunca conseguiu puxá-la... Tente você, Herói!',
-        voice,
-        speaker,
       );
       return;
     }
     if (q) {
       const s = this.V.fl[n.q!] | 0;
       if (s === 2) {
-        this.talk(q.done, voice, speaker);
+        this.talk(q.done);
         return;
       }
       if ((this.V.it[q.need] | 0) >= q.n) {
@@ -1265,16 +1236,16 @@ export class GameEngine {
           this.V.equipped = 'sword';
         }
         this.audio.bp(900, 0.4);
-        this.talk(q.ok, voice, speaker);
+        this.talk(q.ok);
         return;
       }
       this.V.fl[n.q!] = 1;
-      this.talk(q.ask, voice, speaker);
+      this.talk(q.ask);
       return;
     }
 
     if (n.chat && n.chat.length > 0 && Math.random() < 0.65) {
-      this.talkChain([n.s, ...n.chat], voice, speaker);
+      this.talkChain([n.s, ...n.chat]);
       return;
     }
 
@@ -1283,7 +1254,7 @@ export class GameEngine {
       isNight && this.G.map < 100 && Math.random() < 0.45
         ? ' A noite chegou: acenda uma tocha com X se for explorar cavernas!'
         : '';
-    this.talk(n.s + nightExtra + (n.heal ? ' (Vida restaurada!)' : ''), voice, speaker);
+    this.talk(n.s + nightExtra + (n.heal ? ' (Vida restaurada!)' : ''));
   }
 
   private pullSword(a: number, b: number): void {

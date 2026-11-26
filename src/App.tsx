@@ -687,9 +687,6 @@ export default function App() {
   const stickPointerId = useRef<number | null>(null);
   const [knobOffset, setKnobOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [stickEngaged, setStickEngaged] = useState(false);
-  // If the logo GIF fails to load we fall back to the canvas-drawn logo
-  // instead of showing a broken image over a black screen.
-  const [logoBroken, setLogoBroken] = useState(false);
 
   const [padMode, setPadMode] = useState<MovePadMode>(() => {
     try {
@@ -719,7 +716,6 @@ export default function App() {
   const [ui, setUi] = useState<EngineUIState>({
     screen: 'intro',
     introPhase: 'logo',
-    showLogoGif: true,
     muted: false,
     hasSave: false,
     heroName: '',
@@ -1033,14 +1029,6 @@ export default function App() {
             />
           )}
 
-          {ui.showLogoGif && !logoBroken && (
-            <img
-              src="/assets/dominic-games.gif"
-              alt="Dominic Games"
-              onError={() => setLogoBroken(true)}
-              className="animate-logo-fade pointer-events-none absolute inset-0 h-full w-full bg-black object-contain"
-            />
-          )}
         </div>
 
         {/* Fixed Large Controls Directly Below Screen */}

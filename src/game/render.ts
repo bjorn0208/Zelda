@@ -9,9 +9,7 @@ import {
   OUTFIT_COLORS,
   SHIELD_STATS,
   SHOPS,
-  STORY_IMAGE,
   STORY_INTERLUDE_AT,
-  STORY_INTERLUDE_IMAGE,
   STORY_PAGES,
   SWORD_STATS,
   SWORD_TILE,
@@ -190,6 +188,68 @@ export function tx(
   }
   g.fillStyle = c;
   g.fillText(s, x, y);
+}
+
+type FrameStyle = 'gold' | 'crimson' | 'arcane';
+
+const FRAME_COLORS: Record<FrameStyle, { rim: string; metal: string; ink: string; paper: string }> = {
+  gold: { rim: '#4a2b0c', metal: '#e0a93a', ink: '#ffd84a', paper: '#f1dfae' },
+  crimson: { rim: '#3d0810', metal: '#b64032', ink: '#ff9a72', paper: '#f0d6c2' },
+  arcane: { rim: '#101a3a', metal: '#4d7bb8', ink: '#9ad8ff', paper: '#dde6f5' },
+};
+
+/** Moldura de pergaminho com cantos ornamentados, no lugar dos antigos GIFs. */
+function drawMedievalFrame(
+  g: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  style: FrameStyle,
+): void {
+  const c = FRAME_COLORS[style];
+  R(g, '#0009', x - 2, y - 2, w + 4, h + 4);
+  R(g, c.rim, x, y, w, h);
+  R(g, c.metal, x + 2, y + 2, w - 4, h - 4);
+  R(g, c.rim, x + 4, y + 4, w - 8, h - 8);
+  R(g, c.paper, x + 6, y + 6, w - 12, h - 12);
+  R(g, '#00000018', x + 6, y + h - 10, w - 12, 4);
+  g.strokeStyle = c.rim;
+  g.lineWidth = 1;
+  g.strokeRect(x + 7.5, y + 7.5, w - 15, h - 15);
+  for (const [cx, cy] of [
+    [x + 3, y + 3],
+    [x + w - 3, y + 3],
+    [x + 3, y + h - 3],
+    [x + w - 3, y + h - 3],
+  ]) {
+    R(g, c.ink, cx - 2, cy - 2, 4, 4);
+    R(g, c.rim, cx - 1, cy - 1, 2, 2);
+  }
+  const my = y + (h >> 1);
+  R(g, c.ink, x + 1, my - 6, 2, 12);
+  R(g, c.ink, x + w - 3, my - 6, 2, 12);
+  ln(g, x + w / 2 - 7, y + 3, x + w / 2, y + 1, c.ink, 1);
+  ln(g, x + w / 2, y + 1, x + w / 2 + 7, y + 3, c.ink, 1);
+  ln(g, x + w / 2 - 7, y + h - 3, x + w / 2, y + h - 1, c.ink, 1);
+  ln(g, x + w / 2, y + h - 1, x + w / 2 + 7, y + h - 3, c.ink, 1);
+  g.lineWidth = 1;
+}
+
+/** Texto centralizado dentro de uma moldura, com leve aumento. */
+function framedLabel(
+  g: CanvasRenderingContext2D,
+  s: string,
+  cx: number,
+  cy: number,
+  scale: number,
+  color: string,
+  outline: string,
+): void {
+  g.save();
+  g.scale(scale, scale);
+  tx(g, s, cx / scale, cy / scale - 4, color, 'center', outline);
+  g.restore();
 }
 
 const mx = (a: number, b: number, k: number): number => a + (b - a) * k;
@@ -2630,26 +2690,21 @@ export function drawIntro(
   g.globalAlpha = 1;
   g.globalCompositeOperation = 'source-over';
 
-  if (phase === 'logo') {
+  if (phase === 'logo' || phase === 'fade') {
     R(g, '#000', 0, 0, W, H);
-    // The GIF overlay sits on top of this, but if it fails to load we still
-    // need something on screen instead of a black frame for 3 seconds.
-    const a = Math.min(1, phaseTick / 24);
+    const a =
+      phase === 'logo'
+        ? Math.min(1, phaseTick / 24)
+        : phaseTick < 22
+          ? phaseTick / 22
+          : phaseTick > 78
+            ? Math.max(0, (100 - phaseTick) / 22)
+            : 1;
     g.save();
     g.globalAlpha = a;
-    tx(g, 'CLAUDE GAMES', 120, 70, '#ffd84a', 'center');
-    tx(g, 'apresenta', 120, 92, '#9aa0b5', 'center');
-    g.restore();
-    return;
-  }
-
-  if (phase === 'fade') {
-    R(g, '#000', 0, 0, W, H);
-    const a = phaseTick < 22 ? phaseTick / 22 : phaseTick > 78 ? Math.max(0, (100 - phaseTick) / 22) : 1;
-    g.save();
-    g.globalAlpha = a;
-    tx(g, 'CLAUDE GAMES', 120, 68, '#ffd84a', 'center');
-    tx(g, 'apresenta', 120, 86, '#bbb', 'center');
+    drawMedievalFrame(g, 30, 46, 180, 68, 'gold');
+    framedLabel(g, 'CLAUDE GAMES', 120, 70, 1.6, '#ffe98a', '#2a1608');
+    framedLabel(g, 'apresenta', 120, 96, 1, '#d8c8a0', '#2a1608');
     g.restore();
     return;
   }
@@ -2759,18 +2814,16 @@ export function drawNameEntry(
   tx(g, 'DIGITE OU USE A/B  ENTER: OK', 120, 128, '#bbb', 'center');
 }
 
-// Loaded exactly once. Creating `new Image()` on every frame forces a decode
-// pass per frame and freezes the game.
-const storyImageCache: Record<string, HTMLImageElement> = {};
-function loadStoryImage(src: string): HTMLImageElement {
-  if (!storyImageCache[src]) {
-    const im = new Image();
-    im.decoding = 'async';
-    im.src = src;
-    storyImageCache[src] = im;
-  }
-  return storyImageCache[src];
-}
+// Títulos curtos das páginas, desenhados em molduras medievais no lugar dos GIFs.
+const STORY_TITLES = [
+  'MITRIBUQUE',
+  'A LENDA',
+  'O OESTE',
+  'OS DOMINICS',
+  'O CICLOPE',
+  '',
+  'DESPERTE',
+] as const;
 
 export function drawStory(
   g: CanvasRenderingContext2D,
@@ -2798,26 +2851,19 @@ export function drawStory(
   // Black background
   R(g, '#000000', 0, 0, W, H);
 
-  // The story GIF, alone and centred (letterboxed, never stretched)
-  const boxW = interlude ? 176 : 112;
-  const boxH = interlude ? 132 : 84;
-  const bx = Math.round((W - boxW) / 2);
-  const by = interlude ? 6 : 4;
-  R(g, '#0c0a16', bx - 3, by - 3, boxW + 6, boxH + 6);
-
-  const im = loadStoryImage(interlude ? STORY_INTERLUDE_IMAGE : STORY_IMAGE);
-  if (im.complete && im.naturalWidth > 0) {
-    g.save();
-    g.imageSmoothingEnabled = true;
-    const scale = Math.min(boxW / im.naturalWidth, boxH / im.naturalHeight);
-    const dw = im.naturalWidth * scale;
-    const dh = im.naturalHeight * scale;
-    g.drawImage(im, bx + (boxW - dw) / 2, by + (boxH - dh) / 2, dw, dh);
-    g.restore();
+  if (interlude) {
+    // Sem texto: o Ciclope ganha uma moldura vermelha só sua.
+    drawMedievalFrame(g, 20, 6, 200, 118, 'crimson');
+    framedLabel(g, 'O CICLOPE', 120, 52, 1.8, '#ffd0b0', '#2a0608');
+    ln(g, 44, 92, 196, 92, '#8a2a20', 1);
+    framedLabel(g, 'A SOMBRA DEVORA O REINO', 120, 106, 1, '#e0a080', '#2a0608');
+  } else {
+    drawMedievalFrame(g, 22, 6, 196, 76, pg === 4 ? 'crimson' : 'gold');
+    framedLabel(g, STORY_TITLES[pg] ?? 'A HISTÓRIA', 120, 32, 1.5, FRAME_COLORS.gold.ink, '#2a1608');
+    ln(g, 42, 54, 198, 54, '#a8782a', 1);
+    const shown = pg > STORY_INTERLUDE_AT ? pg : pg + 1;
+    framedLabel(g, `CAPITULO ${shown}`, 120, 68, 1, '#d8c8a0', '#2a1608');
   }
-
-  g.strokeStyle = interlude ? '#ff5a3c' : '#ffd84a';
-  g.strokeRect(bx - 2.5, by - 2.5, boxW + 5, boxH + 5);
 
   // Story text on a translucent strip so it stays readable
   let n = ch | 0;
