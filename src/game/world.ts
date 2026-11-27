@@ -1018,6 +1018,21 @@ export function buildWorld(): WorldData {
     treasureVault: true,
     fwd: 250, // Return to first dungeon
   });
+  // Sala angelical: aparência de céu. Mantém porta inferior + baú, remove inimigo dungeon visual.
+  if (world.maps[301]) {
+    const sky: string[][] = Array.from({ length: 10 }, (_, y) => Array.from({ length: 15 }, (_, x): string => {
+      if (!x || !y || x === 14 || y === 9) return 'W'; // bordas sutis
+      return '.'; // céu
+    }));
+    sky[8][7] = world.maps[301][8]?.[7] ?? 'D'; // porta
+    // preservar baú se criado
+    for (let yy=0; yy<10; yy++) for (let xx=0; xx<15; xx++) {
+      const orig = world.maps[301][yy]?.[xx];
+      if (orig === 'C' || orig === 'c' || orig === '?') sky[yy][xx] = orig;
+    }
+    world.maps[301] = sky;
+    world.enemies[301] = [0,0];
+  }
 
   // Hero's 2nd Floor Bedroom (above 151)
   createRoom(world, 451, true, rg(451), {});

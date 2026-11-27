@@ -778,6 +778,31 @@ function drawTile(
   const fc = hh ? 'F' : ['g', 's', 'i', 'c', 'c', 'c'][T_];
   const nb = (dx: number, dy: number) => m[b + dy] && m[b + dy][a + dx];
 
+  // Sala angelical (301): parecer céu
+  if (M_ === 301) {
+    // céu claro
+    R(g, '#8ec5fc', x, y, T, T);
+    R(g, '#c6e8ff', x, y + T - 1, T, 1);
+    // nuvens sutis por tile
+    const h = hs(a, b);
+    if (ch !== 'W') {
+      if (h % 7 === 0) { R(g, '#ffffff', x + 2, y + 4, 4, 2); R(g, '#f7fbff', x + 4, y + 3, 3, 2); }
+      if (h % 11 === 0) { R(g, '#ffffff', x + 8, y + 8, 3, 2); }
+      // brilho angelical
+      if (h % 13 === 0) R(g, '#fffbe0', x + 6, y + 6, 1, 1);
+      // sol suave no canto superior
+      if (a === 12 && b === 1) { R(g, '#fff3a0', x + 4, y + 4, 6, 6); R(g, '#ffd84a', x + 5, y + 5, 4, 4); }
+      // horizonte leve
+      R(g, '#b9ddff', x, y + T - 2, T, 1);
+      return;
+    }
+    // bordas como nuvens/paredes suaves
+    R(g, '#8ec5fc', x, y, T, T);
+    R(g, '#ffffff', x + 1, y + 1, T - 2, T - 2);
+    R(g, '#e8f4ff', x + 2, y + 2, T - 4, T - 4);
+    return;
+  }
+
   // Village Streetlamp / Lantern ('L')
   if (ch === 'L') {
     const bgTile = M_ === 35 || M_ === 36 ? 'p' : m[b]?.[a - 1] === 'p' ? 'p' : '.';
