@@ -1389,13 +1389,14 @@ export default function App() {
 
           <button
             type="button"
-            aria-label="R - Usar Item X"
+            aria-label="R - Mapa"
             className={`flex items-center justify-end pr-3 w-[100px] h-[40px] rounded-tr-xl rounded-tl-sm rounded-br-sm rounded-bl-[22px] border-2 border-[#5a5a5a] text-base font-bold tracking-wider touch-none cursor-pointer transition-all duration-100 ${
-              activeKeys.x
+              mapOpen
                 ? 'bg-[#5a5a5a]/40 text-[#ffd700] shadow-[0_0_12px_rgba(76,175,80,0.4)]'
                 : 'bg-[#1a1a1a]/60 text-[#8bc34a] hover:border-[#8bc34a]'
             }`}
-            {...makeBtnHandlers('x')}
+            onPointerDown={(e) => { e.preventDefault(); setMapOpen((p) => !p); }}
+            onPointerUp={(e) => e.preventDefault()}
           >
             R
           </button>
