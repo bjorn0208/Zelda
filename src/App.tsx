@@ -1102,9 +1102,9 @@ export default function App() {
           className="relative bg-[#000000] border-2 border-[#5a5a5a]/70 rounded-lg overflow-hidden flex items-center justify-center min-h-[200px]"
         >
           {/* Esquerda: Analógico / Setas (Movimento) */}
-          <div className="absolute left-2 top-1/2 -translate-y-1/2 z-10">
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 z-10">
             {padMode === 'dpad' ? (
-              <div className="relative w-[150px] h-[150px] shrink-0">
+              <div className="relative w-[160px] h-[160px] shrink-0">
                 <button
                   type="button"
                   aria-label="Cima"
@@ -1156,7 +1156,7 @@ export default function App() {
                 onPointerCancel={handleStickUp}
                 onLostPointerCapture={releaseAnalog}
                 onContextMenu={(e) => e.preventDefault()}
-                className="relative flex items-center justify-center w-[150px] h-[150px] shrink-0 rounded-full border-2 border-[#5a5a5a] bg-[#1a1a1a] touch-none cursor-grab active:cursor-grabbing"
+                className="relative flex items-center justify-center w-[160px] h-[160px] shrink-0 rounded-full border-2 border-[#5a5a5a] bg-[#1a1a1a] touch-none cursor-grab active:cursor-grabbing"
               >
                 <div className="pointer-events-none absolute inset-6 rounded-full border border-[#2a5a2a]" />
 
@@ -1314,8 +1314,8 @@ export default function App() {
           </div>
 
           {/* Direita: Botões de Ação (X / B / A) */}
-          <div className="absolute right-2 top-1/2 -translate-y-1/2 z-10">
-            <div className="relative w-[160px] h-[150px] shrink-0">
+          <div className="absolute right-0 top-1/2 -translate-y-1/2 z-10">
+            <div className="relative w-[170px] h-[160px] shrink-0">
               <button
                 type="button"
                 aria-label="Botão X (Item Rápido)"
