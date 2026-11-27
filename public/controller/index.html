@@ -2,230 +2,170 @@
 <html lang="pt">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Controle Remoto - Zelda DS</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Controle PS2 - Zelda</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    background: #0d0d0d;
-    color: #e0e0e0;
-    font-family: system-ui, sans-serif;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    touch-action: manipulation;
-    user-select: none;
-    overflow: hidden;
+  :root{
+    --bg:#0b0b0d; --panel:#15151a; --edge:#2a2a32; --accent:#3a6cf6; --text:#e8e8ec; --muted:#8a8a96;
+    --cross:#4a8cff; --circle:#ff5b6e; --square:#e58cff; --triangle:#5cdb7a; --gold:#ffd84a;
   }
-  h1 { color: #ffd700; margin-bottom: 8px; font-size: 14px; }
-  #status { font-size: 11px; color: #8bc34a; margin-bottom: 16px; }
-  .controls {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-    padding: 0 20px;
-    gap: 16px;
-  }
-  .analog-area, .button-area {
-    flex: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-  /* Analog Stick */
-  .analog {
-    width: 140px; height: 140px;
-    border-radius: 50%;
-    border: 3px solid #5a5a5a;
-    background: #1a1a1a;
-    position: relative;
-    touch-action: none;
-  }
-  .analog-knob {
-    width: 60px; height: 60px;
-    border-radius: 50%;
-    border: 2px solid #5a5a5a;
-    background: #2a2a2a;
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    transition: 0.1s;
-  }
-  /* Buttons */
-  .btn-grid { position: relative; width: 160px; height: 140px; }
-  .btn {
-    width: 60px; height: 60px;
-    border-radius: 50%;
-    border: 2px solid #5a5a5a;
-    background: #1a1a1a;
-    color: #ffd700;
-    font-size: 18px;
-    font-weight: bold;
-    position: absolute;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    touch-action: none;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .btn:active, .btn.active { border-color: #ffd700; background: #ffd70022; }
-  .btn-X { left: 50px; top: 0; }
-  .btn-B { left: 0; bottom: 0; }
-  .btn-A { right: 0; bottom: 0; }
-  .btn-INV { left: 50px; top: 50px; width: 44px; height: 44px; font-size: 9px; }
-  /* DPad */
-  .dpad { position: relative; width: 140px; height: 140px; }
-  .dpad-btn {
-    width: 44px; height: 44px;
-    border: 2px solid #5a5a5a;
-    background: #1a1a1a;
-    color: #e0e0e0;
-    font-size: 16px;
-    position: absolute;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    border-radius: 8px;
-  }
-  .dpad-up { left: 50%; top: 0; transform: translateX(-50%); }
-  .dpad-down { left: 50%; bottom: 0; transform: translateX(-50%); }
-  .dpad-left { left: 0; top: 50%; transform: translateY(-50%); }
-  .dpad-right { right: 0; top: 50%; transform: translateY(-50%); }
-  #padMode { 
-    position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
-    padding: 4px 12px; border-radius: 12px; border: 1px solid #5a5a5a;
-    background: #0d0d0d; color: #e0e0e0; font-size: 10px;
-  }
+  *{box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; user-select:none; -webkit-user-select:none;}
+  html,body{height:100%; width:100%; overflow:hidden;}
+  body{background:var(--bg); color:var(--text); font-family:system-ui,sans-serif; touch-action:none; overscroll-behavior:none;}
+  #app{height:100dvh; width:100vw; display:flex; flex-direction:column; padding:max(6px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left)); gap:6px;}
+  .topbar{display:flex; justify-content:space-between; align-items:center; padding:2px 4px; font-size:11px; color:var(--muted);}
+  .topbar b{color:var(--gold); letter-spacing:.5px;}
+  #status{font-size:11px; color:#5cdb7a;}
+  .body{flex:1; display:flex; align-items:stretch; gap:10px; min-height:0;}
+  /* Shoulders */
+  .shoulders{display:flex; justify-content:space-between; gap:8px;}
+  .shoulder{flex:1; height:34px; border-radius:8px; border:1px solid var(--edge); background:var(--panel); color:var(--text); font-weight:700; font-size:12px; display:flex; align-items:center; justify-content:center; cursor:pointer; touch-action:none;}
+  .shoulder.active{border-color:var(--accent); background:#1f2b46;}
+  /* Left cluster */
+  .left{flex:1; display:flex; flex-direction:column; justify-content:space-between; align-items:center; gap:8px;}
+  .center{display:flex; align-items:center; justify-content:center; flex:1;}
+  .right{flex:1; display:flex; flex-direction:column; justify-content:space-between; align-items:center; gap:8px;}
+  /* Sticks */
+  .stick{width:34vmin; max-width:150px; height:34vmin; max-height:150px; border-radius:50%; border:3px solid var(--edge); background:radial-gradient(circle at 50% 50%, #20202a, #0d0d11); position:relative; touch-action:none; flex-shrink:0;}
+  .knob{width:44%; height:44%; border-radius:50%; border:2px solid #3a3a46; background:radial-gradient(circle at 45% 40%, #3a3a46, #1c1c24); position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); pointer-events:none; transition:transform .03s;}
+  .stick-label{position:absolute; bottom:-16px; left:50%; transform:translateX(-50%); font-size:9px; color:var(--muted);}
+  /* D-pad */
+  .dpad{width:32vmin; max-width:140px; height:32vmin; max-height:140px; position:relative;}
+  .dp{position:absolute; width:32%; height:32%; border:1px solid var(--edge); background:var(--panel); color:var(--text); display:flex; align-items:center; justify-content:center; font-size:13px; cursor:pointer; touch-action:none;}
+  .dp.active{border-color:var(--accent); background:#1f2b46;}
+  .dp-up{left:34%; top:0; border-radius:6px 6px 0 0;}
+  .dp-down{left:34%; bottom:0; border-radius:0 0 6px 6px;}
+  .dp-left{left:0; top:34%; border-radius:6px 0 0 6px;}
+  .dp-right{right:0; top:34%; border-radius:0 6px 6px 0;}
+  .dp-center{left:34%; top:34%; background:#0d0d11; border:none;}
+  /* Face buttons */
+  .faces{width:32vmin; max-width:140px; height:32vmin; max-height:140px; position:relative;}
+  .fb{position:absolute; width:36%; height:36%; border-radius:50%; border:2px solid; background:var(--panel); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:16px; cursor:pointer; touch-action:none;}
+  .fb.active{filter:brightness(1.4);}
+  .fb-cross{left:32%; bottom:0; border-color:var(--cross); color:var(--cross);}      /* ✕ A */
+  .fb-circle{right:0; top:32%; border-color:var(--circle); color:var(--circle);}    /* ○ B */
+  .fb-square{left:0; top:32%; border-color:var(--square); color:var(--square);}     /* □ X */
+  .fb-triangle{left:32%; top:0; border-color:var(--triangle); color:var(--triangle);}/* △ INV */
+  /* Start/Select */
+  .mid{display:flex; gap:8px; justify-content:center; padding:2px;}
+  .midbtn{padding:4px 10px; border-radius:12px; border:1px solid var(--edge); background:var(--panel); color:var(--muted); font-size:9px; font-weight:700; cursor:pointer; touch-action:none;}
+  .midbtn.active{border-color:var(--accent); color:var(--text);}
+  .legend{font-size:9px; color:var(--muted); text-align:center; padding-top:2px;}
 </style>
 </head>
 <body>
-  <h1>🎮 ZELDA DS - CONTROLE REMOTO</h1>
-  <p id="status">Conectando...</p>
-  
-  <div class="controls">
-    <div class="analog-area">
-      <div class="dpad" id="dpadArea">
-        <div class="dpad-btn dpad-up" data-key="u">↑</div>
-        <div class="dpad-btn dpad-down" data-key="d">↓</div>
-        <div class="dpad-btn dpad-left" data-key="l">←</div>
-        <div class="dpad-btn dpad-right" data-key="r">→</div>
+<div id="app">
+  <div class="topbar"><b>CONTROLE PS2 • ZELDA</b><span id="status">Conectando…</span></div>
+
+  <div class="shoulders" id="shoulders-top">
+    <div class="shoulder" data-key="i" id="L1">L1</div>
+    <div class="shoulder" data-key="m" id="L2">L2</div>
+    <div class="shoulder" data-key="x" id="R1">R1</div>
+    <div class="shoulder" data-key="s" id="R2">R2</div>
+  </div>
+
+  <div class="body">
+    <div class="left">
+      <div class="stick" id="stickL"><div class="knob" id="knobL"></div><span class="stick-label">ANALÓGICO L</span></div>
+      <div class="dpad">
+        <div class="dp dp-up" data-key="u">↑</div>
+        <div class="dp dp-down" data-key="d">↓</div>
+        <div class="dp dp-left" data-key="l">←</div>
+        <div class="dp dp-right" data-key="r">→</div>
+        <div class="dp dp-center"></div>
       </div>
-      <div class="analog" id="analog" style="display:none;">
-        <div class="analog-knob" id="knob"></div>
-      </div>
+      <div class="mid"><div class="midbtn" data-key="m" id="selectBtn">SELECT</div></div>
     </div>
-    <div class="button-area">
-      <div class="btn-grid">
-        <button class="btn btn-X" data-key="x">X</button>
-        <button class="btn btn-B" data-key="b">B</button>
-        <button class="btn btn-A" data-key="a">A</button>
-        <button class="btn btn-INV" data-key="i">INV</button>
+
+    <div class="center"></div>
+
+    <div class="right">
+      <div class="mid"><div class="midbtn" data-key="s" id="startBtn">START</div></div>
+      <div class="faces">
+        <div class="fb fb-triangle" data-key="i" title="TRIANGLE / INVENTÁRIO">△</div>
+        <div class="fb fb-circle" data-key="b" title="CIRCLE / B">○</div>
+        <div class="fb fb-square" data-key="x" title="SQUARE / X">□</div>
+        <div class="fb fb-cross" data-key="a" title="CROSS / A">✕</div>
       </div>
+      <div class="stick" id="stickR"><div class="knob" id="knobR"></div><span class="stick-label">ANALÓGICO R</span></div>
     </div>
   </div>
-  
-  <button id="padMode" onclick="togglePadMode()">MODO: DPAD</button>
+
+  <div class="legend">✕A ○B □X △INV • L1/R1 • L2/R2 • START/SELECT • analógicos</div>
+</div>
 
 <script>
-// Configuration
+// ===== Socket.io (WS servidor :3001) =====
 const SOCKET_URL = window.location.protocol + '//' + window.location.hostname + ':3001';
-let socket = null;
-let connected = false;
-let padMode = 'dpad'; // 'dpad' or 'analog'
-
-// Try to connect WebSocket
-function connect() {
-  // socket.io would be loaded from server if available
-  if (typeof io !== 'undefined') {
-    socket = io(SOCKET_URL);
-    socket.on('connect', () => {
-      connected = true;
-      document.getElementById('status').textContent = 'Conectado! 🎮';
-      document.getElementById('status').style.color = '#8bc34a';
-    });
-    socket.on('disconnect', () => {
-      connected = false;
-      document.getElementById('status').textContent = 'Desconectado...';
-      document.getElementById('status').style.color = '#ff4444';
-    });
-  } else {
-    // Fallback: no socket.io, just show UI
-    document.getElementById('status').textContent = 'Controle Pronto (sem conexão WS)';
-    document.getElementById('status').style.color = '#ffd700';
-  }
+let socket=null, connected=false;
+function setStatus(t,c){ const s=document.getElementById('status'); if(s){s.textContent=t; s.style.color=c;} }
+function connect(){
+  if(typeof io!=='undefined'){
+    socket=io(SOCKET_URL,{transports:['websocket','polling'],reconnection:true,reconnectionAttempts:Infinity,reconnectionDelay:500,reconnectionDelayMax:2000});
+    socket.on('connect',()=>{connected=true; setStatus('CONECTADO','#5cdb7a'); vibrate(30);});
+    socket.on('disconnect',()=>{connected=false; setStatus('DESCONECTADO','#ff5b6e');});
+    socket.on('connect_error',()=>{connected=false; setStatus('SEM CONEXÃO WS','#ffd84a');});
+  } else { setStatus('PRONTO (sem WS)','#ffd84a'); }
 }
-
-// Send command
-function sendCommand(key, down) {
-  if (socket && connected) {
-    socket.emit('remote-input', { key, down });
-  }
-  // Also store locally for potential P2P
-  localStorage.setItem('lastInput', JSON.stringify({ key, down, time: Date.now() }));
+function send(key,down){
+  if(socket&&connected){ socket.emit('remote-input',{key,down}); }
+  try{ localStorage.setItem('lastInput',JSON.stringify({key,down,time:Date.now()})); }catch(e){}
 }
+function sendAnalog(x,y,which){ if(socket&&connected){ socket.emit(which||'remote-analog',{x,y}); } }
+function vibrate(ms){ try{ if(navigator.vibrate) navigator.vibrate(ms); }catch(e){} }
 
-// DPad handlers
-document.querySelectorAll('.dpad-btn').forEach(btn => {
-  const key = btn.dataset.key;
-  btn.addEventListener('touchstart', e => { e.preventDefault(); btn.classList.add('active'); sendCommand(key, true); });
-  btn.addEventListener('touchend', e => { e.preventDefault(); btn.classList.remove('active'); sendCommand(key, false); });
-  btn.addEventListener('mousedown', e => { e.preventDefault(); btn.classList.add('active'); sendCommand(key, true); });
-  btn.addEventListener('mouseup', e => { e.preventDefault(); btn.classList.remove('active'); sendCommand(key, false); });
-  btn.addEventListener('mouseleave', e => { btn.classList.remove('active'); sendCommand(key, false); });
-});
-
-// Action buttons
-document.querySelectorAll('.btn').forEach(btn => {
-  const key = btn.dataset.key;
-  btn.addEventListener('touchstart', e => { e.preventDefault(); btn.classList.add('active'); sendCommand(key, true); });
-  btn.addEventListener('touchend', e => { e.preventDefault(); btn.classList.remove('active'); sendCommand(key, false); });
-  btn.addEventListener('mousedown', e => { e.preventDefault(); btn.classList.add('active'); sendCommand(key, true); });
-  btn.addEventListener('mouseup', e => { e.preventDefault(); btn.classList.remove('active'); sendCommand(key, false); });
-});
-
-// Analog stick
-const analog = document.getElementById('analog');
-const knob = document.getElementById('knob');
-let dragging = false;
-
-analog.addEventListener('touchstart', e => { e.preventDefault(); dragging = true; });
-analog.addEventListener('touchmove', e => {
-  if (!dragging) return;
-  const rect = analog.getBoundingClientRect();
-  const x = e.touches[0].clientX - rect.left - rect.width/2;
-  const y = e.touches[0].clientY - rect.top - rect.height/2;
-  const maxR = rect.width/2 - 30;
-  const dist = Math.min(Math.sqrt(x*x + y*y), maxR);
-  const angle = Math.atan2(y, x);
-  knob.style.transform = `translate(${dist * Math.cos(angle) - rect.width/2}px, ${dist * Math.sin(angle) - rect.height/2}px)`;
-  // Send analog values
-  const nx = (dist * Math.cos(angle)) / maxR;
-  const ny = (dist * Math.sin(angle)) / maxR;
-  if (socket && connected) socket.emit('remote-analog', { x: nx, y: ny });
-});
-analog.addEventListener('touchend', e => {
-  e.preventDefault(); dragging = false;
-  knob.style.transform = 'translate(-50%, -50%)';
-  if (socket && connected) socket.emit('remote-analog', { x: 0, y: 0 });
-});
-
-// Toggle pad mode
-function togglePadMode() {
-  padMode = padMode === 'dpad' ? 'analog' : 'dpad';
-  document.getElementById('dpadArea').style.display = padMode === 'dpad' ? 'block' : 'none';
-  document.getElementById('analog').style.display = padMode === 'analog' ? 'block' : 'none';
-  document.getElementById('padMode').textContent = 'MODO: ' + padMode.toUpperCase();
+// ===== Robust buttons (pointer + multi-touch + capture) =====
+function attachButton(el){
+  const key=el.dataset.key; if(!key) return;
+  const down=(e)=>{ e.preventDefault(); e.stopPropagation(); el.classList.add('active'); try{el.setPointerCapture(e.pointerId);}catch(err){} send(key,true); vibrate(8); };
+  const up=(e)=>{ e.preventDefault(); e.stopPropagation(); el.classList.remove('active'); send(key,false); };
+  el.addEventListener('pointerdown',down);
+  el.addEventListener('pointerup',up);
+  el.addEventListener('pointercancel',up);
+  el.addEventListener('lostpointercapture',()=>{ el.classList.remove('active'); send(key,false); });
+  // fallback touch/mouse
+  el.addEventListener('touchstart',down,{passive:false});
+  el.addEventListener('touchend',up,{passive:false});
+  el.addEventListener('touchcancel',up,{passive:false});
+  el.addEventListener('mousedown',down);
+  el.addEventListener('mouseup',up);
+  el.addEventListener('mouseleave',()=>{ if(el.classList.contains('active')){ el.classList.remove('active'); send(key,false); } });
 }
+document.querySelectorAll('[data-key]').forEach(attachButton);
 
-// Load socket.io client if server provides it
-const script = document.createElement('script');
-script.src = SOCKET_URL + '/socket.io/socket.io.js';
-script.onload = connect;
-script.onerror = connect; // Fallback if no socket.io server
+// ===== Robust analog stick =====
+function attachStick(stickEl,knobEl,whichEvent){
+  let activeId=null; const maxR=()=>{ const r=stickEl.getBoundingClientRect(); return Math.min(r.width,r.height)/2 - knobEl.getBoundingClientRect().width/2; };
+  const reset=()=>{ knobEl.style.transform='translate(-50%,-50%)'; if(activeId!==null){ sendAnalog(0,0,whichEvent); activeId=null; } };
+  const move=(clientX,clientY)=>{
+    const r=stickEl.getBoundingClientRect(); const cx=r.left+r.width/2, cy=r.top+r.height/2;
+    let dx=clientX-cx, dy=clientY-cy; const m=maxR(); const len=Math.hypot(dx,dy)||1; const cl=Math.min(len,m);
+    const nx=(dx/len)*cl/m; const ny=(dy/len)*cl/m;
+    knobEl.style.transform=`translate(calc(-50% + ${(dx/len)*cl}px), calc(-50% + ${(dy/len)*cl}px))`;
+    sendAnalog(nx,ny,whichEvent);
+  };
+  stickEl.addEventListener('pointerdown',(e)=>{ e.preventDefault(); activeId=e.pointerId; try{stickEl.setPointerCapture(e.pointerId);}catch(err){} move(e.clientX,e.clientY); vibrate(8); });
+  stickEl.addEventListener('pointermove',(e)=>{ if(activeId!==e.pointerId) return; e.preventDefault(); move(e.clientX,e.clientY); });
+  stickEl.addEventListener('pointerup',(e)=>{ if(activeId!==e.pointerId) return; e.preventDefault(); reset(); });
+  stickEl.addEventListener('pointercancel',reset);
+  stickEl.addEventListener('lostpointercapture',reset);
+  // touch fallback
+  stickEl.addEventListener('touchstart',(e)=>{ e.preventDefault(); activeId=e.touches[0].identifier; move(e.touches[0].clientX,e.touches[0].clientY); },{passive:false});
+  stickEl.addEventListener('touchmove',(e)=>{ if(activeId===null) return; e.preventDefault(); for(const t of e.touches){ if(t.identifier===activeId){ move(t.clientX,t.clientY); break; } } },{passive:false});
+  stickEl.addEventListener('touchend',(e)=>{ e.preventDefault(); reset(); },{passive:false});
+  stickEl.addEventListener('touchcancel',reset,{passive:false});
+}
+attachStick(document.getElementById('stickL'), document.getElementById('knobL'), 'remote-analog');
+attachStick(document.getElementById('stickR'), document.getElementById('knobR'), 'remote-analog-right');
+
+// Prevent page scroll/zoom
+document.addEventListener('touchmove',(e)=>{ if(e.target.closest('[data-key],.stick')) e.preventDefault(); },{passive:false});
+window.addEventListener('contextmenu',(e)=>e.preventDefault());
+
+// Load socket.io client from WS server
+const script=document.createElement('script');
+script.src=SOCKET_URL+'/socket.io/socket.io.js';
+script.onload=connect; script.onerror=connect;
 document.head.appendChild(script);
 </script>
 </body>
