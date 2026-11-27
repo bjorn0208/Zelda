@@ -90,7 +90,7 @@ export const INV_ITEM_LABELS = [
   'Ferramenta do botão X',
   'Poção de vida',
   'Tocha',
-  'Fragmento do cristal',
+  'Dominic',
   'Relíquias',
 ] as const;
 
@@ -348,7 +348,7 @@ function torchPalette(s: InvItemState): Record<string, string> {
   };
 }
 
-function crystalPalette(s: InvItemState): Record<string, string> {
+function dominicPalette(s: InvItemState): Record<string, string> {
   const has = s.fragments > 0;
   return {
     o: has ? '#1b4a8a' : '#2e2e3e',
@@ -476,7 +476,7 @@ function drawSlotLocal(g: CanvasRenderingContext2D, slot: number, s: InvItemStat
       drawPixels(g, TORCH_MAP, torchPalette(s));
       break;
     case 6:
-      drawPixels(g, CRYSTAL_MAP, crystalPalette(s));
+      drawPixels(g, CRYSTAL_MAP, dominicPalette(s));
       break;
     default:
       drawRelics(g, s);

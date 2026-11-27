@@ -3553,7 +3553,7 @@ export function drawVictory(
   tx(g, 'REINO SALVO!', 120, 30, '#ffd84a', 'center');
   tx(g, `${hn}, O HERÓI DE AURORA`, 120, 46, '#ffe98a', 'center');
   tx(g, `RUPIAS: ${p3(G.rp)}`, 120, 64, '#2ee06b', 'center');
-  tx(g, `FRAGMENTOS: ${V.it.fragmento || 3}/3`, 120, 77, '#9ed8ff', 'center');
+  tx(g, `DOMINICS: ${V.it.fragmento | 0}/3`, 120, 77, '#9ed8ff', 'center');
 
   const opts = ['CONTINUAR NO REINO', 'MENU PRINCIPAL'];
   opts.forEach((o, i) => {
@@ -3803,8 +3803,8 @@ export function drawInventory(
       badge: V.torchLit ? 'ON' : `x${V.torches}`,
     },
     {
-      title: `FRAGMENTOS (${frag}/3)`,
-      desc: frag >= 3 ? 'Abra o castelo do Ciclope!' : 'Derrote chefes das cavernas',
+      title: `DOMINICS (${frag}/3)`,
+      desc: frag >= 3 ? 'Abra o castelo do Ciclope!' : 'Derrote os guardiões das cavernas',
       badge: `${frag}/3`,
     },
     {

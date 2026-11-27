@@ -158,7 +158,7 @@ export function createInitialHero(): HeroState {
 
 interface RoomOptions {
   chest?: boolean | number;
-  back?: number;
+  back?: number | 'ret';
   fwd?: number;
   en?: [number, EnemyKind];
   treasureVault?: boolean;
@@ -439,8 +439,9 @@ function createRoom(
   if (o.fwd && id !== 151) {
     world.doors[id].push({ x: 7, y: 1, to: o.fwd, px: 112, py: 112 });
   }
-  if (!h || (id !== 451 && id !== 151)) {
-    // Stair to bedroom (2nd floor) for the other houses / dungeons
+  if (h && id !== 451 && id !== 151) {
+    // Só as casas têm escada para o quarto. Cavernas não podem teleportar
+    // o herói para o quarto ao pisar no canto inferior direito.
     world.doors[id].push({ x: 13, y: 7, to: 451, px: 180, py: 42 });
   }
 }
@@ -655,7 +656,13 @@ function genOverworldScreen(world: WorldData, sx: number, sy: number): void {
       }
     }
   } else {
-    const hsd = vil ? [0, 1] : b === 'd' || ci != null || bn ? [] : r() < 0.4 ? [r() < 0.5 ? 0 : 1] : [];
+    const hsd = vil
+      ? [0, 1]
+      : b === 'd' || b === 'w' || ci != null || bn
+        ? []
+        : r() < 0.4
+          ? [r() < 0.5 ? 0 : 1]
+          : [];
     for (const s of hsd) {
       const x0 = s ? 10 : 1;
       const id = (s ? 300 : 100) + i;
@@ -862,6 +869,94 @@ function genOverworldScreen(world: WorldData, sx: number, sy: number): void {
   world.maps[i] = m;
 }
 
+/**
+ * Caverna do pantano feita à parte: lama, canais d'água, juncos e pedras
+ * musgosas. Não reaproveita a sala genérica das outras cavernas e, por isso,
+ * não ganha a escada de casa que teleportava o herói para o quarto.
+ */
+function createSwampCaveRoom(world: WorldData, id: number, o: RoomOptions): void {
+  const m = Array.from({ length: 10 }, () => Array<string>(15).fill('a'));
+  for (let y = 0; y < 10; y++) {
+    for (let x = 0; x < 15; x++) {
+      if (!x || !y || x === 14 || y === 9) m[y][x] = 'W';
+    }
+  }
+
+  const pools: Array<[number, number, number, number]> =
+    id === 232
+      ? [
+          [2, 2, 3, 2],
+          [10, 2, 3, 2],
+          [2, 6, 3, 2],
+          [10, 6, 3, 2],
+        ]
+      : [
+          [2, 2, 3, 2],
+          [10, 2, 3, 2],
+          [2, 6, 2, 2],
+          [11, 6, 2, 2],
+        ];
+  for (const [px, py, pw, ph] of pools) {
+    for (let y = py; y < py + ph; y++) {
+      for (let x = px; x < px + pw; x++) m[y][x] = '~';
+    }
+  }
+
+  for (const [px, py] of [
+    [4, 4],
+    [10, 4],
+    [4, 7],
+    [10, 7],
+  ]) {
+    m[py][px] = '#';
+  }
+  for (const [px, py] of [
+    [3, 1],
+    [11, 1],
+    [3, 8],
+    [11, 8],
+    [1, 4],
+    [13, 4],
+    [5, 2],
+    [9, 7],
+  ]) {
+    if (m[py][px] === 'a') m[py][px] = 'l';
+  }
+  for (const [px, py] of [
+    [2, 4],
+    [12, 4],
+    [7, 5],
+  ]) {
+    m[py][px] = 't';
+  }
+
+  // Corredor central sempre livre entre as duas portas.
+  for (let y = 2; y <= 8; y++) m[y][7] = 'a';
+  m[8][7] = 'D';
+  if (o.fwd) m[1][7] = 'D';
+
+  m[3][11] = 'C';
+  if (id === 231) m[6][3] = 'C';
+  if (id === 232) {
+    // Ninhos e crânios em volta da Cová do Jacaré Gigante.
+    for (const [px, py] of [
+      [3, 2],
+      [5, 3],
+      [9, 2],
+      [11, 7],
+    ]) {
+      if (m[py][px] === 'a') m[py][px] = 'o';
+    }
+  }
+
+  world.maps[id] = m;
+  world.neighbors[id] = {};
+  world.npcs[id] = [];
+  world.enemies[id] = o.en || [0, 0];
+  world.doors[id] = [{ x: 7, y: 8, to: o.back || 'ret', px: 112, py: 24 }];
+  if (o.fwd) world.doors[id].push({ x: 7, y: 1, to: o.fwd, px: 112, py: 112 });
+}
+
 export function buildWorld(): WorldData {
   const world: WorldData = {
     maps: [],
@@ -899,14 +994,12 @@ export function buildWorld(): WorldData {
   }
 
   // Caverna do Pantano (230-232): jacarés, poças e o Jacaré Gigante no fim.
-  const swampEnemies: EnemyKind[] = [10, 10, 10];
   for (let q = 0; q < 3; q++) {
     const id = 230 + q;
-    createRoom(world, id, false, rg(id), {
-      chest: true,
-      back: q ? id - 1 : 0,
+    createSwampCaveRoom(world, id, {
+      back: q === 2 ? 'ret' : q ? id - 1 : 0,
       fwd: q < 2 ? id + 1 : 0,
-      en: q === 2 ? [1, 10] : [2 + q, swampEnemies[q]],
+      en: q === 2 ? [1, 10] : [2 + q, 10],
     });
   }
 
@@ -1013,6 +1106,10 @@ export function loadSavedGame(): {
     const V = Object.assign(createInitialProgress(), parsed.V);
     // A barra de corações é fixa em 12, mesmo em saves antigos.
     V.mh = MAX_HEARTS;
+    // Saves com o bug dos fragmentos podiam passar de 3; o contador interno
+    // agora acompanha apenas os Dominics realmente despertos.
+    const ownedDominics = V.dominic?.owned?.filter((k) => k !== 'none').length ?? 0;
+    V.it.fragmento = Math.min(3, Math.max(V.it.fragmento | 0, ownedDominics));
     if (!V.equipped) V.equipped = V.sword ? 'sword' : 'none';
     if (!V.swordTier) V.swordTier = V.sword ? (V.dmg > 1 ? 'aco' : 'lendaria') : 'none';
     if (!V.ownedSwords || !V.ownedSwords.length) {
@@ -1028,7 +1125,12 @@ export function loadSavedGame(): {
 
     const baseMaps = world.maps;
     world.maps = parsed.M.map((m) => (m ? m.map((r) => [...r]) : [])) as string[][][];
-    for (const refreshId of [35, 36, 51, 135, 335, 136, 351, 451]) {
+    for (const refreshId of [
+      35, 36, 51, 135, 335, 136, 351, 451,
+      // Pântano e caverna do pântano: versões antigas tinham casas/caverna
+      // genéricas e a escada invisível para o quarto.
+      45, 46, 47, 53, 54, 55, 230, 231, 232,
+    ]) {
       if (baseMaps[refreshId]?.length) {
         world.maps[refreshId] = baseMaps[refreshId];
       }

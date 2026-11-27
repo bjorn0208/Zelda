@@ -89,6 +89,10 @@ import {
 
 const SECONDARY_ORDER: SecondaryTool[] = ['arco', 'bomba', 'tocha', 'pocao'];
 
+/** Os três Dominics, na ordem em que os guardiões são derrotados. */
+const DOMINIC_KINDS: DominicKind[] = ['white', 'blue', 'green'];
+const DOMINIC_NAMES = ['BRANCO DO FOGO', 'AZUL DO GELO', 'VERDE DO RAIO'] as const;
+
 export class GameEngine {
   private ctx: CanvasRenderingContext2D;
   public audio = new RetroAudio();
@@ -733,7 +737,7 @@ export class GameEngine {
       const a = 1 + rnd(13);
       const b = 1 + rnd(8);
       const c = this.world.maps[this.G.map]?.[b]?.[a];
-      if (c && '.sncgi'.includes(c) && Math.hypot(a * 16 - this.G.x, b * 16 - this.G.y) > 70) {
+      if (c && '.sncgia'.includes(c) && Math.hypot(a * 16 - this.G.x, b * 16 - this.G.y) > 70) {
         this.G.en.push({
           x: a * 16,
           y: b * 16,
@@ -807,32 +811,65 @@ export class GameEngine {
     }
   }
 
-  /** Dominic powers unlocked by the Crystal Fragments. */
+  /** Poderes dos Dominics despertados permanentemente. */
   private hasDominic(kind: DominicKind): boolean {
     return Boolean(this.V.dominic && this.V.dominic.owned.includes(kind));
   }
 
+  private ownedDominicCount(): number {
+    return this.V.dominic?.owned.filter((k) => k !== 'none').length ?? 0;
+  }
+
   /**
-   * Syncs V.dominic with how many fragments the hero holds, so every fragment
-   * permanently unlocks one power: 1 Fogo -> 2 Gelo -> 3 Raio.
+   * Concede um Dominic diretamente ao derrotar um guardião. Nunca existe um
+   * 4º Dominic: se todos já foram despertos, a chamada não concede nada.
+   * `V.it.fragmento` continua apenas como contador de compatibilidade de save.
    */
+  private grantDominic(wanted?: DominicKind): DominicKind | null {
+    const d = this.V.dominic;
+    if (!d || this.ownedDominicCount() >= 3) {
+      this.V.it.fragmento = 3;
+      return null;
+    }
+
+    let i = wanted ? DOMINIC_KINDS.indexOf(wanted) : d.owned.findIndex((k) => k === 'none');
+    if (i < 0 || d.owned[i] !== 'none') {
+      i = d.owned.findIndex((k) => k === 'none');
+    }
+    if (i < 0) {
+      this.V.it.fragmento = 3;
+      return null;
+    }
+
+    const kind = DOMINIC_KINDS[i];
+    d.owned[i] = kind;
+    if (d.current === 'none') d.current = kind;
+    this.V.it.fragmento = Math.min(3, Math.max(this.V.it.fragmento | 0, this.ownedDominicCount()));
+    d.activeEffect = this.ownedDominicCount() >= 3 ? 'all' : 'single';
+    this.audio.bp(760 + i * 200, 0.3, 'square');
+    this.V.msg = `DOMINIC ${DOMINIC_NAMES[i]} DESPERTOU!`;
+    this.V.mt = 130;
+    return kind;
+  }
+
+  /** Recupera saves antigos que guardavam só a contagem, sem os poderes. */
   private syncDominicPowers(): void {
     const d = this.V.dominic;
     if (!d) return;
-    const f = this.V.it.fragmento | 0;
-    const kinds: DominicKind[] = ['white', 'blue', 'green'];
-    const names = ['BRANCO DO FOGO', 'AZUL DO GELO', 'VERDE DO RAIO'];
+    const f = Math.min(3, Math.max(0, this.V.it.fragmento | 0));
+    this.V.it.fragmento = f;
     for (let i = 0; i < 3; i++) {
       if (f > i && d.owned[i] === 'none') {
-        d.owned[i] = kinds[i];
-        if (d.current === 'none') d.current = kinds[i];
+        d.owned[i] = DOMINIC_KINDS[i];
+        if (d.current === 'none') d.current = DOMINIC_KINDS[i];
         this.audio.bp(760 + i * 200, 0.3, 'square');
-        this.V.msg = `DOMINIC ${names[i]} DESPERTOU!`;
+        this.V.msg = `DOMINIC ${DOMINIC_NAMES[i]} DESPERTOU!`;
         this.V.mt = 130;
       }
     }
-    if (f >= 3) d.activeEffect = 'all';
-    else if (f >= 1) d.activeEffect = 'single';
+    const owned = this.ownedDominicCount();
+    this.V.it.fragmento = Math.max(f, owned);
+    d.activeEffect = owned >= 3 ? 'all' : owned >= 1 ? 'single' : 'none';
   }
 
   /** Com os 12 corações cheios, o ataque lança um raio do Dominic atual junto com a espada. */
@@ -1009,7 +1046,7 @@ export class GameEngine {
         this.markExplored(this.G.map);
         this.spawn();
         this.fixPos();
-        // Um save antigo pode ter fragmentos sem os poderes despertados
+        // Saves antigos podiam ter 4 fragmentos ou contagem sem poder ativo.
         this.syncDominicPowers();
         this.st = 'game';
         this.V.msg = 'JOGO CARREGADO';
@@ -1210,9 +1247,9 @@ export class GameEngine {
       const f = this.V.it.fragmento | 0;
       this.talk(
         f >= 3
-          ? 'Você tem os 3 fragmentos! Vá ao castelo, ao norte, e derrote o Ciclope para salvar Mitribuque!'
+          ? 'Você despertou os 3 Dominics! Vá ao castelo, ao norte, e derrote o Ciclope para salvar Mitribuque!'
           : f
-            ? `Você tem ${f} de 3 fragmentos. Cavernas: floresta (leste), ruínas (nordeste) e gelo (noroeste).`
+            ? `Você tem ${f} de 3 Dominics. Cavernas: floresta (leste), ruínas (nordeste) e gelo (noroeste).`
             : n.s,
       );
       return;
@@ -1341,15 +1378,14 @@ export class GameEngine {
           this.talk('Você achou um tesouro de 60 rupias!');
         }
       } else if (c === 'roupa_branca') {
-        // Recompensa do 1º chefe: Roupa Branca + 1º Fragmento (poder do fogo)
+        // Recompensa do 1º chefe: Roupa Branca + Dominic Branco do Fogo.
         if (!this.V.ownedOutfits.includes('branco')) this.V.ownedOutfits.push('branco');
         this.V.outfit = 'branco';
-        this.V.it.fragmento = (this.V.it.fragmento | 0) + 1;
+        this.grantDominic('white');
         this.G.hp = this.V.mh * 2;
-        this.syncDominicPowers();
         this.audio.bp(1300, 0.4, 'square');
         this.talk(
-          `ROUPA BRANCA e ${this.V.it.fragmento}º FRAGMENTO! Sua espada agora atira FOGO e queima os inimigos!`,
+          'ROUPA BRANCA e DOMINIC BRANCO DO FOGO! Sua espada agora atira FOGO e queima os inimigos!',
         );
       } else {
         this.V.it[c] = 1;
@@ -1370,11 +1406,11 @@ export class GameEngine {
     if ((this.V.it.fragmento | 0) >= 3) {
       this.world.maps[this.G.map][b][a] = 'D';
       this.world.doors[this.G.map].push({ x: a, y: b, to: 260, px: 112, py: 112 });
-      this.talk('Os 3 fragmentos brilham... o portão se abre!');
+      this.talk('Os 3 Dominics brilham... o portão se abre!');
       this.audio.bp(300, 0.6);
       saveGame(this.hn, this.G, this.V, this.world, this.worldTime);
     } else {
-      this.talk(`O portão está selado. Fragmentos: ${this.V.it.fragmento | 0}/3`);
+      this.talk(`O portão está selado. Dominics: ${this.V.it.fragmento | 0}/3`);
     }
   }
 
@@ -2069,7 +2105,7 @@ export class GameEngine {
       } else if (tile === 'q' && this.G.map === 451) {
         this.audio.bp(640, 0.05);
         this.talk(
-          'Sua estante com livros antigos sobre a Lenda dos Três Dominics, mapas de Mitribuque e os Fragmentos do Cristal.',
+          'Sua estante com livros antigos sobre a Lenda dos Três Dominics, mapas de Mitribuque e os três guardiões.',
         );
       } else if (tile === 'e') {
         this.G.hp = this.V.mh * 2;
@@ -2267,7 +2303,7 @@ export class GameEngine {
       return true;
     });
 
-    // Boss clear / Crystal fragment reward
+    // Boss clear / Dominic reward
     const f = 'b' + this.G.map;
     const enMeta = this.world.enemies[this.G.map];
     if (
@@ -2284,22 +2320,24 @@ export class GameEngine {
           'O Ciclope foi derrotado e os três Dominics brilham de novo! Mitribuque está salva, Herói!',
         );
       } else if (this.G.map === 202) {
-        // 1º chefe: Fragmento + Roupa Branca ficam no baú da própria sala
+        // 1º chefe: Roupa Branca + Dominic Branco ficam no baú da própria sala.
         this.G.hp = this.V.mh * 2;
-        this.talk('O chefe da floresta caiu! Abra o BAÚ da sala: ROUPA BRANCA + 1º Fragmento!');
+        this.talk('O chefe da floresta caiu! Abra o BAÚ da sala: ROUPA BRANCA + DOMINIC BRANCO DO FOGO!');
       } else if (this.G.map === 232) {
-        // Chefe do pantano: fragmento + poções no baú da sala.
-        this.V.it.fragmento = (this.V.it.fragmento | 0) + 1;
+        // Chefe do pantano desperta o próximo Dominic; nunca cria um 4º.
+        const kind = this.grantDominic();
+        const msg = kind
+          ? this.V.msg
+          : 'O Jacaré Gigante voltou para a lama! Os Dominics já estão despertos.';
         this.G.hp = this.V.mh * 2;
-        this.syncDominicPowers();
-        this.talk(
-          'O Jacaré Gigante voltou para a lama! Pegue o fragmento e as poções do baú!',
-        );
+        this.talk(kind ? `${msg} Pegue as poções do baú!` : msg);
       } else {
-        this.V.it.fragmento = (this.V.it.fragmento | 0) + 1;
+        const wanted: DominicKind | undefined =
+          this.G.map === 212 ? 'blue' : this.G.map === 222 ? 'green' : undefined;
+        const kind = this.grantDominic(wanted);
+        const msg = kind ? this.V.msg : 'Os Dominics já estão despertos!';
         this.G.hp = this.V.mh * 2;
-        this.syncDominicPowers();
-        this.talk(`Você obteve um fragmento do cristal! (${this.V.it.fragmento}/3)`);
+        this.talk(`${msg} (${this.V.it.fragmento}/3)`);
       }
       this.audio.bp(1200, 0.5);
       saveGame(this.hn, this.G, this.V, this.world, this.worldTime);

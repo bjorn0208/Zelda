@@ -70,7 +70,7 @@ export const OBSTACLE_TILES = ['m', 'J', 'j', 'm', 'J', 'm', '#'] as const;
 
 export const CHEST_ITEMS: Record<number, string> = {
   200: 'minerio',
-  // Boss da caverna da floresta: Robe Branca + 1º Fragmento (poder do fogo)
+  // Boss da caverna da floresta: Roupa Branca + 1º Dominic (poder do fogo)
   202: 'roupa_branca',
   210: 'pocao',
   220: 'ursinho',

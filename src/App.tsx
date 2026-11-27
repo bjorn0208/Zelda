@@ -510,14 +510,14 @@ function ResponsiveInventoryModal({
     },
     {
       id: 6,
-      label: 'Cristais',
-      title: `Fragmentos do Cristal (${ui.fragments}/3)`,
+      label: 'Dominics',
+      title: `Dominics (${ui.fragments}/3)`,
       badge: `${ui.fragments}/3`,
       active: ui.fragments > 0,
       desc:
         ui.fragments >= 3
-          ? 'Você reuniu todos os 3 Fragmentos! Vá ao norte até o castelo do Ciclope para enfrentar o monstro e salvar Mitribuque.'
-          : 'Derrote os guardiões das três grandes cavernas (Floresta, Ruínas do Deserto e Terra Gelada) para reunir os cristais.',
+          ? 'Você despertou todos os 3 Dominics! Vá ao norte até o castelo do Ciclope para enfrentar o monstro e salvar Mitribuque.'
+          : 'Derrote os guardiões das três grandes cavernas (Floresta, Ruínas do Deserto e Terra Gelada) para despertar os Dominics.',
       actionLabel: 'Item de Missão',
       accent: 'text-indigo-300',
     },
