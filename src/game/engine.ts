@@ -726,7 +726,7 @@ export class GameEngine {
     this.projectiles = [];
     const e = this.world.enemies[this.G.map] || [0, 0];
     let n = e[0];
-    if (e[1] === 4 && this.V.fl['b' + this.G.map]) n = 0;
+    if ((e[1] === 4 || e[1] === 10) && this.V.fl['b' + this.G.map]) n = 0;
     const kind = e[1];
     const maxHp = getEnemyMaxHp(this.G.map, kind);
     for (let q = 0; q < 90 && n > 0; q++) {
@@ -2270,7 +2270,13 @@ export class GameEngine {
     // Boss clear / Crystal fragment reward
     const f = 'b' + this.G.map;
     const enMeta = this.world.enemies[this.G.map];
-    if (enMeta && enMeta[1] === 4 && !this.V.fl[f] && !this.G.en.length && !this.G.dlg) {
+    if (
+      enMeta &&
+      (enMeta[1] === 4 || enMeta[1] === 10) &&
+      !this.V.fl[f] &&
+      !this.G.en.length &&
+      !this.G.dlg
+    ) {
       this.V.fl[f] = 1;
       if (this.G.map === 261) {
         this.V.fl.win = 1;
@@ -2281,6 +2287,14 @@ export class GameEngine {
         // 1º chefe: Fragmento + Roupa Branca ficam no baú da própria sala
         this.G.hp = this.V.mh * 2;
         this.talk('O chefe da floresta caiu! Abra o BAÚ da sala: ROUPA BRANCA + 1º Fragmento!');
+      } else if (this.G.map === 232) {
+        // Chefe do pantano: fragmento + poções no baú da sala.
+        this.V.it.fragmento = (this.V.it.fragmento | 0) + 1;
+        this.G.hp = this.V.mh * 2;
+        this.syncDominicPowers();
+        this.talk(
+          'O Jacaré Gigante voltou para a lama! Pegue o fragmento e as poções do baú!',
+        );
       } else {
         this.V.it.fragmento = (this.V.it.fragmento | 0) + 1;
         this.G.hp = this.V.mh * 2;
@@ -2621,14 +2635,13 @@ export class GameEngine {
       const m = this.G.map;
       if (isHouse(m) || m === 35 || m === 36) return this.V.sword ? 'postSword' : 'calm';
       if (m >= 200) {
-        return this.world.enemies[m] && this.world.enemies[m][1] === 4 && !this.V.fl['b' + m]
-          ? 'boss'
-          : 'cave';
+        const k = this.world.enemies[m]?.[1];
+        return (k === 4 || k === 10) && !this.V.fl['b' + m] ? 'boss' : 'cave';
       }
       if (m < 8 && m >= 3 && m <= 5) return 'cave';
       const x = m & 7;
       const y = m >> 3;
-      const calm = lake(x, y) || bio(x, y) === 'n';
+      const calm = lake(x, y) || bio(x, y) === 'n' || bio(x, y) === 'w';
       // Depois da espada, o campo e as casas usam "In the Field".
       // Cavernas, chefes e minijogos mantêm suas faixas próprias.
       return this.V.sword ? 'postSword' : calm ? 'calm' : 'field';
@@ -2642,18 +2655,24 @@ export class GameEngine {
     if (this.pressed.m) this.audio.toggleMute();
     if (this.noSaveTimer > 0) this.noSaveTimer--;
 
-    const weatherMode: 'story' | 'overworld' | 'none' =
+    const exploring =
+      (this.st === 'game' || this.st === 'inv' || this.st === 'shop') && this.G.map < 100;
+    const inSnowBiome =
+      exploring && this.G.map < 56 && bio(this.G.map & 7, this.G.map >> 3) === 'n';
+    const weatherMode: 'story' | 'overworld' | 'snow' | 'none' =
       this.st === 'story'
         ? 'story'
-        : (this.st === 'game' || this.st === 'inv' || this.st === 'shop') && this.G.map < 100 && !this.V.sword
-          ? 'overworld'
-          : 'none';
+        : inSnowBiome
+          ? 'snow'
+          : exploring && !this.V.sword
+            ? 'overworld'
+            : 'none';
 
     stepWeather(this.weather, weatherMode, (intensity) => {
       this.audio.playThunder(intensity);
     });
 
-    // Sem chuva audível durante a narração inicial da história.
+    // Sem chuva audível na história nem na neve: o pantano e o campo mantêm a chuva.
     this.audio.setRainAmbience(weatherMode === 'overworld' ? 0.032 : 0);
 
     // Personagem falando: música cai pela metade e volta ao normal ao fechar.

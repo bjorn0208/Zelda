@@ -1,5 +1,5 @@
 import { H, W } from './constants';
-import { LightningBolt, RainDrop, WeatherState } from './types';
+import { LightningBolt, RainDrop, SnowFlake, WeatherState } from './types';
 
 function makeDrop(layer: 0 | 1 | 2, randomY = true): RainDrop {
   const speedScale = layer === 0 ? 1.0 : layer === 1 ? 1.35 : 1.75;
@@ -10,6 +10,18 @@ function makeDrop(layer: 0 | 1 | 2, randomY = true): RainDrop {
     vy: 3.4 * speedScale,
     len: layer === 0 ? 4 : layer === 1 ? 6 : 9,
     layer,
+  };
+}
+
+function makeFlake(randomY = true): SnowFlake {
+  const r = 0.6 + Math.random() * 1.5;
+  return {
+    x: Math.random() * W,
+    y: randomY ? Math.random() * H : -2 - Math.random() * 12,
+    vx: (0.12 + Math.random() * 0.22) * (Math.random() < 0.5 ? -1 : 1),
+    vy: 0.35 + Math.random() * 0.55 + r * 0.18,
+    r,
+    phase: Math.random() * Math.PI * 2,
   };
 }
 
@@ -42,8 +54,11 @@ export function createWeatherState(): WeatherState {
     const layer = (i % 3) as 0 | 1 | 2;
     drops.push(makeDrop(layer, true));
   }
+  const snow: SnowFlake[] = [];
+  for (let i = 0; i < 80; i++) snow.push(makeFlake(true));
   return {
     drops,
+    snow,
     splashes: [],
     flash: 0,
     nextLightning: 55,
@@ -63,7 +78,7 @@ export function triggerLightningNow(w: WeatherState, thunderDelay = 10, intensit
 
 export function stepWeather(
   w: WeatherState,
-  mode: 'story' | 'overworld' | 'none',
+  mode: 'story' | 'overworld' | 'snow' | 'none',
   onThunder: (intensity: number) => void,
 ): void {
   if (w.clearBanner > 0) w.clearBanner--;
@@ -72,6 +87,25 @@ export function stepWeather(
     w.flash = Math.max(0, w.flash - 2);
     w.bolt = null;
     w.thunderDelay = -1;
+    return;
+  }
+
+  // Neve: flocos leves, sem trovão e sem chuva audível.
+  if (mode === 'snow') {
+    w.flash = Math.max(0, w.flash - 2);
+    w.bolt = null;
+    w.thunderDelay = -1;
+    for (const f of w.snow) {
+      f.phase += 0.045;
+      f.x += f.vx + Math.sin(f.phase) * 0.22;
+      f.y += f.vy;
+      if (f.y > H + 3 || f.x < -4 || f.x > W + 4) {
+        const n = makeFlake(false);
+        f.x = Math.random() * W;
+        f.y = n.y;
+        f.phase = n.phase;
+      }
+    }
     return;
   }
 

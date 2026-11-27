@@ -84,7 +84,7 @@ interface MapCellMeta {
   id: number;
   sx: number;
   sy: number;
-  biome: 'g' | 's' | 'n' | 'd';
+  biome: 'g' | 's' | 'n' | 'd' | 'w';
   isLake: boolean;
   isForest: boolean;
   isCentral: boolean;
@@ -141,29 +141,16 @@ function TopWorldMap({
     if (!g) return;
     g.imageSmoothingEnabled = false;
 
-    const CW = 20;
-    const CH = 16;
+    // Mesma proporção da tela do jogo (240x160 = 3:2) e mapa inteiro liberado.
+    const CW = 30;
+    const CH = 20;
+    const GRID_H = CH * 7;
     g.fillStyle = '#070514';
-    g.fillRect(0, 0, 160, 112);
-
-    const exploredSet = new Set(ui.explored);
+    g.fillRect(0, 0, 240, 160);
 
     for (const c of cells) {
       const ox = c.sx * CW;
       const oy = c.sy * CH;
-      const exp = exploredSet.has(c.id);
-
-      if (!exp) {
-        g.fillStyle = '#0e0a22';
-        g.fillRect(ox, oy, CW, CH);
-        g.fillStyle = '#181236';
-        g.fillRect(ox + ((c.id * 5) % 12) + 2, oy + ((c.id * 3) % 9) + 2, 3, 2);
-        g.fillRect(ox + ((c.id * 7) % 11) + 5, oy + ((c.id * 11) % 8) + 5, 2, 1);
-        g.fillStyle = '#1f1844';
-        g.fillRect(ox, oy, CW, 1);
-        g.fillRect(ox, oy, 1, CH);
-        continue;
-      }
 
       let base = '#3b8c47';
       let accent = '#2c6e37';
@@ -172,10 +159,13 @@ function TopWorldMap({
         accent = '#22163b';
       } else if (c.biome === 'n') {
         base = '#8cc2ec';
-        accent = '#c9e6ff';
+        accent = '#e8f6ff';
       } else if (c.biome === 's') {
         base = '#cfa552';
         accent = '#a97d31';
+      } else if (c.biome === 'w') {
+        base = '#4b6535';
+        accent = '#324a26';
       } else if (c.isForest) {
         base = '#1f6438';
         accent = '#144726';
@@ -184,53 +174,87 @@ function TopWorldMap({
       g.fillStyle = base;
       g.fillRect(ox, oy, CW, CH);
 
+      // Estradas ligando o centro de cada tela às quatro saídas.
+      g.fillStyle = 'rgba(236, 214, 160, 0.32)';
+      g.fillRect(ox + 12, oy, 6, CH);
+      g.fillRect(ox, oy + 8, CW, 4);
+
+      // Detalhes determinísticos do terreno.
       g.fillStyle = accent;
-      g.fillRect(ox + 2, oy + 3, 4, 2);
-      g.fillRect(ox + 13, oy + 10, 4, 3);
+      for (let i = 0; i < 5; i++) {
+        const dx = (c.id * 7 + i * 11) % (CW - 6);
+        const dy = (c.id * 3 + i * 7) % (CH - 5);
+        g.fillRect(ox + dx, oy + dy, 4 + (i % 2), 2);
+      }
+      if (c.biome === 'n') {
+        g.fillStyle = '#ffffff';
+        for (let i = 0; i < 3; i++) {
+          g.fillRect(ox + 3 + ((c.id * 5 + i * 9) % 22), oy + 2 + ((c.id + i * 6) % 14), 3, 2);
+        }
+      } else if (c.biome === 'w') {
+        // Poças espalhadas pelo pântano.
+        g.fillStyle = '#2b6d72';
+        for (let i = 0; i < 3; i++) {
+          const px = ox + 2 + ((c.id * 11 + i * 13) % 20);
+          const py = oy + 2 + ((c.id * 5 + i * 8) % 14);
+          g.fillRect(px, py, 7, 4);
+        }
+        g.fillStyle = '#7ec46a';
+        for (let i = 0; i < 4; i++) {
+          g.fillRect(ox + 3 + ((c.id * 3 + i * 7) % 24), oy + 3 + ((c.id * 9 + i * 5) % 14), 1, 3);
+        }
+      } else if (c.isForest && !c.isCentral) {
+        g.fillStyle = '#0e3b26';
+        for (let i = 0; i < 4; i++) {
+          g.fillRect(ox + 2 + ((c.id * 13 + i * 6) % 24), oy + 2 + ((c.id * 4 + i * 7) % 14), 4, 4);
+        }
+      }
 
       if (c.isLake && !c.isCentral) {
         g.fillStyle = '#2560c4';
-        g.fillRect(ox + 4, oy + 4, 10, 7);
+        g.fillRect(ox + 5, oy + 4, 18, 11);
         g.fillStyle = '#5ba2ff';
-        g.fillRect(ox + 5, oy + 5, 4, 2);
+        g.fillRect(ox + 7, oy + 6, 7, 3);
+        g.fillStyle = '#bfe4ff';
+        g.fillRect(ox + 16, oy + 11, 5, 1);
       }
 
       if (c.isCentral) {
         g.fillStyle = '#9c8f78';
-        g.fillRect(ox + 1, oy + 7, CW - 2, 4);
-        g.fillRect(ox + 8, oy + 1, 4, CH - 2);
+        g.fillRect(ox + 2, oy + 3, CW - 4, 14);
+        g.fillStyle = '#cbbca0';
+        g.fillRect(ox + 11, oy + 1, 8, CH - 2);
         g.fillStyle = '#ffd84a';
-        g.fillRect(ox + 2, oy + 2, 5, 4);
-        if (c.sx === 3) {
-          g.fillStyle = '#ff5858';
-          g.fillRect(ox + 13, oy + 2, 5, 4);
-        } else {
-          g.fillStyle = '#a860ff';
-          g.fillRect(ox + 13, oy + 3, 4, 3);
-        }
+        g.fillRect(ox + 4, oy + 4, 8, 6);
+        g.fillStyle = '#ff5858';
+        g.fillRect(ox + 21, oy + 4, 6, 5);
+        g.fillStyle = '#ffffff';
+        g.fillRect(ox + 6, oy + 2, 2, 8);
       } else if (c.hasVillage) {
         g.fillStyle = '#b84232';
-        g.fillRect(ox + 3, oy + 3, 4, 3);
-        g.fillRect(ox + 12, oy + 3, 4, 3);
+        g.fillRect(ox + 5, oy + 4, 6, 4);
+        g.fillRect(ox + 19, oy + 4, 6, 4);
+        g.fillRect(ox + 12, oy + 12, 6, 4);
         g.fillStyle = '#ffd84a';
-        g.fillRect(ox + 14, oy + 11, 3, 2);
+        g.fillRect(ox + 6, oy + 2, 4, 2);
       }
 
       if (c.hasCave) {
-        g.fillStyle = '#1b162a';
-        g.fillRect(ox + 3, oy + 2, 5, 4);
-        g.fillStyle = c.isBonusCave ? '#ffb84d' : '#4ce0ff';
-        g.fillRect(ox + 4, oy + 3, 3, 2);
+        const cave = c.isBonusCave ? '#ffb84d' : c.biome === 'w' ? '#7ee06a' : '#4ce0ff';
+        g.fillStyle = '#11101e';
+        g.fillRect(ox + 3, oy + 2, 8, 6);
+        g.fillStyle = cave;
+        g.fillRect(ox + 5, oy + 3, 4, 3);
       }
 
       if (c.isBossGate) {
         g.fillStyle = '#1d1236';
-        g.fillRect(ox + 4, oy + 2, 12, 6);
+        g.fillRect(ox + 7, oy + 2, 16, 8);
         g.fillStyle = '#b84dff';
-        g.fillRect(ox + 8, oy + 4, 4, 4);
+        g.fillRect(ox + 13, oy + 4, 5, 4);
       }
 
-      g.fillStyle = 'rgba(255,255,255,0.08)';
+      g.fillStyle = 'rgba(255,255,255,0.10)';
       g.fillRect(ox, oy, CW, 1);
       g.fillRect(ox, oy, 1, CH);
     }
@@ -241,35 +265,59 @@ function TopWorldMap({
     const oy = hsy * CH;
 
     g.strokeStyle = ui.currentMap >= 100 ? '#5ce1ff' : '#ffd84a';
-    g.lineWidth = 1;
-    g.strokeRect(ox + 0.5, oy + 0.5, CW - 1, CH - 1);
+    g.lineWidth = 2;
+    g.strokeRect(ox + 1, oy + 1, CW - 2, CH - 2);
 
-    const px = Math.round(ox + 2 + ui.heroNormX * (CW - 4));
-    const py = Math.round(oy + 2 + ui.heroNormY * (CH - 4));
+    const px = Math.round(ox + 3 + ui.heroNormX * (CW - 6));
+    const py = Math.round(oy + 3 + ui.heroNormY * (CH - 6));
 
     if (ui.torchLit) {
       g.fillStyle = 'rgba(255, 175, 65, 0.45)';
-      g.fillRect(px - 3, py - 3, 6, 6);
+      g.fillRect(px - 4, py - 4, 9, 9);
     }
 
     g.fillStyle = '#090614';
-    g.fillRect(px - 2, py - 2, 5, 5);
+    g.fillRect(px - 3, py - 3, 7, 7);
     g.fillStyle = ui.currentMap >= 100 ? '#6ae8ff' : '#ffd84a';
-    g.fillRect(px - 1, py - 1, 3, 3);
+    g.fillRect(px - 2, py - 2, 5, 5);
 
-    const fdx = ui.heroDir === 1 ? 2 : ui.heroDir === 3 ? -2 : 0;
-    const fdy = ui.heroDir === 2 ? 2 : ui.heroDir === 0 ? -2 : 0;
+    const fdx = ui.heroDir === 1 ? 3 : ui.heroDir === 3 ? -3 : 0;
+    const fdy = ui.heroDir === 2 ? 3 : ui.heroDir === 0 ? -3 : 0;
     g.fillStyle = '#ffffff';
     g.fillRect(px + fdx, py + fdy, 1, 1);
+
+    // Rodapé com legenda, no mesmo tamanho da tela do jogo.
+    g.fillStyle = '#0b0a16';
+    g.fillRect(0, GRID_H, 240, 160 - GRID_H);
+    g.font = '8px "Press Start 2P", monospace';
+    g.textAlign = 'left';
+    g.textBaseline = 'middle';
+    g.fillStyle = '#ffd84a';
+    g.fillText('MAPA DE MITRIBUQUE', 4, GRID_H + 10);
+    const legend: Array<[string, string]> = [
+      ['#ffd84a', 'HEROI'],
+      ['#4ce0ff', 'CAVERNA'],
+      ['#b84dff', 'CHEFE'],
+      ['#7ec46a', 'PANTANO'],
+    ];
+    let lx = 4;
+    for (const [color, label] of legend) {
+      g.fillStyle = color;
+      g.fillRect(lx, GRID_H + 15, 4, 4);
+      g.fillStyle = '#d8d8e8';
+      g.fillText(label, lx + 6, GRID_H + 17);
+      lx += 6 + label.length * 6 + 6;
+    }
   }, [cells, ui]);
 
   return (
     <div className="rounded border border-[#525252] bg-[#050508] p-0.5 shadow-inner">
       <canvas
         ref={mapCanvasRef}
-        width={160}
-        height={112}
-        className="pixel-canvas block w-[112px] sm:w-[132px] h-auto rounded-[2px]"
+        width={240}
+        height={160}
+        className="pixel-canvas block w-full h-auto rounded-[2px]"
+        style={{ aspectRatio: '3 / 2' }}
       />
     </div>
   );

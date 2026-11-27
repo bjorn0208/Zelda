@@ -38,8 +38,8 @@ export const DY = [-1, 0, 1, 0] as const;
 // Solid tiles including walls, trees, houses, grand stores (U, V), stalls (Y), water, lamps ('L'), cracked rocks ('R'), torches ('t'), pedestals ('S'), TV+PS2 ('y')
 export const SOLID_TILES = new Set('TbH~#WCkPKGeuqzvwmxjJASLRtyUVY'.split(''));
 
-// HP per monster kind: 0:slime, 1:bat, 2:scorpion, 3:skeleton, 4:boss, 5:golem, 6:dark_mage, 7:zombie, 8:gosma, 9:giant
-export const HPT = [2, 2, 3, 4, 18, 6, 3, 5, 2, 12] as const;
+// HP per monster kind: 0:slime, 1:bat, 2:scorpion, 3:skeleton, 4:boss, 5:golem, 6:dark_mage, 7:zombie, 8:gosma, 9:giant, 10:jacaré
+export const HPT = [2, 2, 3, 4, 18, 6, 3, 5, 2, 12, 7] as const;
 
 export const ENEMY_PALETTES: readonly [string, string, string, string][] = [
   ['#1a2a80', '#3a5ae0', '#5f82ff', '#2a3fb0'], // Slime
@@ -51,7 +51,8 @@ export const ENEMY_PALETTES: readonly [string, string, string, string][] = [
   ['#2a0844', '#6c229a', '#b668ff', '#441068'], // Dark Mage
   ['#2a3a1a', '#5a7a2a', '#8aca4a', '#1a2a0a'], // Zombie
   ['#1a4a2a', '#2ecc71', '#7fffaa', '#0e2a18'], // Gosma
-  ['#4a3a2a', '#8a7a5a', '#c8b89a', '#2a2018']  // Giant
+  ['#4a3a2a', '#8a7a5a', '#c8b89a', '#2a2018'], // Giant
+  ['#1c3a22', '#3f7a3a', '#8fc25a', '#142a18']  // Jacaré do pantano
 ];
 
 export const WALL_PALETTES: readonly [string, string, string][] = [
@@ -61,10 +62,11 @@ export const WALL_PALETTES: readonly [string, string, string][] = [
   ['#221c44', '#3a3270', '#171233'],
   ['#2a1038', '#4a2a60', '#14081c'],
   ['#221c44', '#3a3270', '#171233'],
+  ['#25361f', '#3d5730', '#162617'], // 6: pedra musgosa do pantano
 ];
 
-export const FLOOR_TILES = ['g', 's', 'i', 'c', 'c', 'c'] as const;
-export const OBSTACLE_TILES = ['m', 'J', 'j', 'm', 'J', 'm'] as const;
+export const FLOOR_TILES = ['g', 's', 'i', 'c', 'c', 'c', 'a'] as const;
+export const OBSTACLE_TILES = ['m', 'J', 'j', 'm', 'J', 'm', '#'] as const;
 
 export const CHEST_ITEMS: Record<number, string> = {
   200: 'minerio',
@@ -76,6 +78,10 @@ export const CHEST_ITEMS: Record<number, string> = {
   251: 'rp',
   252: 'bomba_kit',
   253: 'escudo_tesouro',
+  // Caverna do pantano: poções e tesouro antes do chefe jacaré.
+  230: 'pocao',
+  231: 'rp',
+  232: 'pocao',
   451: 'escudo_quarto',
 };
 
@@ -93,6 +99,7 @@ export const CAVES: Record<string, number> = {
   '7,4': 0,
   '7,1': 1,
   '0,0': 2,
+  '7,5': 3, // Caverna do Pantano (mapas 230-232)
 };
 
 export const BONUS_CAVES: Record<string, number> = {
@@ -324,7 +331,7 @@ export const COMMON_LINES = [
   'No centro da Vila Central ha seis barracas - frutas, roupas, pocoes, flores, ceramica e livros - ao redor da espada.',
 ];
 
-export const BIOME_LINES: Record<'n' | 's' | 'g', string[]> = {
+export const BIOME_LINES: Record<'n' | 's' | 'g' | 'w', string[]> = {
   n: [
     'Brrr! O frio vem do castelo do Ciclope. A noite aqui e congelante!',
     'A caverna de gelo fica no canto noroeste. Os servos do Ciclope guardam o caminho!',
@@ -334,6 +341,11 @@ export const BIOME_LINES: Record<'n' | 's' | 'g', string[]> = {
     'De dia o sol castiga, mas a noite os escorpioes saem das sombras!',
     'As ruinas a nordeste escondem relikias dos tres Dominics e varios baus.',
     'Leve um bom escudo antes de enfrentar os magos sombrios.',
+  ],
+  w: [
+    'Cuidado com as poças do pantano: os jacares se escondem na lama!',
+    'A caverna do pantano fica no sudeste. Lá dentro vive o Jacaré Gigante.',
+    'Achei frascos de poção perdidos na lama. Sirvem para curar as feridas!',
   ],
   g: [
     'Ha cavernas secretas com tesouros e rochas rachadas para explodir!',

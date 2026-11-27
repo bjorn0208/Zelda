@@ -37,7 +37,7 @@ import {
   WeatherState,
   WorldData,
 } from './types';
-import { dungeonTheme, getEnemyMaxHp, hs, isHouse, p3 } from './world';
+import { bio, dungeonTheme, getEnemyMaxHp, hs, isHouse, p3 } from './world';
 import {
   drawInvItem,
   drawWorldSword,
@@ -730,6 +730,23 @@ function drawWeather(
   }
 }
 
+/** Neve caindo no bioma gelado — leve, silenciosa e sem relâmpagos. */
+export function drawSnow(g: CanvasRenderingContext2D, weather: WeatherState): void {
+  g.fillStyle = 'rgba(190, 216, 245, 0.12)';
+  g.fillRect(0, 0, W, H);
+  for (const f of weather.snow) {
+    const x = f.x | 0;
+    const y = f.y | 0;
+    g.fillStyle = f.r > 1.6 ? 'rgba(255,255,255,0.95)' : 'rgba(226,242,255,0.78)';
+    g.fillRect(x, y, f.r > 1.6 ? 2 : 1, f.r > 1.6 ? 2 : 1);
+    if (f.r > 1.8 && ((f.phase | 0) & 1) === 0) {
+      g.fillStyle = 'rgba(255,255,255,0.55)';
+      g.fillRect(x - 1, y, 1, 1);
+      g.fillRect(x + 2, y, 1, 1);
+    }
+  }
+}
+
 function drawTile(
   g: CanvasRenderingContext2D,
   world: WorldData,
@@ -1185,6 +1202,23 @@ function drawTile(
     R(g, (V.it.fragmento | 0) >= 3 ? '#ffd84a' : '#7a2ab0', x + 4, y + 5, 8, 11);
     R(g, '#0008', x + 7, y + 5, 2, 11);
     if ((t >> 4) & 1) R(g, '#fff', x + 5, y + 7, 1, 1);
+    return;
+  }
+
+  // Lama do pântano (solo caminhável) e juncos escondidos entre as poças.
+  if (ch === 'a' || ch === 'l') {
+    R(g, '#43512e', x, y, T, T);
+    R(g, '#53653a', x + (h % 11), y + (h % 8) + 2, 5, 2);
+    R(g, '#6d7f47', x + ((h >> 3) % 12), y + 11, 2, 1);
+    R(g, '#2c3a22', x + ((h >> 2) % 12), y + 6, 3, 1);
+    if (ch === 'l') {
+      for (let i = 0; i < 3; i++) {
+        const rx = x + 3 + i * 4;
+        R(g, '#1d3a1c', rx, y + 4, 2, 11);
+        R(g, '#5f9b45', rx + (i & 1), y + 3, 1, 9);
+        R(g, '#8cc25c', rx + 1, y + 2 + (i & 1), 1, 4);
+      }
+    }
     return;
   }
 
@@ -2228,6 +2262,33 @@ function drawEnemy(g: CanvasRenderingContext2D, e: Enemy, t: number, mapId: numb
     R(g, '#ffea5a', 5, 5, 2, 2);
     R(g, '#ffea5a', 9, 5, 2, 2);
     R(g, ((t >> 3) & 1) ? '#d86aff' : '#ff5a9a', 13, 6, 3, 3);
+  } else if (k === 10) {
+    // Jacaré do pantano: focinho longo, escamas e cauda com dentes.
+    const snap = ((t >> 3) & 1) ? 1 : 0;
+    g.translate(x, Y);
+    R(g, '#0004', 2, 14, 12, 2);
+    // Cauda
+    R(g, c[0], 0, 6, 6, 5);
+    R(g, c[1], 1, 7, 4, 3);
+    // Corpo e escamas
+    R(g, c[0], 4, 4, 10, 9);
+    R(g, c[1], 5, 5, 8, 7);
+    R(g, c[3], 5, 8, 8, 3);
+    for (let i = 0; i < 3; i++) R(g, c[2], 6 + i * 2, 5, 1, 2);
+    // Focinho e olhos
+    R(g, c[1], 12, 7 - snap, 4, 5);
+    R(g, c[2], 13, 8 - snap, 3, 2);
+    R(g, '#fff', 8, 5, 2, 2);
+    R(g, '#111', 9, 5, 1, 1);
+    R(g, '#fff', 11, 9, 2, 1);
+    R(g, '#d8402e', 14, 6 + snap, 1, 1);
+    if (mapId === 232) {
+      // O chefe do pantano usa uma coroa de ouro musgosa.
+      R(g, '#ffd84a', 6, 1, 7, 2);
+      R(g, '#ffd84a', 6, 0, 2, 2);
+      R(g, '#ffd84a', 9, 0, 2, 2);
+      R(g, '#8cc25c', 7, 1, 1, 1);
+    }
   } else {
     // Classic Slime
     const hp = Math.round(Math.abs(Math.sin(t / 8 + e.x)) * 3);
@@ -3385,8 +3446,11 @@ export function drawGame(
     }
   }
 
-  // Overworld rain persists until the Legendary Sword is obtained!
-  if (G.map < 100 && !V.sword) {
+  // No bioma gelado neve sempre; nos demais, a chuva continua até a espada.
+  const snowBiome = G.map < 56 && bio(G.map & 7, G.map >> 3) === 'n';
+  if (G.map < 100 && snowBiome) {
+    drawSnow(g, weather);
+  } else if (G.map < 100 && !V.sword) {
     drawWeather(g, weather, 84, false);
   } else if (G.map < 100 && weather.clearBanner > 0) {
     const a = Math.min(0.25, (weather.clearBanner / 120) * 0.25);

@@ -29,16 +29,36 @@ export const hs = (a: number, b: number): number => ((a * 73856093) ^ (b * 19349
 export const rnd = (n: number): number => Math.floor(Math.random() * n);
 export const p3 = (n: number): string => String(n).padStart(3, '0');
 
-export const bio = (x: number, y: number): 'd' | 'n' | 's' | 'g' =>
-  y === 0 && x >= 3 && x <= 5 ? 'd' : x <= 2 && y <= 3 ? 'n' : x >= 5 && y <= 3 ? 's' : 'g';
+export const bio = (x: number, y: number): 'd' | 'n' | 's' | 'w' | 'g' =>
+  y === 0 && x >= 3 && x <= 5
+    ? 'd'
+    : x <= 2 && y <= 3
+      ? 'n'
+      : x >= 5 && y <= 3
+        ? 's'
+        : swamp(x, y)
+          ? 'w'
+          : 'g';
 
 export const lake = (x: number, y: number): boolean => x <= 2 && y >= 4;
-export const forest = (x: number, y: number): boolean => x >= 5 && y >= 4;
+export const forest = (x: number, y: number): boolean => x >= 5 && y >= 4 && !swamp(x, y);
+/** Sudeste do mapa: lama, poças e jacarés. */
+export const swamp = (x: number, y: number): boolean => x >= 5 && y >= 5;
 
 export const isHouse = (m: number): boolean => (m >= 100 && m < 200) || (m >= 300 && m < 500);
 
 export const dungeonTheme = (m: number): number =>
-  m >= 260 ? 4 : m === 250 || m === 252 ? 0 : m === 251 || m === 253 ? 5 : m >= 200 ? ((m - 200) / 10) | 0 : 3;
+  m >= 260
+    ? 4
+    : m === 250 || m === 252
+      ? 0
+      : m === 251 || m === 253
+        ? 5
+        : m >= 230 && m < 240
+          ? 6
+          : m >= 200
+            ? ((m - 200) / 10) | 0
+            : 3;
 
 export function mapDisplayName(m: number): string {
   if (m === 451) return 'SEU QUARTO (2o ANDAR)';
@@ -53,6 +73,7 @@ export function mapDisplayName(m: number): string {
   if (m === 251) return 'CAVERNA SECRETA';
   if (m === 252) return 'GRUTA DO TESOURO';
   if (m === 253) return 'COFRE ANTIGO';
+  if (m >= 230 && m < 240) return m === 232 ? 'COVA DO JACARÉ GIGANTE' : 'CAVERNA DO PANTANO';
   if (m >= 220) return 'CAVERNA DE GELO';
   if (m >= 210) return 'RUINAS DO DESERTO';
   if (m >= 200) return 'CAVERNA DA FLORESTA';
@@ -68,6 +89,7 @@ export function mapDisplayName(m: number): string {
     if (b === 'd') return 'TERRAS SOMBRIAS';
     if (b === 'n') return 'TERRA GELADA';
     if (b === 's') return 'DESERTO';
+    if (b === 'w') return 'PANTANO';
     if (lake(sx, sy)) return 'REGIAO DO LAGO';
     if (forest(sx, sy)) return 'FLORESTA';
     return 'PLANICIE';
@@ -153,7 +175,8 @@ function createRoom(
   const f = h ? 'F' : FLOOR_TILES[T_];
   const ob = h ? 'K' : OBSTACLE_TILES[T_];
   const m = Array.from({ length: 10 }, () => Array<string>(15).fill(f));
-  const bs = Boolean(o.en && o.en[1] === 4);
+  // O jacaré gigante da caverna do pantano também é chefe (sala 232).
+  const bs = Boolean(o.en && (o.en[1] === 4 || o.en[1] === 10));
   const q = id % 10;
 
   for (let y = 0; y < 10; y++) {
@@ -343,6 +366,24 @@ function createRoom(
         for (let x = px; x < px + 2; x++) m[y][x] = '~';
       }
     }
+    // Tema 6: cova alagada, com poças e juncos entre as pedras musgosas.
+    if (T_ === 6) {
+      for (const [px, py] of [
+        [2, 2],
+        [11, 2],
+        [2, 7],
+        [11, 7],
+      ]) {
+        for (let y = py; y < py + 2; y++) {
+          for (let x = px; x < px + 2; x++) m[y][x] = '~';
+        }
+      }
+      for (let n = 0; n < 8; n++) {
+        const x = 1 + ((r() * 13) | 0);
+        const y = 1 + ((r() * 8) | 0);
+        if (m[y][x] === f) m[y][x] = 'l';
+      }
+    }
     for (let n = 0; n < 3; n++) {
       const x = 1 + ((r() * 13) | 0);
       const y = 2 + ((r() * 6) | 0);
@@ -413,8 +454,19 @@ function genOverworldScreen(world: WorldData, sx: number, sy: number): void {
   const ci = CAVES[k];
   const bn = BONUS_CAVES[k];
   const isCentral = k === '3,4' || k === '4,4';
-  const fl = b === 's' ? 's' : b === 'n' ? 'n' : b === 'd' ? 'c' : '.';
-  const dc = () => (b === 's' ? (r() < 0.5 ? 'k' : '#') : b === 'n' ? 'P' : b === 'd' ? '#' : 'T');
+  const fl = b === 's' ? 's' : b === 'n' ? 'n' : b === 'd' ? 'c' : b === 'w' ? 'a' : '.';
+  const dc = () =>
+    b === 's'
+      ? r() < 0.5
+        ? 'k'
+        : '#'
+      : b === 'n'
+        ? 'P'
+        : b === 'd'
+          ? '#'
+          : b === 'w'
+            ? (r() < 0.6 ? 'T' : '#')
+            : 'T';
   const bd = b === 'd' ? 'W' : b === 's' ? '#' : b === 'n' ? 'P' : 'T';
 
   const m = Array.from({ length: 10 }, () => Array<string>(15).fill(fl));
@@ -434,7 +486,7 @@ function genOverworldScreen(world: WorldData, sx: number, sy: number): void {
   if (sy > 0) world.neighbors[i].u = i - 8;
   if (sy < 6) world.neighbors[i].d = i + 8;
 
-  const dn = isCentral ? 0.04 : forest(sx, sy) ? 0.3 : b === 'd' ? 0.16 : 0.1;
+  const dn = isCentral ? 0.04 : forest(sx, sy) ? 0.3 : b === 'd' || b === 'w' ? 0.16 : 0.1;
   for (let y = 1; y < 9; y++) {
     for (let x = 1; x < 14; x++) {
       if ((x >= 6 && x <= 8) || (y >= 4 && y <= 5)) continue;
@@ -449,6 +501,34 @@ function genOverworldScreen(world: WorldData, sx: number, sy: number): void {
     const oy = r() < 0.5 ? 1 : 6;
     for (let y = oy; y < oy + 2; y++) {
       for (let x = ox; x < ox + 3; x++) m[y][x] = '~';
+    }
+  }
+
+  // Pântano: várias poças de água/lama e juncos pelo cenário. As poças são
+  // sólidas, mas nunca cobrem as passagens centrais do mapa.
+  if (b === 'w' && !isCentral) {
+    const spots = [
+      [1, 1],
+      [10, 1],
+      [1, 6],
+      [10, 6],
+      [2, 7],
+      [11, 2],
+    ];
+    const start = hs(i, 11) % spots.length;
+    for (let p = 0; p < 3; p++) {
+      const [px, py] = spots[(start + p) % spots.length];
+      const pw = 2 + (hs(i, p) % 2);
+      for (let y = py; y < py + 2; y++) {
+        for (let x = px; x < px + pw; x++) {
+          if (x < 14 && y < 9) m[y][x] = '~';
+        }
+      }
+    }
+    for (let n = 0; n < 12; n++) {
+      const x = 1 + ((r() * 13) | 0);
+      const y = 1 + ((r() * 8) | 0);
+      if (m[y][x] === 'a') m[y][x] = 'l';
     }
   }
 
@@ -725,13 +805,15 @@ function genOverworldScreen(world: WorldData, sx: number, sy: number): void {
         ? ['explorer', 'mage', 'guard']
         : b === 's'
           ? ['explorer', 'merchant', 'villager']
-          : ['villager', 'guard', 'child', 'mage'];
+          : b === 'w'
+            ? ['explorer', 'villager', 'mage']
+            : ['villager', 'guard', 'child', 'mage'];
     const kind: NpcKind = k === '3,6' ? 'elder' : npcKinds[hs(i, 7) % npcKinds.length];
     const nn: Npc = {
       x: sp[0],
       y: sp[1],
       kind,
-      c: { g: '#c0392b', n: '#5aa0d8', s: '#d98a2a' }[b],
+      c: { g: '#c0392b', n: '#5aa0d8', s: '#d98a2a', w: '#4f9e57' }[b],
       s: pool[hs(i, 5) % pool.length],
       el: k === '3,6' ? 1 : undefined,
     };
@@ -773,6 +855,7 @@ function genOverworldScreen(world: WorldData, sx: number, sy: number): void {
   if (b === 'd') enemyKind = ([6, 3, 7][i % 3]) as EnemyKind; // Dark mage, skeleton, zombie
   else if (b === 'n') enemyKind = ([5, 3, 1][i % 3]) as EnemyKind; // Ciclope, skeleton, bat
   else if (b === 's') enemyKind = ([2, 9, 5][i % 3]) as EnemyKind; // Scorpion, giant, ciclope
+  else if (b === 'w') enemyKind = ([10, 10, 10][i % 3]) as EnemyKind; // Jacarés em todas as telas do pântano
   else enemyKind = (forest(sx, sy) ? ([1, 7, 5][i % 3]) : ([0, 8, 5][i % 3])) as EnemyKind; // Bats/zombies/gosmas in forest; slimes/gosmas in plains; ciclope also appears
 
   world.enemies[i] = vil ? [0, 0] : [1 + (hs(i, 9) % 3), enemyKind];
@@ -815,6 +898,18 @@ export function buildWorld(): WorldData {
     }
   }
 
+  // Caverna do Pantano (230-232): jacarés, poças e o Jacaré Gigante no fim.
+  const swampEnemies: EnemyKind[] = [10, 10, 10];
+  for (let q = 0; q < 3; q++) {
+    const id = 230 + q;
+    createRoom(world, id, false, rg(id), {
+      chest: true,
+      back: q ? id - 1 : 0,
+      fwd: q < 2 ? id + 1 : 0,
+      en: q === 2 ? [1, 10] : [2 + q, swampEnemies[q]],
+    });
+  }
+
   // Treasure caves (250, 251, 252, 253)
   createRoom(world, 250, false, rg(250), { chest: 1, en: [3, 1], treasureVault: true });
   createRoom(world, 251, false, rg(251), { chest: 1, en: [3, 3], treasureVault: true });
@@ -844,6 +939,7 @@ export function buildWorld(): WorldData {
 
 export function getEnemyMaxHp(mapId: number, kind: EnemyKind): number {
   if (mapId === 261 && kind === 4) return 22;
+  if (mapId === 232 && kind === 10) return 20;
   return HPT[kind] || 2;
 }
 

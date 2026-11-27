@@ -27,7 +27,7 @@ export type NpcKind =
   | 'explorer';
 
 // 0: slime, 1: bat, 2: scorpion, 3: skeleton, 4: boss Vorak, 5: golem, 6: dark_mage
-export type EnemyKind = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+export type EnemyKind = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
 
 export type SwordTier = 'none' | 'lendaria' | 'aco' | 'runica' | 'solar';
 export type ShieldTier = 'none' | 'madeira' | 'ferro' | 'real' | 'espelhado';
@@ -142,8 +142,19 @@ export interface LightningBolt {
   life: number;
 }
 
+/** Floco de neve do bioma gelado: cai devagar e balança no vento. */
+export interface SnowFlake {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  r: number;
+  phase: number;
+}
+
 export interface WeatherState {
   drops: RainDrop[];
+  snow: SnowFlake[];
   splashes: RainSplash[];
   flash: number;
   nextLightning: number;
