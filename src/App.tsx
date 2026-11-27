@@ -1028,7 +1028,7 @@ export default function App() {
     // Dynamically load socket.io client if available
     if (typeof window !== 'undefined') {
       const socketScript = document.createElement('script');
-      socketScript.src = '/socket.io/socket.io.js';
+      socketScript.src = `http://${window.location.hostname}:3001/socket.io/socket.io.js`;
       socketScript.onload = () => {
         const socket = (window as any).io?.(`http://${window.location.hostname}:3001`);
         if (socket) {
