@@ -1240,7 +1240,7 @@ export default function App() {
               height={H}
               onPointerDown={handleCanvasPointerDown}
               onContextMenu={(e) => e.preventDefault()}
-              className="pixel-canvas block w-full h-auto bg-black cursor-pointer touch-none"
+              className="pixel-canvas block w-[240px] h-[160px] max-w-full mx-auto bg-black cursor-pointer touch-none"
               style={{ aspectRatio: '3 / 2', maxWidth: 240, maxHeight: 160 }}
             />
 
