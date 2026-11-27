@@ -1022,6 +1022,7 @@ export default function App() {
   const padModeLabel = padMode === 'both' ? 'SETAS + ANALÓGICO' : padMode === 'dpad' ? 'SÓ SETAS' : 'SÓ ANALÓGICO';
 
   const [remoteControlUrl, setRemoteControlUrl] = useState<string>('');
+  const [showQR, setShowQR] = useState<boolean>(true);
 
   // Listen for remote control inputs via WebSocket
   useEffect(() => {
@@ -1053,7 +1054,11 @@ export default function App() {
     const controlUrl = `${window.location.origin}/controller/index.html`;
     QRCode.toDataURL(controlUrl).then((url) => {
       setRemoteControlUrl(url);
+      setShowQR(true);
     });
+    // QR code some após 10 segundos
+    const timer = setTimeout(() => setShowQR(false), 10000);
+    return () => clearTimeout(timer);
   }, []);
 
   return (
@@ -1066,8 +1071,8 @@ export default function App() {
           paddingBottom: 'max(10px, env(safe-area-inset-bottom, 0px))',
         }}
       >
-        {/* Top Control Row: Som | INV | START | Salvar */}
-        <div className="w-full flex items-center justify-between px-2">
+        {/* Top Control Row: controles no celular 2; celular 1 só telas */}
+        <div className="w-full flex items-center justify-between px-2 hidden">
           <button
             type="button"
             aria-label={ui.muted ? 'Ativar som' : 'Silenciar som'}
@@ -1276,8 +1281,8 @@ export default function App() {
             />
 
             {/* QR Code for remote control */}
-            {remoteControlUrl && (
-              <div className="absolute bottom-2 right-2 bg-white p-1 rounded shadow-lg z-50">
+            {remoteControlUrl && showQR && (
+              <div className="absolute top-2 right-2 z-50 bg-white p-1 rounded shadow-lg">
                 <img src={remoteControlUrl} alt="QR Code - Escaneie com outro celular" className="w-16 h-16" />
                 <p className="text-[8px] text-gray-700 text-center mt-0.5">Controle Remoto</p>
               </div>
@@ -1402,8 +1407,8 @@ export default function App() {
           </div>
         </div>
 
-        {/* Shoulder Strip: L (Inventário) | Centro (Item Rápido X) | R (Item Rápido X) */}
-        <div className="w-full flex items-center justify-between px-2">
+        {/* Shoulder Strip: controles no celular 2 */}
+        <div className="w-full flex items-center justify-between px-2 hidden">
           <button
             type="button"
             aria-label="L - Inventário"
@@ -1440,8 +1445,8 @@ export default function App() {
           </button>
         </div>
 
-        {/* Botão de alternar modo de controle */}
-        <div className="flex justify-center pt-0.5">
+        {/* Botão de alternar modo de controle: no celular 2 */}
+        <div className="flex justify-center pt-0.5 hidden">
           <button
             type="button"
             onClick={cyclePadMode}
