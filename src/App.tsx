@@ -317,7 +317,7 @@ function TopWorldMap({
         width={240}
         height={160}
         className="pixel-canvas block w-full h-auto rounded-[2px]"
-        style={{ aspectRatio: '3 / 2' }}
+        style={{ aspectRatio: '3 / 2', maxWidth: 240, maxHeight: 160 }}
       />
     </div>
   );
@@ -1014,8 +1014,8 @@ export default function App() {
   const dpadArrowBtn = (active: boolean) =>
     `flex items-center justify-center rounded-xl border-2 touch-none cursor-pointer transition-all duration-100 select-none ${
       active
-        ? 'border-white bg-white/25 text-white scale-95 shadow-[0_0_12px_rgba(255,255,255,0.25)]'
-        : 'border-[#8c8c8c] bg-[#0e0e0e] hover:border-[#c4c4c4] text-[#e4e4e4]'
+        ? 'border-[#ffd700] bg-[#ffd700]/25 text-[#ffd700]'
+        : 'border-[#5a5a5a] bg-[#1a3a1a]/90 text-[#8bc34a]'
     }`;
 
   const padModeLabel = padMode === 'both' ? 'SETAS + ANALÓGICO' : padMode === 'dpad' ? 'SÓ SETAS' : 'SÓ ANALÓGICO';
@@ -1071,15 +1071,15 @@ export default function App() {
         </div>
 
         {/* ================= DS TOP SCREEN: Mapa + Inventário ================= */}
-        <div className="flex flex-col items-center gap-1">
-          <div className="relative bg-[#0a1a0a] border-2 border-[#4caf50]/70 rounded-lg overflow-hidden">
+        <div className="w-full max-w-[640px] flex-1 flex flex-col items-center gap-1 bg-[#3a3a3a] border-y border-[#5a5a5a]/50 rounded-t-xl overflow-hidden">
+          <div className="relative bg-[#0a0a0a] border-2 border-[#5a5a5a]/70 rounded-lg overflow-hidden">
             {/* Mapa de Mitribuque (apenas durante o jogo) */}
             {ui.screen === 'game' && <TopWorldMap cells={miniMapMeta} ui={ui} />}
 
             {/* Barra de status do inventário */}
             <div className="flex items-center justify-between px-2 py-1 bg-[#0d2a18] border-t border-[#4caf50]/40">
               <div className="flex items-center gap-1 text-[10px] font-extrabold text-[#ff4444] tracking-wider">
-                <Heart className="w-3 h-3" />
+                <Heart className="w-2 h-2" />
                 <span className="text-xs">{ui.hp}/{ui.maxHp}</span>
               </div>
               <div className="flex items-center gap-1 text-[10px] font-extrabold text-[#ffd700] tracking-wider">
@@ -1090,7 +1090,7 @@ export default function App() {
                 <span className="text-xs">{ui.fragments}/3</span>
               </div>
               <div className="flex items-center gap-1 text-[10px] font-extrabold text-[#bb86fc] tracking-wider">
-                <Sword className="w-3 h-3" />
+                <Sword className="w-2 h-2" />
                 <span className="text-xs">{ui.swordTier !== 'none' ? ui.swordTier.toUpperCase() : '—'}</span>
               </div>
             </div>
@@ -1236,7 +1236,7 @@ export default function App() {
               onPointerDown={handleCanvasPointerDown}
               onContextMenu={(e) => e.preventDefault()}
               className="pixel-canvas block w-full h-auto bg-black cursor-pointer touch-none"
-              style={{ aspectRatio: '3 / 2' }}
+              style={{ aspectRatio: '3 / 2', maxWidth: 240, maxHeight: 160 }}
             />
 
             {ui.screen === 'intro' && ui.introPhase === 'logo' && !logoBroken && (
