@@ -1314,6 +1314,7 @@ function drawTile(
   R(g, '#3f8a32', x + tz + 2, y + ta, 1, 3);
 
   if (ch === 'T') {
+    const swampTree = bio(G.map & 7, G.map >> 3) === 'w';
     R(g, '#0e3b26', x + 3, y, 10, 1);
     R(g, '#0e3b26', x + 1, y + 1, 14, 11);
     R(g, '#0e3b26', x + 3, y + 12, 10, 1);
@@ -1322,9 +1323,23 @@ function drawTile(
     R(g, '#14573a', x + 2, y + 8, 12, 3);
     R(g, '#6fd09a', x + 4 + (h % 5), y + 3, 2, 1);
     R(g, '#6fd09a', x + 9, y + 6, 2, 1);
-    R(g, '#0003', x + 2, y + 14, 12, 2);
-    R(g, '#5a3a1a', x + 6, y + 12, 4, 4);
-    R(g, '#3b250e', x + 6, y + 12, 1, 4);
+    if (swampTree) {
+      // Árvore do pantano: tronco mais grosso e raízes expostas na lama.
+      R(g, '#2a1a12', x + 2, y + 1, 12, 11);
+      R(g, '#1a1008', x + 3, y + 2, 10, 9);
+      R(g, '#4a2a1a', x + 1, y + 13, 4, 3);
+      R(g, '#4a2a1a', x + 10, y + 13, 4, 3);
+      R(g, '#4a2a1a', x + 5, y + 14, 2, 2);
+      R(g, '#4a2a1a', x + 9, y + 14, 2, 2);
+      R(g, '#1a1008', x + 2, y + 14, 2, 2);
+      R(g, '#1a1008', x + 12, y + 14, 2, 2);
+      R(g, '#1d3a1c', x + 0, y + 13, 2, 2);
+      R(g, '#1d3a1c', x + 14, y + 13, 2, 2);
+    } else {
+      R(g, '#0003', x + 2, y + 14, 12, 2);
+      R(g, '#5a3a1a', x + 6, y + 12, 4, 4);
+      R(g, '#3b250e', x + 6, y + 12, 1, 4);
+    }
   } else if (ch === 'b') {
     R(g, '#0f4a1d', x + 3, y + 2, 10, 1);
     R(g, '#0f4a1d', x + 1, y + 3, 14, 12);
@@ -1477,36 +1492,73 @@ function drawTile(
       R(g, '#c8b48c', x, y + 14, T, 2);
       return;
     }
+    const swampHouse = bio(G.map & 7, G.map >> 3) === 'w';
     const isShopHouse = M_ === 35 || M_ === 36;
     if (ch === 'H' && (bl === 'H' || bl === 'D')) {
-      R(g, isShopHouse ? '#2a5ac0' : '#b8382a', x, y, T, T);
+      const base = swampHouse ? '#3a2a1a' : isShopHouse ? '#2a5ac0' : '#b8382a';
+      const trim = swampHouse ? '#2a1a0a' : isShopHouse ? '#1c3e88' : '#8e2a20';
+      const light = swampHouse ? '#5a4a3a' : isShopHouse ? '#4882e8' : '#d4503f';
+      const top = swampHouse ? '#4a3a2a' : isShopHouse ? '#6aa2ff' : '#e8604f';
+      R(g, base, x, y, T, T);
       for (let r = 0; r < 4; r++) {
-        R(g, isShopHouse ? '#1c3e88' : '#8e2a20', x, y + r * 4 + 3, T, 1);
-        R(g, isShopHouse ? '#1c3e88' : '#8e2a20', x + ((r + a) % 2 ? 4 : 10), y + r * 4, 1, 3);
-        R(g, isShopHouse ? '#4882e8' : '#d4503f', x + ((r + a) % 2 ? 5 : 11), y + r * 4, 2, 1);
+        R(g, trim, x, y + r * 4 + 3, T, 1);
+        R(g, trim, x + ((r + a) % 2 ? 4 : 10), y + r * 4, 1, 3);
+        R(g, light, x + ((r + a) % 2 ? 5 : 11), y + r * 4, 2, 1);
       }
-      R(g, isShopHouse ? '#6aa2ff' : '#e8604f', x, y, T, 1);
-      if (bl === 'D' || (bl === 'H' && b2 !== 'H' && b2 !== 'D')) R(g, '#3a1a12', x, y + 13, T, 3);
+      R(g, top, x, y, T, 1);
+      if (swampHouse) {
+        // Lama na base da casa do pântano
+        R(g, '#2c3a22', x, y + 13, T, 3);
+        R(g, '#1d3a1c', x + 2, y + 14, 2, 2);
+        R(g, '#1d3a1c', x + 12, y + 14, 2, 2);
+      } else if (bl === 'D' || (bl === 'H' && b2 !== 'H' && b2 !== 'D')) {
+        R(g, '#3a1a12', x, y + 13, T, 3);
+      }
     } else {
-      R(g, '#efe0b0', x, y, T, T);
-      R(g, '#c9b57e', x, y + 5, T, 1);
-      R(g, '#c9b57e', x, y + 10, T, 1);
-      R(g, '#b89a60', x, y + 14, T, 2);
-      if (ch === 'H') {
-        R(g, '#7a4f22', x + 3, y + 2, 10, 8);
-        // Glowing golden house windows at night!
-        R(g, nightFactor > 0.35 ? '#ffd468' : '#8fd0ff', x + 4, y + 3, 8, 6);
-        R(g, '#fff8', x + 4, y + 3, 3, 2);
-        R(g, '#7a4f22', x + 7, y + 3, 1, 6);
+      if (swampHouse) {
+        // Casa do pântano: madeira envelhecida com lama na base
+        R(g, '#4a3a2a', x, y, T, T);
+        R(g, '#3a2a1a', x, y + 5, T, 1);
+        R(g, '#3a2a1a', x, y + 10, T, 1);
+        R(g, '#2c3a22', x, y + 14, T, 2);
+        if (ch === 'H') {
+          R(g, '#3a2a1a', x + 3, y + 2, 10, 8);
+          R(g, nightFactor > 0.35 ? '#ffd468' : '#8fd0ff', x + 4, y + 3, 8, 6);
+          R(g, '#fff8', x + 4, y + 3, 3, 2);
+          R(g, '#2a1a0a', x + 7, y + 3, 1, 6);
+          R(g, '#1d3a1c', x + 2, y + 13, 2, 2);
+          R(g, '#1d3a1c', x + 12, y + 13, 2, 2);
+        } else {
+          R(g, '#3a2a1a', x + 1, y + 1, 14, 15);
+          R(g, '#2a1a0a', x + 2, y + 2, 12, 14);
+          R(g, '#1a0f08', x + 2, y + 2, 12, 3);
+          R(g, '#4a2a1a', x + 3, y + 5, 4, 11);
+          R(g, '#ffd84a', x + 11, y + 10, 2, 2);
+          R(g, '#2c3a22', x, y + 14, T, 2);
+          R(g, '#1d3a1c', x + 2, y + 14, 2, 2);
+          R(g, '#1d3a1c', x + 12, y + 14, 2, 2);
+        }
       } else {
-        R(g, '#7a4f22', x + 1, y + 1, 14, 15);
-        R(g, '#3b2412', x + 2, y + 2, 12, 14);
-        R(g, '#2a1608', x + 2, y + 2, 12, 3);
-        R(g, '#6b3f1d', x + 3, y + 5, 4, 11);
-        R(g, '#ffd84a', x + 11, y + 10, 2, 2);
-        R(g, '#b0a07a', x, y + 14, T, 2);
+        R(g, '#efe0b0', x, y, T, T);
+        R(g, '#c9b57e', x, y + 5, T, 1);
+        R(g, '#c9b57e', x, y + 10, T, 1);
+        R(g, '#b89a60', x, y + 14, T, 2);
+        if (ch === 'H') {
+          R(g, '#7a4f22', x + 3, y + 2, 10, 8);
+          // Glowing golden house windows at night!
+          R(g, nightFactor > 0.35 ? '#ffd468' : '#8fd0ff', x + 4, y + 3, 8, 6);
+          R(g, '#fff8', x + 4, y + 3, 3, 2);
+          R(g, '#7a4f22', x + 7, y + 3, 1, 6);
+        } else {
+          R(g, '#7a4f22', x + 1, y + 1, 14, 15);
+          R(g, '#3b2412', x + 2, y + 2, 12, 14);
+          R(g, '#2a1608', x + 2, y + 2, 12, 3);
+          R(g, '#6b3f1d', x + 3, y + 5, 4, 11);
+          R(g, '#ffd84a', x + 11, y + 10, 2, 2);
+          R(g, '#b0a07a', x, y + 14, T, 2);
       }
     }
+  }
   }
 }
 
@@ -2289,6 +2341,34 @@ function drawEnemy(g: CanvasRenderingContext2D, e: Enemy, t: number, mapId: numb
       R(g, '#ffd84a', 9, 0, 2, 2);
       R(g, '#8cc25c', 7, 1, 1, 1);
     }
+  } else if (k === 11) {
+    // Porco do pantano: focinho rosa, orelhas pontudas e corpo roliço.
+    const wiggle = ((t >> 3) & 1) ? 1 : 0;
+    g.translate(x, Y);
+    R(g, '#0004', 2, 14, 12, 2);
+    // Corpo
+    R(g, c[0], 3, 4, 10, 9);
+    R(g, c[1], 4, 5, 8, 7);
+    R(g, c[3], 4, 10, 10, 2);
+    // Orelhas
+    R(g, c[0], 3, 3, 3, 2);
+    R(g, c[0], 10, 3, 3, 2);
+    R(g, c[1], 4, 4, 2, 1);
+    R(g, c[1], 10, 4, 2, 1);
+    // Focinho
+    R(g, c[2], 6, 8 + wiggle, 4, 3);
+    R(g, c[3], 6, 8 + wiggle, 2, 1);
+    R(g, c[3], 8, 8 + wiggle, 2, 1);
+    R(g, '#111', 7, 9 + wiggle, 1, 1);
+    R(g, '#111', 8, 9 + wiggle, 1, 1);
+    // Olhos
+    R(g, '#000', 5, 6, 1, 1);
+    R(g, '#000', 10, 6, 1, 1);
+    R(g, '#fff', 5, 6, 1, 1);
+    R(g, '#fff', 10, 6, 1, 1);
+    // Pernas curtas
+    R(g, c[0], 5, 12, 2, 3);
+    R(g, c[0], 9, 12, 2, 3);
   } else {
     // Classic Slime
     const hp = Math.round(Math.abs(Math.sin(t / 8 + e.x)) * 3);

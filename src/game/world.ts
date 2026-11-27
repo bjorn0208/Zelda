@@ -862,7 +862,7 @@ function genOverworldScreen(world: WorldData, sx: number, sy: number): void {
   if (b === 'd') enemyKind = ([6, 3, 7][i % 3]) as EnemyKind; // Dark mage, skeleton, zombie
   else if (b === 'n') enemyKind = ([5, 3, 1][i % 3]) as EnemyKind; // Ciclope, skeleton, bat
   else if (b === 's') enemyKind = ([2, 9, 5][i % 3]) as EnemyKind; // Scorpion, giant, ciclope
-  else if (b === 'w') enemyKind = ([10, 10, 10][i % 3]) as EnemyKind; // Jacarés em todas as telas do pântano
+  else if (b === 'w') enemyKind = ([10, 11, 10][i % 3]) as EnemyKind; // Jacarés e porcos no pântano
   else enemyKind = (forest(sx, sy) ? ([1, 7, 5][i % 3]) : ([0, 8, 5][i % 3])) as EnemyKind; // Bats/zombies/gosmas in forest; slimes/gosmas in plains; ciclope also appears
 
   world.enemies[i] = vil ? [0, 0] : [1 + (hs(i, 9) % 3), enemyKind];

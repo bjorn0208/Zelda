@@ -2306,9 +2306,11 @@ export class GameEngine {
     // Boss clear / Dominic reward
     const f = 'b' + this.G.map;
     const enMeta = this.world.enemies[this.G.map];
+    // Jacarés do overworld do pântano (tipo 10) NÃO entregam Dominic.
+    // Só chefes de caverna (mapa >= 200) ou o Vorak (tipo 4) despertam Dominics.
     if (
       enMeta &&
-      (enMeta[1] === 4 || enMeta[1] === 10) &&
+      (enMeta[1] === 4 || (enMeta[1] === 10 && this.G.map >= 200)) &&
       !this.V.fl[f] &&
       !this.G.en.length &&
       !this.G.dlg

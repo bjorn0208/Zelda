@@ -26,8 +26,9 @@ export type NpcKind =
   | 'mage'
   | 'explorer';
 
-// 0: slime, 1: bat, 2: scorpion, 3: skeleton, 4: boss Vorak, 5: golem, 6: dark_mage
-export type EnemyKind = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
+// 0: slime, 1: bat, 2: scorpion, 3: skeleton, 4: boss Vorak, 5: golem, 6: dark_mage,
+// 7: cyclops, 8: shark, 9: armored knight, 10: swamp alligator, 11: swamp boar
+export type EnemyKind = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11;
 
 export type SwordTier = 'none' | 'lendaria' | 'aco' | 'runica' | 'solar';
 export type ShieldTier = 'none' | 'madeira' | 'ferro' | 'real' | 'espelhado';

@@ -39,7 +39,7 @@ export const DY = [-1, 0, 1, 0] as const;
 export const SOLID_TILES = new Set('TbH~#WCkPKGeuqzvwmxjJASLRtyUVY'.split(''));
 
 // HP per monster kind: 0:slime, 1:bat, 2:scorpion, 3:skeleton, 4:boss, 5:golem, 6:dark_mage, 7:zombie, 8:gosma, 9:giant, 10:jacaré
-export const HPT = [2, 2, 3, 4, 18, 6, 3, 5, 2, 12, 7] as const;
+export const HPT = [2, 2, 3, 4, 18, 6, 3, 5, 2, 12, 7, 10] as const;
 
 export const ENEMY_PALETTES: readonly [string, string, string, string][] = [
   ['#1a2a80', '#3a5ae0', '#5f82ff', '#2a3fb0'], // Slime
@@ -52,7 +52,8 @@ export const ENEMY_PALETTES: readonly [string, string, string, string][] = [
   ['#2a3a1a', '#5a7a2a', '#8aca4a', '#1a2a0a'], // Zombie
   ['#1a4a2a', '#2ecc71', '#7fffaa', '#0e2a18'], // Gosma
   ['#4a3a2a', '#8a7a5a', '#c8b89a', '#2a2018'], // Giant
-  ['#1c3a22', '#3f7a3a', '#8fc25a', '#142a18']  // Jacaré do pantano
+  ['#1c3a22', '#3f7a3a', '#8fc25a', '#142a18'], // Jacaré do pantano
+  ['#7a2a2a', '#c05a5a', '#ff8a8a', '#4a1a1a'] // Porco do pantano
 ];
 
 export const WALL_PALETTES: readonly [string, string, string][] = [
