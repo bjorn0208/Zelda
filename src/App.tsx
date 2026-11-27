@@ -1030,7 +1030,7 @@ export default function App() {
       const socketScript = document.createElement('script');
       socketScript.src = '/socket.io/socket.io.js';
       socketScript.onload = () => {
-        const socket = (window as any).io?.(window.location.origin);
+        const socket = (window as any).io?.(`http://${window.location.hostname}:3001`);
         if (socket) {
           socket.on('remote-input', (data: { key: KeyCode; down: boolean }) => {
             const engine = engineRef.current;

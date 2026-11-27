@@ -130,7 +130,7 @@
 
 <script>
 // Configuration
-const SOCKET_URL = window.location.origin;
+const SOCKET_URL = window.location.protocol + '//' + window.location.hostname + ':3001';
 let socket = null;
 let connected = false;
 let padMode = 'dpad'; // 'dpad' or 'analog'
