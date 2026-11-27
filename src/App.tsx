@@ -1024,7 +1024,7 @@ export default function App() {
     <main className="h-dvh w-full bg-[#061a06] flex flex-col items-center justify-center overflow-hidden select-none">
       {/* Nintendo DS Handheld Shell — Tema Zelda */}
       <div
-        className="w-full max-w-[520px] flex flex-col items-center gap-1 bg-[#1b4a22] px-2 py-2 rounded-2xl border-4 border-[#6b9e5a]/60 shadow-[0_0_50px_rgba(0,60,0,0.7)]"
+        className="w-full max-w-[520px] flex flex-col items-center gap-1 bg-[#1a1a1a] px-2 py-2 rounded-2xl border-4 border-[#6b9e5a]/60 shadow-[0_0_50px_rgba(0,60,0,0.7)]"
         style={{
           paddingTop: 'max(8px, env(safe-area-inset-top, 0px))',
           paddingBottom: 'max(10px, env(safe-area-inset-bottom, 0px))',
@@ -1077,7 +1077,7 @@ export default function App() {
             {ui.screen === 'game' && <TopWorldMap cells={miniMapMeta} ui={ui} />}
 
             {/* Barra de status do inventário */}
-            <div className="flex items-center justify-between px-2 py-1 bg-[#0d2a18] border-t border-[#4caf50]/40">
+            <div className="flex items-center justify-between px-2 py-1 bg-[#2a2a2a] border-t border-[#5a5a5a]/40">
               <div className="flex items-center gap-1 text-[10px] font-extrabold text-[#ff4444] tracking-wider">
                 <Heart className="w-2 h-2" />
                 <span className="text-xs">{ui.hp}/{ui.maxHp}</span>
@@ -1086,7 +1086,7 @@ export default function App() {
                 <span className="text-xs">R{ui.rp}</span>
               </div>
               <div className="flex items-center gap-1 text-[10px] font-extrabold text-[#8bc34a] tracking-wider">
-                <span className="text-xs">DOMINICS</span>
+                <span className="text-xs">DOM {ui.fragments}/3</span>
                 <span className="text-xs">{ui.fragments}/3</span>
               </div>
               <div className="flex items-center gap-1 text-[10px] font-extrabold text-[#bb86fc] tracking-wider">
@@ -1099,7 +1099,7 @@ export default function App() {
 
         {/* ================= DS BOTTOM SCREEN: Jogo + Controles ================= */}
         <div
-          className="relative bg-[#000000] border-2 border-[#4caf50]/70 rounded-lg overflow-hidden flex items-center justify-center min-h-[200px]"
+          className="relative bg-[#000000] border-2 border-[#5a5a5a]/70 rounded-lg overflow-hidden flex items-center justify-center min-h-[200px]"
         >
           {/* Esquerda: Analógico / Setas (Movimento) */}
           <div className="absolute left-2 top-1/2 -translate-y-1/2 z-10">
@@ -1156,7 +1156,7 @@ export default function App() {
                 onPointerCancel={handleStickUp}
                 onLostPointerCapture={releaseAnalog}
                 onContextMenu={(e) => e.preventDefault()}
-                className="relative flex items-center justify-center w-[150px] h-[150px] shrink-0 rounded-full border-2 border-[#4caf50] bg-[#0a1a0a] touch-none cursor-grab active:cursor-grabbing"
+                className="relative flex items-center justify-center w-[150px] h-[150px] shrink-0 rounded-full border-2 border-[#5a5a5a] bg-[#1a1a1a] touch-none cursor-grab active:cursor-grabbing"
               >
                 <div className="pointer-events-none absolute inset-6 rounded-full border border-[#2a5a2a]" />
 
@@ -1363,10 +1363,10 @@ export default function App() {
           <button
             type="button"
             aria-label="L - Inventário"
-            className={`flex items-center justify-start pl-3 w-[100px] h-[40px] rounded-tl-xl rounded-tr-sm rounded-bl-sm rounded-br-[22px] border-2 border-[#4caf50] text-base font-bold tracking-wider touch-none cursor-pointer transition-all duration-100 ${
+            className={`flex items-center justify-start pl-3 w-[100px] h-[40px] rounded-tl-xl rounded-tr-sm rounded-bl-sm rounded-br-[22px] border-2 border-[#5a5a5a] text-base font-bold tracking-wider touch-none cursor-pointer transition-all duration-100 ${
               activeKeys.i || ui.screen === 'inv'
-                ? 'bg-[#4caf50]/40 text-[#ffd700] shadow-[0_0_12px_rgba(76,175,80,0.4)]'
-                : 'bg-[#0a1a0a]/60 text-[#8bc34a] hover:border-[#8bc34a]'
+                ? 'bg-[#5a5a5a]/40 text-[#ffd700] shadow-[0_0_12px_rgba(76,175,80,0.4)]'
+                : 'bg-[#1a1a1a]/60 text-[#8bc34a] hover:border-[#8bc34a]'
             }`}
             {...makeBtnHandlers('i')}
           >
@@ -1385,10 +1385,10 @@ export default function App() {
           <button
             type="button"
             aria-label="R - Usar Item X"
-            className={`flex items-center justify-end pr-3 w-[100px] h-[40px] rounded-tr-xl rounded-tl-sm rounded-br-sm rounded-bl-[22px] border-2 border-[#4caf50] text-base font-bold tracking-wider touch-none cursor-pointer transition-all duration-100 ${
+            className={`flex items-center justify-end pr-3 w-[100px] h-[40px] rounded-tr-xl rounded-tl-sm rounded-br-sm rounded-bl-[22px] border-2 border-[#5a5a5a] text-base font-bold tracking-wider touch-none cursor-pointer transition-all duration-100 ${
               activeKeys.x
-                ? 'bg-[#4caf50]/40 text-[#ffd700] shadow-[0_0_12px_rgba(76,175,80,0.4)]'
-                : 'bg-[#0a1a0a]/60 text-[#8bc34a] hover:border-[#8bc34a]'
+                ? 'bg-[#5a5a5a]/40 text-[#ffd700] shadow-[0_0_12px_rgba(76,175,80,0.4)]'
+                : 'bg-[#1a1a1a]/60 text-[#8bc34a] hover:border-[#8bc34a]'
             }`}
             {...makeBtnHandlers('x')}
           >
@@ -1401,7 +1401,7 @@ export default function App() {
           <button
             type="button"
             onClick={cyclePadMode}
-            className="flex items-center gap-1.5 px-3 py-1 rounded-full border border-[#4caf50]/50 bg-[#0a1a0a] hover:border-[#8bc34a] text-[10px] font-bold tracking-wider text-[#8bc34a] cursor-pointer touch-none transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1 rounded-full border border-[#5a5a5a]/50 bg-[#1a1a1a] hover:border-[#8bc34a] text-[10px] font-bold tracking-wider text-[#8bc34a] cursor-pointer touch-none transition-colors"
           >
             <Gamepad2 className="w-3 h-3 text-[#8bc34a]" />
             <span>CONTROLE: {padModeLabel}</span>
