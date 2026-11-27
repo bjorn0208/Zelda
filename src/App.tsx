@@ -1028,7 +1028,7 @@ export default function App() {
     <main className="h-full w-full bg-[#0d0d0d] overflow-hidden select-none flex items-center justify-center">
       {/* Nintendo DS Handheld Shell — Tema Zelda */}
       <div
-        className="w-full h-full flex flex-col gap-1 bg-[#0d0d0d] p-1"
+        className="w-[720px] max-w-[95vw] h-[405px] max-h-[85vh] flex flex-col gap-1 bg-[#0d0d0d] p-1 rounded-lg"
         style={{
           paddingTop: 'max(8px, env(safe-area-inset-top, 0px))',
           paddingBottom: 'max(10px, env(safe-area-inset-bottom, 0px))',
