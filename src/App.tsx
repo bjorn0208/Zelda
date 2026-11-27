@@ -1025,7 +1025,7 @@ export default function App() {
   const [mapOpen, setMapOpen] = useState<boolean>(false);
 
   return (
-    <main className="h-full w-full bg-[#0d0d0d] overflow-hidden select-none">
+    <main className="h-full w-full bg-[#0d0d0d] overflow-hidden select-none flex items-center justify-center">
       {/* Nintendo DS Handheld Shell — Tema Zelda */}
       <div
         className="w-full h-full flex flex-col gap-1 bg-[#0d0d0d] p-1"
@@ -1076,7 +1076,7 @@ export default function App() {
         </div>
 
         {/* ================= DS TOP SCREEN: Mapa + Inventário ================= */}
-        <div className="w-full max-w-[640px] flex-1 flex flex-col items-center gap-1 bg-[#3a3a3a] border-y border-[#5a5a5a]/50 rounded-t-xl overflow-hidden">
+        <div className="w-full flex-1 flex flex-col items-center gap-1 bg-[#3a3a3a] border border-[#5a5a5a]/50 rounded-lg overflow-hidden min-h-0">
           <div className="relative bg-[#0a0a0a] border-2 border-[#5a5a5a]/70 rounded-lg overflow-hidden">
             {/* Mapa de Mitribuque (apenas durante o jogo) */}
             {ui.screen === 'game' && mapOpen && <TopWorldMap cells={miniMapMeta} ui={ui} />}
