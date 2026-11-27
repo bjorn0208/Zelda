@@ -1021,24 +1021,24 @@ export default function App() {
   const padModeLabel = padMode === 'both' ? 'SETAS + ANALÓGICO' : padMode === 'dpad' ? 'SÓ SETAS' : 'SÓ ANALÓGICO';
 
   return (
-    <main className="h-dvh w-full bg-black flex flex-col items-center justify-center overflow-hidden select-none">
-      {/* Locked Portrait Handheld Shell (Fixed size matching screenshot) */}
+    <main className="h-dvh w-full bg-[#061a06] flex flex-col items-center justify-center overflow-hidden select-none">
+      {/* Nintendo DS Handheld Shell — Tema Zelda */}
       <div
-        className="w-full max-w-[460px] flex flex-col items-center gap-2.5 bg-black px-2 py-2"
+        className="w-full max-w-[520px] flex flex-col items-center gap-1 bg-[#1b4a22] px-2 py-2 rounded-2xl border-4 border-[#6b9e5a]/60 shadow-[0_0_50px_rgba(0,60,0,0.7)]"
         style={{
           paddingTop: 'max(8px, env(safe-area-inset-top, 0px))',
           paddingBottom: 'max(10px, env(safe-area-inset-bottom, 0px))',
         }}
       >
-        {/* Top Control Row: Sound icon | Two Capsule Pills (INV / START) | Save icon */}
-        <div className="w-full flex items-center justify-between px-1">
+        {/* Top Control Row: Som | INV | START | Salvar */}
+        <div className="w-full flex items-center justify-between px-2">
           <button
             type="button"
             aria-label={ui.muted ? 'Ativar som' : 'Silenciar som'}
             onClick={() => engineRef.current?.toggleMute()}
             className={wireframeSquareBtn(false)}
           >
-            {ui.muted ? <VolumeX className="w-5 h-5 text-white/50" /> : <Volume2 className="w-5 h-5" />}
+            {ui.muted ? <VolumeX className="w-5 h-5 text-[#ffd700]/50" /> : <Volume2 className="w-5 h-5 text-[#ffd700]" />}
           </button>
 
           <div className="flex items-center gap-3">
@@ -1066,183 +1066,84 @@ export default function App() {
             onClick={() => engineRef.current?.quickSave()}
             className={wireframeSquareBtn(false)}
           >
-            <Save className="w-5 h-5" />
+            <Save className="w-5 h-5 text-[#ffd700]" />
           </button>
         </div>
 
-        {/* ONLY Map Above Screen During Gameplay */}
-        {ui.screen === 'game' && <TopWorldMap cells={miniMapMeta} ui={ui} />}
+        {/* ================= DS TOP SCREEN: Mapa + Inventário ================= */}
+        <div className="flex flex-col items-center gap-1">
+          <div className="relative bg-[#0a1a0a] border-2 border-[#4caf50]/70 rounded-lg overflow-hidden">
+            {/* Mapa de Mitribuque (apenas durante o jogo) */}
+            {ui.screen === 'game' && <TopWorldMap cells={miniMapMeta} ui={ui} />}
 
-        {/* Main 3:2 Gameplay Screen */}
-        <div className="relative w-full bg-black border-y border-[#2a2a2a] overflow-hidden">
-          <canvas
-            ref={canvasRef}
-            width={W}
-            height={H}
-            onPointerDown={handleCanvasPointerDown}
-            onContextMenu={(e) => e.preventDefault()}
-            className="pixel-canvas block w-full h-auto bg-black cursor-pointer touch-none"
-            style={{ aspectRatio: '3 / 2' }}
-          />
-
-          {ui.screen === 'intro' && ui.introPhase === 'logo' && !logoBroken && (
-            <img
-              src="/assets/dominic-games.gif"
-              alt="Dominic Games"
-              onError={() => setLogoBroken(true)}
-              className="animate-logo-fade pointer-events-none absolute inset-0 h-full w-full bg-black object-contain"
-            />
-          )}
-
-          {ui.screen === 'intro' && ui.introPhase === 'video' && (
-            <video
-              key="cloud-games-video"
-              ref={attachCloudVideo}
-              src="/cloud_games.mp4"
-              className="pointer-events-none absolute inset-0 h-full w-full bg-black object-contain"
-              autoPlay
-              muted
-              playsInline
-              preload="auto"
-              onEnded={() => engineRef.current?.introVideoDone()}
-              onError={() => engineRef.current?.introVideoDone()}
-            />
-          )}
-
-          {ui.screen === 'menu' && (
-            <div className="absolute inset-0 overflow-hidden bg-black">
-              {menuVideoBroken ? (
-                <div className="pointer-events-none absolute inset-0 flex items-start justify-center pt-[12%]">
-                  <span className="text-sm font-bold tracking-[0.3em] text-[#ffd84a]">MITRIBUQUE</span>
-                </div>
-              ) : (
-                <video
-                  key="menu-video"
-                  src="/menu_video.mp4"
-                  className="pointer-events-none absolute inset-0 h-full w-full bg-black object-fill"
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  preload="auto"
-                  onError={() => setMenuVideoBroken(true)}
-                />
-              )}
-              {MENU_VIDEO_BUTTONS.map((b, idx) => (
-                <button
-                  key={b.label}
-                  type="button"
-                  aria-label={b.label}
-                  title={b.label}
-                  onClick={() => engineRef.current?.activateMenuButton(idx)}
-                  className={`absolute flex cursor-pointer touch-none items-center justify-center rounded-sm border-2 transition-colors ${
-                    ui.menuSel === idx
-                      ? 'border-[#ffd84a] bg-[#ffd84a22] shadow-[0_0_12px_rgba(255,216,74,0.45)]'
-                      : 'border-transparent hover:border-[#ffd84a88]'
-                  } ${menuVideoBroken ? 'bg-[#0a071bcc] text-[11px] font-bold text-white' : ''}`}
-                  style={{
-                    left: `${b.x}%`,
-                    top: `${b.y}%`,
-                    width: `${b.w}%`,
-                    height: `${b.h}%`,
-                  }}
-                >
-                  {menuVideoBroken && b.label}
-                </button>
-              ))}
-              {!ui.hasSave && (
-                <span className="pointer-events-none absolute bottom-[2%] left-[3%] text-[9px] font-bold text-red-400/90">
-                  SEM JOGO SALVO
-                </span>
-              )}
+            {/* Barra de status do inventário */}
+            <div className="flex items-center justify-between px-2 py-1 bg-[#0d2a18] border-t border-[#4caf50]/40">
+              <div className="flex items-center gap-1 text-[10px] font-extrabold text-[#ff4444] tracking-wider">
+                <Heart className="w-3 h-3" />
+                <span className="text-xs">{ui.hp}/{ui.maxHp}</span>
+              </div>
+              <div className="flex items-center gap-1 text-[10px] font-extrabold text-[#ffd700] tracking-wider">
+                <span className="text-xs">R{ui.rp}</span>
+              </div>
+              <div className="flex items-center gap-1 text-[10px] font-extrabold text-[#8bc34a] tracking-wider">
+                <span className="text-xs">DOMINICS</span>
+                <span className="text-xs">{ui.fragments}/3</span>
+              </div>
+              <div className="flex items-center gap-1 text-[10px] font-extrabold text-[#bb86fc] tracking-wider">
+                <Sword className="w-3 h-3" />
+                <span className="text-xs">{ui.swordTier !== 'none' ? ui.swordTier.toUpperCase() : '—'}</span>
+              </div>
             </div>
-          )}
+          </div>
         </div>
 
-        {/* Fixed Large Controls Directly Below Screen */}
-        <div className="w-full flex flex-col gap-2.5 pt-0.5">
-          {/* Shoulder Strip: L (Inventário) | Center Icon (Item Rápido X) | R (Item Rápido X) */}
-          <div className="flex items-center justify-between px-1">
-            <button
-              type="button"
-              aria-label="L - Inventário"
-              className={`flex items-center justify-start pl-4 w-[112px] h-[44px] rounded-tl-xl rounded-tr-sm rounded-bl-sm rounded-br-[24px] border-2 text-base font-bold tracking-wider touch-none cursor-pointer transition-all duration-100 ${
-                activeKeys.i || ui.screen === 'inv'
-                  ? 'border-white bg-white/20 text-white scale-95'
-                  : 'border-[#8f8f8f] bg-[#0e0e0e] hover:border-[#c4c4c4] text-[#e5e5e5]'
-              }`}
-              {...makeBtnHandlers('i')}
-            >
-              L
-            </button>
-
-            <button
-              type="button"
-              aria-label="Item Rápido X"
-              className={wireframeSquareBtn(Boolean(activeKeys.x))}
-              {...makeBtnHandlers('x')}
-            >
-              <ChevronsRight className="w-6 h-6" />
-            </button>
-
-            <button
-              type="button"
-              aria-label="R - Usar Item X"
-              className={`flex items-center justify-end pr-4 w-[112px] h-[44px] rounded-tr-xl rounded-tl-sm rounded-br-sm rounded-bl-[24px] border-2 text-base font-bold tracking-wider touch-none cursor-pointer transition-all duration-100 ${
-                activeKeys.x
-                  ? 'border-white bg-white/20 text-white scale-95'
-                  : 'border-[#8f8f8f] bg-[#0e0e0e] hover:border-[#c4c4c4] text-[#e5e5e5]'
-              }`}
-              {...makeBtnHandlers('x')}
-            >
-              R
-            </button>
-          </div>
-
-          {/* Main Large Thumb Controls: Analog + Arrows (Left) & X / B / A Cluster (Right) */}
-          <div className="flex items-center justify-between px-1 sm:px-2 pt-0.5">
-            {/* Left Fixed 158x158 (sm:172x172) Movement Pad */}
+        {/* ================= DS BOTTOM SCREEN: Jogo + Controles ================= */}
+        <div
+          className="relative bg-[#000000] border-2 border-[#4caf50]/70 rounded-lg overflow-hidden flex items-center justify-center min-h-[200px]"
+        >
+          {/* Esquerda: Analógico / Setas (Movimento) */}
+          <div className="absolute left-2 top-1/2 -translate-y-1/2 z-10">
             {padMode === 'dpad' ? (
-              <div className="relative w-[158px] h-[158px] sm:w-[172px] sm:h-[172px] shrink-0">
+              <div className="relative w-[150px] h-[150px] shrink-0">
                 <button
                   type="button"
                   aria-label="Cima"
-                  className={`absolute left-1/2 -translate-x-1/2 top-0 w-[52px] h-[52px] sm:w-[56px] sm:h-[56px] ${dpadArrowBtn(
+                  className={`absolute left-1/2 -translate-x-1/2 top-0 w-[48px] h-[48px] ${dpadArrowBtn(
                     Boolean(activeKeys.u),
                   )}`}
                   {...makeBtnHandlers('u')}
                 >
-                  <ArrowUp className="w-6 h-6" />
+                  <ArrowUp className="w-5 h-5" />
                 </button>
                 <button
                   type="button"
                   aria-label="Esquerda"
-                  className={`absolute left-0 top-1/2 -translate-y-1/2 w-[52px] h-[52px] sm:w-[56px] sm:h-[56px] ${dpadArrowBtn(
+                  className={`absolute left-0 top-1/2 -translate-y-1/2 w-[48px] h-[48px] ${dpadArrowBtn(
                     Boolean(activeKeys.l),
                   )}`}
                   {...makeBtnHandlers('l')}
                 >
-                  <ArrowLeft className="w-6 h-6" />
+                  <ArrowLeft className="w-5 h-5" />
                 </button>
                 <button
                   type="button"
                   aria-label="Direita"
-                  className={`absolute right-0 top-1/2 -translate-y-1/2 w-[52px] h-[52px] sm:w-[56px] sm:h-[56px] ${dpadArrowBtn(
+                  className={`absolute right-0 top-1/2 -translate-y-1/2 w-[48px] h-[48px] ${dpadArrowBtn(
                     Boolean(activeKeys.r),
                   )}`}
                   {...makeBtnHandlers('r')}
                 >
-                  <ArrowRight className="w-6 h-6" />
+                  <ArrowRight className="w-5 h-5" />
                 </button>
                 <button
                   type="button"
                   aria-label="Baixo"
-                  className={`absolute left-1/2 -translate-x-1/2 bottom-0 w-[52px] h-[52px] sm:w-[56px] sm:h-[56px] ${dpadArrowBtn(
+                  className={`absolute left-1/2 -translate-x-1/2 bottom-0 w-[48px] h-[48px] ${dpadArrowBtn(
                     Boolean(activeKeys.d),
                   )}`}
                   {...makeBtnHandlers('d')}
                 >
-                  <ArrowDown className="w-6 h-6" />
+                  <ArrowDown className="w-5 h-5" />
                 </button>
               </div>
             ) : (
@@ -1255,68 +1156,68 @@ export default function App() {
                 onPointerCancel={handleStickUp}
                 onLostPointerCapture={releaseAnalog}
                 onContextMenu={(e) => e.preventDefault()}
-                className="relative flex items-center justify-center w-[158px] h-[158px] sm:w-[172px] sm:h-[172px] rounded-full border-2 border-[#8f8f8f] bg-[#0a0a0a] touch-none cursor-grab active:cursor-grabbing shrink-0"
+                className="relative flex items-center justify-center w-[150px] h-[150px] shrink-0 rounded-full border-2 border-[#4caf50] bg-[#0a1a0a] touch-none cursor-grab active:cursor-grabbing"
               >
-                <div className="pointer-events-none absolute inset-6 rounded-full border border-[#3a3a3a]" />
+                <div className="pointer-events-none absolute inset-6 rounded-full border border-[#2a5a2a]" />
 
                 {padMode === 'both' && (
                   <>
                     <button
                       type="button"
                       aria-label="Seta Cima"
-                      className={`absolute top-1 left-1/2 -translate-x-1/2 flex items-center justify-center w-9 h-7 rounded-lg border touch-none cursor-pointer ${
+                      className={`absolute top-1 left-1/2 -translate-x-1/2 flex items-center justify-center w-8 h-6 rounded-lg border touch-none cursor-pointer ${
                         activeKeys.u || knobOffset.y < -14
-                          ? 'border-white bg-white/25 text-white'
-                          : 'border-[#5a5a5a] bg-[#141414]/90 text-[#d8d8d8]'
+                          ? 'border-[#ffd700] bg-[#ffd700]/25 text-[#ffd700]'
+                          : 'border-[#2a5a2a] bg-[#1a3a1a]/90 text-[#8bc34a]'
                       }`}
                       {...makeBtnHandlers('u')}
                     >
-                      <ArrowUp className="w-4 h-4" />
+                      <ArrowUp className="w-3 h-3" />
                     </button>
                     <button
                       type="button"
                       aria-label="Seta Baixo"
-                      className={`absolute bottom-1 left-1/2 -translate-x-1/2 flex items-center justify-center w-9 h-7 rounded-lg border touch-none cursor-pointer ${
+                      className={`absolute bottom-1 left-1/2 -translate-x-1/2 flex items-center justify-center w-8 h-6 rounded-lg border touch-none cursor-pointer ${
                         activeKeys.d || knobOffset.y > 14
-                          ? 'border-white bg-white/25 text-white'
-                          : 'border-[#5a5a5a] bg-[#141414]/90 text-[#d8d8d8]'
+                          ? 'border-[#ffd700] bg-[#ffd700]/25 text-[#ffd700]'
+                          : 'border-[#2a5a2a] bg-[#1a3a1a]/90 text-[#8bc34a]'
                       }`}
                       {...makeBtnHandlers('d')}
                     >
-                      <ArrowDown className="w-4 h-4" />
+                      <ArrowDown className="w-3 h-3" />
                     </button>
                     <button
                       type="button"
                       aria-label="Seta Esquerda"
-                      className={`absolute left-1 top-1/2 -translate-y-1/2 flex items-center justify-center w-7 h-9 rounded-lg border touch-none cursor-pointer ${
+                      className={`absolute left-1 top-1/2 -translate-y-1/2 flex items-center justify-center w-6 h-8 rounded-lg border touch-none cursor-pointer ${
                         activeKeys.l || knobOffset.x < -14
-                          ? 'border-white bg-white/25 text-white'
-                          : 'border-[#5a5a5a] bg-[#141414]/90 text-[#d8d8d8]'
+                          ? 'border-[#ffd700] bg-[#ffd700]/25 text-[#ffd700]'
+                          : 'border-[#2a5a2a] bg-[#1a3a1a]/90 text-[#8bc34a]'
                       }`}
                       {...makeBtnHandlers('l')}
                     >
-                      <ArrowLeft className="w-4 h-4" />
+                      <ArrowLeft className="w-3 h-3" />
                     </button>
                     <button
                       type="button"
                       aria-label="Seta Direita"
-                      className={`absolute right-1 top-1/2 -translate-y-1/2 flex items-center justify-center w-7 h-9 rounded-lg border touch-none cursor-pointer ${
+                      className={`absolute right-1 top-1/2 -translate-y-1/2 flex items-center justify-center w-6 h-8 rounded-lg border touch-none cursor-pointer ${
                         activeKeys.r || knobOffset.x > 14
-                          ? 'border-white bg-white/25 text-white'
-                          : 'border-[#5a5a5a] bg-[#141414]/90 text-[#d8d8d8]'
+                          ? 'border-[#ffd700] bg-[#ffd700]/25 text-[#ffd700]'
+                          : 'border-[#2a5a2a] bg-[#1a3a1a]/90 text-[#8bc34a]'
                       }`}
                       {...makeBtnHandlers('r')}
                     >
-                      <ArrowRight className="w-4 h-4" />
+                      <ArrowRight className="w-3 h-3" />
                     </button>
                   </>
                 )}
 
                 <div
-                  className={`pointer-events-none absolute w-[54px] h-[54px] sm:w-[60px] sm:h-[60px] rounded-full border-2 ${
+                  className={`pointer-events-none absolute w-[52px] h-[52px] rounded-full border-2 ${
                     stickEngaged
-                      ? 'border-white bg-white/25 scale-105'
-                      : 'border-[#bababa] bg-[#1e1e1e] transition-transform duration-150 ease-out'
+                      ? 'border-[#ffd700] bg-[#ffd700]/25 scale-105'
+                      : 'border-[#6b9e5a] bg-[#1e3a1e] transition-transform duration-150 ease-out'
                   }`}
                   style={{
                     transform: `translate3d(${knobOffset.x}px, ${knobOffset.y}px, 0)`,
@@ -1324,20 +1225,108 @@ export default function App() {
                 />
               </div>
             )}
+          </div>
 
-            {/* Right: Extra-Large Angled Wireframe Action Cluster (X / B / A) */}
-            <div className="relative w-[176px] sm:w-[190px] h-[158px] sm:h-[168px] shrink-0">
+          {/* Tela principal do jogo (canvas central) */}
+          <div className="relative w-full bg-black overflow-hidden">
+            <canvas
+              ref={canvasRef}
+              width={W}
+              height={H}
+              onPointerDown={handleCanvasPointerDown}
+              onContextMenu={(e) => e.preventDefault()}
+              className="pixel-canvas block w-full h-auto bg-black cursor-pointer touch-none"
+              style={{ aspectRatio: '3 / 2' }}
+            />
+
+            {ui.screen === 'intro' && ui.introPhase === 'logo' && !logoBroken && (
+              <img
+                src="/assets/dominic-games.gif"
+                alt="Dominic Games"
+                onError={() => setLogoBroken(true)}
+                className="animate-logo-fade pointer-events-none absolute inset-0 h-full w-full bg-black object-contain"
+              />
+            )}
+
+            {ui.screen === 'intro' && ui.introPhase === 'video' && (
+              <video
+                key="cloud-games-video"
+                ref={attachCloudVideo}
+                src="/cloud_games.mp4"
+                className="pointer-events-none absolute inset-0 h-full w-full bg-black object-contain"
+                autoPlay
+                muted
+                playsInline
+                preload="auto"
+                onEnded={() => engineRef.current?.introVideoDone()}
+                onError={() => engineRef.current?.introVideoDone()}
+              />
+            )}
+
+            {ui.screen === 'menu' && (
+              <div className="absolute inset-0 overflow-hidden bg-black">
+                {menuVideoBroken ? (
+                  <div className="pointer-events-none absolute inset-0 flex items-start justify-center pt-[12%]">
+                    <span className="text-sm font-bold tracking-[0.3em] text-[#ffd700]">MITRIBUQUE</span>
+                  </div>
+                ) : (
+                  <video
+                    key="menu-video"
+                    src="/menu_video.mp4"
+                    className="pointer-events-none absolute inset-0 h-full w-full bg-black object-fill"
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    preload="auto"
+                    onError={() => setMenuVideoBroken(true)}
+                  />
+                )}
+                {MENU_VIDEO_BUTTONS.map((b, idx) => (
+                  <button
+                    key={b.label}
+                    type="button"
+                    aria-label={b.label}
+                    title={b.label}
+                    onClick={() => engineRef.current?.activateMenuButton(idx)}
+                    className={`absolute flex cursor-pointer touch-none items-center justify-center rounded-sm border-2 transition-colors ${
+                      ui.menuSel === idx
+                        ? 'border-[#ffd700] bg-[#ffd70022] shadow-[0_0_12px_rgba(255,215,0,0.45)]'
+                        : 'border-transparent hover:border-[#ffd70088]'
+                    } ${menuVideoBroken ? 'bg-[#0a071bcc] text-[11px] font-bold text-white' : ''}`}
+                    style={{
+                      left: `${b.x}%`,
+                      top: `${b.y}%`,
+                      width: `${b.w}%`,
+                      height: `${b.h}%`,
+                    }}
+                  >
+                    {menuVideoBroken && b.label}
+                  </button>
+                ))}
+                {!ui.hasSave && (
+                  <span className="pointer-events-none absolute bottom-[2%] left-[3%] text-[9px] font-bold text-[#ff4444]/90">
+                    SEM JOGO SALVO
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Direita: Botões de Ação (X / B / A) */}
+          <div className="absolute right-2 top-1/2 -translate-y-1/2 z-10">
+            <div className="relative w-[160px] h-[150px] shrink-0">
               <button
                 type="button"
                 aria-label="Botão X (Item Rápido)"
-                className={`absolute left-[54px] sm:left-[60px] top-0 ${wireframeCircle(
+                className={`absolute left-[48px] top-0 ${wireframeCircle(
                   Boolean(activeKeys.x),
-                  'w-[62px] h-[62px] sm:w-[66px] sm:h-[66px]',
+                  'w-[56px] h-[56px]',
                 )}`}
                 {...makeBtnHandlers('x')}
               >
-                <span className="text-lg font-bold leading-none">X</span>
-                <span className="text-[9px] font-semibold tracking-wider opacity-85 leading-none mt-0.5">
+                <span className="text-lg font-bold leading-none text-[#ffd700]">X</span>
+                <span className="text-[8px] font-semibold tracking-wider opacity-90 leading-none mt-0.5 text-[#8bc34a]">
                   {TOOL_SHORT[ui.secondary]}
                 </span>
               </button>
@@ -1347,11 +1336,11 @@ export default function App() {
                 aria-label="Botão B (Escudo / Voltar)"
                 className={`absolute left-0 bottom-1 ${wireframeCircle(
                   Boolean(activeKeys.b),
-                  'w-[68px] h-[68px] sm:w-[72px] sm:h-[72px]',
+                  'w-[64px] h-[64px]',
                 )}`}
                 {...makeBtnHandlers('b')}
               >
-                <span className="text-2xl font-medium leading-none">B</span>
+                <span className="text-2xl font-medium leading-none text-[#ffd700]">B</span>
               </button>
 
               <button
@@ -1359,30 +1348,68 @@ export default function App() {
                 aria-label="Botão A (Espada / Ação)"
                 className={`absolute right-0 bottom-1 ${wireframeCircle(
                   Boolean(activeKeys.a),
-                  'w-[68px] h-[68px] sm:w-[72px] sm:h-[72px]',
+                  'w-[64px] h-[64px]',
                 )}`}
                 {...makeBtnHandlers('a')}
               >
-                <span className="text-2xl font-medium leading-none">A</span>
+                <span className="text-2xl font-medium leading-none text-[#ffd700]">A</span>
               </button>
             </div>
           </div>
+        </div>
 
-          {/* Compact Directional Mode Toggle Pill (Setas + Analógico / Só Setas / Só Analógico) */}
-          <div className="flex justify-center pt-0.5">
-            <button
-              type="button"
-              onClick={cyclePadMode}
-              className="flex items-center gap-1.5 px-3 py-1 rounded-full border border-[#686868] bg-[#0b0b0b] hover:border-[#b0b0b0] text-[10px] font-bold tracking-wider text-[#cfcfcf] cursor-pointer touch-none transition-colors"
-            >
-              <Gamepad2 className="w-3.5 h-3.5" />
-              <span>CONTROLE: {padModeLabel}</span>
-            </button>
-          </div>
+        {/* Shoulder Strip: L (Inventário) | Centro (Item Rápido X) | R (Item Rápido X) */}
+        <div className="w-full flex items-center justify-between px-2">
+          <button
+            type="button"
+            aria-label="L - Inventário"
+            className={`flex items-center justify-start pl-3 w-[100px] h-[40px] rounded-tl-xl rounded-tr-sm rounded-bl-sm rounded-br-[22px] border-2 border-[#4caf50] text-base font-bold tracking-wider touch-none cursor-pointer transition-all duration-100 ${
+              activeKeys.i || ui.screen === 'inv'
+                ? 'bg-[#4caf50]/40 text-[#ffd700] shadow-[0_0_12px_rgba(76,175,80,0.4)]'
+                : 'bg-[#0a1a0a]/60 text-[#8bc34a] hover:border-[#8bc34a]'
+            }`}
+            {...makeBtnHandlers('i')}
+          >
+            L
+          </button>
+
+          <button
+            type="button"
+            aria-label="Item Rápido X"
+            className={wireframeSquareBtn(Boolean(activeKeys.x))}
+            {...makeBtnHandlers('x')}
+          >
+            <ChevronsRight className="w-5 h-5 text-[#ffd700]" />
+          </button>
+
+          <button
+            type="button"
+            aria-label="R - Usar Item X"
+            className={`flex items-center justify-end pr-3 w-[100px] h-[40px] rounded-tr-xl rounded-tl-sm rounded-br-sm rounded-bl-[22px] border-2 border-[#4caf50] text-base font-bold tracking-wider touch-none cursor-pointer transition-all duration-100 ${
+              activeKeys.x
+                ? 'bg-[#4caf50]/40 text-[#ffd700] shadow-[0_0_12px_rgba(76,175,80,0.4)]'
+                : 'bg-[#0a1a0a]/60 text-[#8bc34a] hover:border-[#8bc34a]'
+            }`}
+            {...makeBtnHandlers('x')}
+          >
+            R
+          </button>
+        </div>
+
+        {/* Botão de alternar modo de controle */}
+        <div className="flex justify-center pt-0.5">
+          <button
+            type="button"
+            onClick={cyclePadMode}
+            className="flex items-center gap-1.5 px-3 py-1 rounded-full border border-[#4caf50]/50 bg-[#0a1a0a] hover:border-[#8bc34a] text-[10px] font-bold tracking-wider text-[#8bc34a] cursor-pointer touch-none transition-colors"
+          >
+            <Gamepad2 className="w-3 h-3 text-[#8bc34a]" />
+            <span>CONTROLE: {padModeLabel}</span>
+          </button>
         </div>
       </div>
 
-      {/* Responsive RE4-Style Attaché Inventory Overlay */}
+      {/* Overlay de Inventário (RE4 Attaché) */}
       {ui.screen === 'inv' && <ResponsiveInventoryModal ui={ui} engine={engineRef.current} />}
     </main>
   );
