@@ -3469,6 +3469,13 @@ export function drawGame(
   g.restore();
 
   drawHud(g, G, V, hn, worldTime);
+
+  // Debug temporário: número do mapa no canto superior direito, para
+  // identificar cada tela enquanto ajustamos o pântano. Pode sair depois.
+  R(g, '#080518cc', W - 30, 2, 28, 12);
+  R(g, '#ffd84a66', W - 30, 2, 28, 1);
+  tx(g, String(G.map), W - 16, 4, '#ffe98a', 'center');
+
   if (G.sleeping && !G.dlg && !(G.wakeTimer ?? 0) && ((t >> 4) & 1) === 0) {
     R(g, '#080518dd', 36, H - 34, W - 72, 14);
     R(g, '#ffd84a99', 36, H - 34, W - 72, 1);
