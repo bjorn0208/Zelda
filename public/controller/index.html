@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Controle Remoto - Zelda DS</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0d0d0d;
+    color: #e0e0e0;
+    font-family: system-ui, sans-serif;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    touch-action: manipulation;
+    user-select: none;
+    overflow: hidden;
+  }
+  h1 { color: #ffd700; margin-bottom: 8px; font-size: 14px; }
+  #status { font-size: 11px; color: #8bc34a; margin-bottom: 16px; }
+  .controls {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0 20px;
+    gap: 16px;
+  }
+  .analog-area, .button-area {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  /* Analog Stick */
+  .analog {
+    width: 140px; height: 140px;
+    border-radius: 50%;
+    border: 3px solid #5a5a5a;
+    background: #1a1a1a;
+    position: relative;
+    touch-action: none;
+  }
+  .analog-knob {
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    border: 2px solid #5a5a5a;
+    background: #2a2a2a;
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    transition: 0.1s;
+  }
+  /* Buttons */
+  .btn-grid { position: relative; width: 160px; height: 140px; }
+  .btn {
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    border: 2px solid #5a5a5a;
+    background: #1a1a1a;
+    color: #ffd700;
+    font-size: 18px;
+    font-weight: bold;
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn:active, .btn.active { border-color: #ffd700; background: #ffd70022; }
+  .btn-X { left: 50px; top: 0; }
+  .btn-B { left: 0; bottom: 0; }
+  .btn-A { right: 0; bottom: 0; }
+  /* DPad */
+  .dpad { position: relative; width: 140px; height: 140px; }
+  .dpad-btn {
+    width: 44px; height: 44px;
+    border: 2px solid #5a5a5a;
+    background: #1a1a1a;
+    color: #e0e0e0;
+    font-size: 16px;
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 8px;
+  }
+  .dpad-up { left: 50%; top: 0; transform: translateX(-50%); }
+  .dpad-down { left: 50%; bottom: 0; transform: translateX(-50%); }
+  .dpad-left { left: 0; top: 50%; transform: translateY(-50%); }
+  .dpad-right { right: 0; top: 50%; transform: translateY(-50%); }
+  #padMode { 
+    position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+    padding: 4px 12px; border-radius: 12px; border: 1px solid #5a5a5a;
+    background: #0d0d0d; color: #e0e0e0; font-size: 10px;
+  }
+</style>
+</head>
+<body>
+  <h1>🎮 ZELDA DS - CONTROLE REMOTO</h1>
+  <p id="status">Conectando...</p>
+  
+  <div class="controls">
+    <div class="analog-area">
+      <div class="dpad" id="dpadArea">
+        <div class="dpad-btn dpad-up" data-key="u">↑</div>
+        <div class="dpad-btn dpad-down" data-key="d">↓</div>
+        <div class="dpad-btn dpad-left" data-key="l">←</div>
+        <div class="dpad-btn dpad-right" data-key="r">→</div>
+      </div>
+      <div class="analog" id="analog" style="display:none;">
+        <div class="analog-knob" id="knob"></div>
+      </div>
+    </div>
+    <div class="button-area">
+      <div class="btn-grid">
+        <button class="btn btn-X" data-key="x">X</button>
+        <button class="btn btn-B" data-key="b">B</button>
+        <button class="btn btn-A" data-key="a">A</button>
+      </div>
+    </div>
+  </div>
+  
+  <button id="padMode" onclick="togglePadMode()">MODO: DPAD</button>
+
+<script>
+// Configuration
+const SOCKET_URL = window.location.origin;
+let socket = null;
+let connected = false;
+let padMode = 'dpad'; // 'dpad' or 'analog'
+
+// Try to connect WebSocket
+function connect() {
+  // socket.io would be loaded from server if available
+  if (typeof io !== 'undefined') {
+    socket = io(SOCKET_URL);
+    socket.on('connect', () => {
+      connected = true;
+      document.getElementById('status').textContent = 'Conectado! 🎮';
+      document.getElementById('status').style.color = '#8bc34a';
+    });
+    socket.on('disconnect', () => {
+      connected = false;
+      document.getElementById('status').textContent = 'Desconectado...';
+      document.getElementById('status').style.color = '#ff4444';
+    });
+  } else {
+    // Fallback: no socket.io, just show UI
+    document.getElementById('status').textContent = 'Controle Pronto (sem conexão WS)';
+    document.getElementById('status').style.color = '#ffd700';
+  }
+}
+
+// Send command
+function sendCommand(key, down) {
+  if (socket && connected) {
+    socket.emit('remote-input', { key, down });
+  }
+  // Also store locally for potential P2P
+  localStorage.setItem('lastInput', JSON.stringify({ key, down, time: Date.now() }));
+}
+
+// DPad handlers
+document.querySelectorAll('.dpad-btn').forEach(btn => {
+  const key = btn.dataset.key;
+  btn.addEventListener('touchstart', e => { e.preventDefault(); btn.classList.add('active'); sendCommand(key, true); });
+  btn.addEventListener('touchend', e => { e.preventDefault(); btn.classList.remove('active'); sendCommand(key, false); });
+  btn.addEventListener('mousedown', e => { e.preventDefault(); btn.classList.add('active'); sendCommand(key, true); });
+  btn.addEventListener('mouseup', e => { e.preventDefault(); btn.classList.remove('active'); sendCommand(key, false); });
+  btn.addEventListener('mouseleave', e => { btn.classList.remove('active'); sendCommand(key, false); });
+});
+
+// Action buttons
+document.querySelectorAll('.btn').forEach(btn => {
+  const key = btn.dataset.key;
+  btn.addEventListener('touchstart', e => { e.preventDefault(); btn.classList.add('active'); sendCommand(key, true); });
+  btn.addEventListener('touchend', e => { e.preventDefault(); btn.classList.remove('active'); sendCommand(key, false); });
+  btn.addEventListener('mousedown', e => { e.preventDefault(); btn.classList.add('active'); sendCommand(key, true); });
+  btn.addEventListener('mouseup', e => { e.preventDefault(); btn.classList.remove('active'); sendCommand(key, false); });
+});
+
+// Analog stick
+const analog = document.getElementById('analog');
+const knob = document.getElementById('knob');
+let dragging = false;
+
+analog.addEventListener('touchstart', e => { e.preventDefault(); dragging = true; });
+analog.addEventListener('touchmove', e => {
+  if (!dragging) return;
+  const rect = analog.getBoundingClientRect();
+  const x = e.touches[0].clientX - rect.left - rect.width/2;
+  const y = e.touches[0].clientY - rect.top - rect.height/2;
+  const maxR = rect.width/2 - 30;
+  const dist = Math.min(Math.sqrt(x*x + y*y), maxR);
+  const angle = Math.atan2(y, x);
+  knob.style.transform = `translate(${dist * Math.cos(angle) - rect.width/2}px, ${dist * Math.sin(angle) - rect.height/2}px)`;
+  // Send analog values
+  const nx = (dist * Math.cos(angle)) / maxR;
+  const ny = (dist * Math.sin(angle)) / maxR;
+  if (socket && connected) socket.emit('remote-analog', { x: nx, y: ny });
+});
+analog.addEventListener('touchend', e => {
+  e.preventDefault(); dragging = false;
+  knob.style.transform = 'translate(-50%, -50%)';
+  if (socket && connected) socket.emit('remote-analog', { x: 0, y: 0 });
+});
+
+// Toggle pad mode
+function togglePadMode() {
+  padMode = padMode === 'dpad' ? 'analog' : 'dpad';
+  document.getElementById('dpadArea').style.display = padMode === 'dpad' ? 'block' : 'none';
+  document.getElementById('analog').style.display = padMode === 'analog' ? 'block' : 'none';
+  document.getElementById('padMode').textContent = 'MODO: ' + padMode.toUpperCase();
+}
+
+// Load socket.io client if server provides it
+const script = document.createElement('script');
+script.src = SOCKET_URL + '/socket.io/socket.io.js';
+script.onload = connect;
+script.onerror = connect; // Fallback if no socket.io server
+document.head.appendChild(script);
+</script>
+</body>
+</html>

@@ -1022,11 +1022,35 @@ export default function App() {
   const padModeLabel = padMode === 'both' ? 'SETAS + ANALÓGICO' : padMode === 'dpad' ? 'SÓ SETAS' : 'SÓ ANALÓGICO';
 
   const [remoteControlUrl, setRemoteControlUrl] = useState<string>('');
+
+  // Listen for remote control inputs via WebSocket
+  useEffect(() => {
+    // Dynamically load socket.io client if available
+    if (typeof window !== 'undefined') {
+      const socketScript = document.createElement('script');
+      socketScript.src = '/socket.io/socket.io.js';
+      socketScript.onload = () => {
+        const socket = (window as any).io?.(window.location.origin);
+        if (socket) {
+          socket.on('remote-input', (data: { key: KeyCode; down: boolean }) => {
+            const engine = engineRef.current;
+            if (engine) engine.setKey(data.key, data.down);
+          });
+          socket.on('remote-analog', (data: { x: number; y: number }) => {
+            const engine = engineRef.current;
+            if (engine) engine.setAnalog(data.x, data.y);
+          });
+        }
+      };
+      socketScript.onerror = () => {}; // Silently fail if no WS server
+      document.head.appendChild(socketScript);
+    }
+  }, []);
   
   // Gera QR code para controle remoto
   useEffect(() => {
     // URL que o segundo celular vai escanear
-    const controlUrl = `${window.location.origin}/controller`;
+    const controlUrl = `${window.location.origin}/controller/index.html`;
     QRCode.toDataURL(controlUrl).then((url) => {
       setRemoteControlUrl(url);
     });
