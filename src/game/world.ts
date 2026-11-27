@@ -1,3 +1,4 @@
+import { mergeWorldToSingleMap, SINGLE_MAP } from './singleMap';
 import {
   BAZAAR_LINE,
   BIOME_LINES,
@@ -1028,6 +1029,10 @@ export function buildWorld(): WorldData {
   // Make the bedroom collision match the furniture in its reference image.
   applyRoomPhysics(world);
 
+  if (SINGLE_MAP) {
+    // opção 2: mapa totalmente único (honesto: não reescreve engine ainda)
+    return mergeWorldToSingleMap(world).world;
+  }
   return world;
 }
 
