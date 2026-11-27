@@ -4,7 +4,6 @@
  */
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import QRCode from 'qrcode';
 import {
   ArrowDown,
   ArrowLeft,
@@ -996,8 +995,8 @@ export default function App() {
   const wireframeCircle = (active: boolean, sizeClass: string) =>
     `flex flex-col items-center justify-center rounded-full border-2 touch-none cursor-pointer transition-all duration-100 select-none ${sizeClass} ${
       active
-        ? 'border-white bg-white/20 text-white scale-95 shadow-[0_0_18px_rgba(255,255,255,0.28)]'
-        : 'border-[#969696] bg-[#0e0e0e] hover:border-[#c8c8c8] text-[#eaeaea]'
+        ? 'border-white bg-white/20 text-white scale-95 opacity-90'
+        : 'border-[#969696] bg-[#0e0e0e]/40 hover:border-[#c8c8c8] text-[#eaeaea] opacity-70'
     }`;
 
   const wireframeSquareBtn = (active = false) =>
@@ -1017,64 +1016,26 @@ export default function App() {
   const dpadArrowBtn = (active: boolean) =>
     `flex items-center justify-center rounded-xl border-2 touch-none cursor-pointer transition-all duration-100 select-none ${
       active
-        ? 'border-[#ffd700] bg-[#ffd700]/25 text-[#ffd700]'
-        : 'border-[#5a5a5a] bg-[#1a3a1a]/90 text-[#8bc34a]'
+        ? 'border-[#ffd700] bg-[#ffd700]/25 text-[#ffd700] opacity-90'
+        : 'border-[#5a5a5a] bg-[#1a1a1a]/40 text-[#8bc34a] opacity-70 hover:border-[#8bc34a]'
     }`;
 
   const padModeLabel = padMode === 'both' ? 'SETAS + ANALÓGICO' : padMode === 'dpad' ? 'SÓ SETAS' : 'SÓ ANALÓGICO';
 
-  const [remoteControlUrl, setRemoteControlUrl] = useState<string>('');
-  const [showQR, setShowQR] = useState<boolean>(true);
-
-  // Listen for remote control inputs via WebSocket
-  useEffect(() => {
-    // Dynamically load socket.io client if available
-    if (typeof window !== 'undefined') {
-      const socketScript = document.createElement('script');
-      socketScript.src = `http://${window.location.hostname}:3001/socket.io/socket.io.js`;
-      socketScript.onload = () => {
-        const socket = (window as any).io?.(`http://${window.location.hostname}:3001`);
-        if (socket) {
-          socket.on('remote-input', (data: { key: KeyCode; down: boolean }) => {
-            const engine = engineRef.current;
-            if (engine) engine.setKey(data.key, data.down);
-          });
-          socket.on('remote-analog', (data: { x: number; y: number }) => {
-            const engine = engineRef.current;
-            if (engine) engine.setAnalog(data.x, data.y);
-          });
-        }
-      };
-      socketScript.onerror = () => {}; // Silently fail if no WS server
-      document.head.appendChild(socketScript);
-    }
-  }, []);
-  
-  // Gera QR code para controle remoto
-  useEffect(() => {
-    // URL que o segundo celular vai escanear
-    const controlUrl = `${window.location.origin}/controller/index.html`;
-    QRCode.toDataURL(controlUrl).then((url) => {
-      setRemoteControlUrl(url);
-      setShowQR(true);
-    });
-    // QR code some após 10 segundos
-    const timer = setTimeout(() => setShowQR(false), 10000);
-    return () => clearTimeout(timer);
-  }, []);
+  const [mapOpen, setMapOpen] = useState<boolean>(false);
 
   return (
-    <main className="h-dvh w-full bg-[#061a06] flex flex-col items-center justify-center overflow-hidden select-none">
+    <main className="h-full w-full bg-[#0d0d0d] overflow-hidden select-none">
       {/* Nintendo DS Handheld Shell — Tema Zelda */}
       <div
-        className="w-full max-w-[520px] flex flex-col items-center gap-1 bg-[#1a1a1a] px-2 py-2 rounded-2xl border-4 border-[#6b9e5a]/60 shadow-[0_0_50px_rgba(0,60,0,0.7)]"
+        className="w-full h-full flex flex-col gap-1 bg-[#0d0d0d] p-1"
         style={{
           paddingTop: 'max(8px, env(safe-area-inset-top, 0px))',
           paddingBottom: 'max(10px, env(safe-area-inset-bottom, 0px))',
         }}
       >
-        {/* Top Control Row: controles no celular 2; celular 1 só telas */}
-        <div className="w-full flex items-center justify-between px-2 hidden">
+        {/* Top Control Row: Som | INV | START | Salvar */}
+        <div className="w-full flex items-center justify-between px-2">
           <button
             type="button"
             aria-label={ui.muted ? 'Ativar som' : 'Silenciar som'}
@@ -1096,8 +1057,9 @@ export default function App() {
             <button
               type="button"
               aria-label="Start"
-              className={topCapsulePill(Boolean(activeKeys.s))}
-              {...makeBtnHandlers('s')}
+              className={topCapsulePill(Boolean(activeKeys.s) || mapOpen)}
+              onPointerDown={(e) => { e.preventDefault(); setMapOpen((p) => !p); pressVirtualKey('s', true); }}
+              onPointerUp={(e) => { e.preventDefault(); pressVirtualKey('s', false); }}
             >
               START
             </button>
@@ -1117,7 +1079,7 @@ export default function App() {
         <div className="w-full max-w-[640px] flex-1 flex flex-col items-center gap-1 bg-[#3a3a3a] border-y border-[#5a5a5a]/50 rounded-t-xl overflow-hidden">
           <div className="relative bg-[#0a0a0a] border-2 border-[#5a5a5a]/70 rounded-lg overflow-hidden">
             {/* Mapa de Mitribuque (apenas durante o jogo) */}
-            {ui.screen === 'game' && <TopWorldMap cells={miniMapMeta} ui={ui} />}
+            {ui.screen === 'game' && mapOpen && <TopWorldMap cells={miniMapMeta} ui={ui} />}
 
             {/* Barra de status do inventário */}
             <div className="flex items-center justify-between px-2 py-1 bg-[#2a2a2a] border-t border-[#5a5a5a]/40">
@@ -1145,7 +1107,7 @@ export default function App() {
           className="relative bg-[#000000] border-2 border-[#5a5a5a]/70 rounded-lg overflow-hidden flex items-center justify-center min-h-[200px]"
         >
           {/* Esquerda: Analógico / Setas (Movimento) */}
-          <div className="absolute left-0 top-1/2 -translate-y-1/2 z-10 hidden">
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 z-10">
             {padMode === 'dpad' ? (
               <div className="relative w-[160px] h-[160px] shrink-0">
                 <button
@@ -1282,14 +1244,6 @@ export default function App() {
               style={{ aspectRatio: '3 / 2', maxWidth: 240, maxHeight: 160 }}
             />
 
-            {/* QR Code for remote control */}
-            {remoteControlUrl && showQR && (
-              <div className="absolute top-2 right-2 z-50 bg-white p-1 rounded shadow-lg">
-                <img src={remoteControlUrl} alt="QR Code - Escaneie com outro celular" className="w-16 h-16" />
-                <p className="text-[8px] text-gray-700 text-center mt-0.5">Controle Remoto</p>
-              </div>
-            )}
-
             {ui.screen === 'intro' && ui.introPhase === 'logo' && !logoBroken && (
               <img
                 src="/assets/dominic-games.gif"
@@ -1365,7 +1319,7 @@ export default function App() {
           </div>
 
           {/* Direita: Botões de Ação (X / B / A) */}
-          <div className="absolute right-0 top-1/2 -translate-y-1/2 z-10 hidden">
+          <div className="absolute right-0 top-1/2 -translate-y-1/2 z-10">
             <div className="relative w-[170px] h-[160px] shrink-0">
               <button
                 type="button"
@@ -1409,8 +1363,8 @@ export default function App() {
           </div>
         </div>
 
-        {/* Shoulder Strip: controles no celular 2 */}
-        <div className="w-full flex items-center justify-between px-2 hidden">
+        {/* Shoulder Strip: L (Inventário) | Centro (Item Rápido X) | R (Item Rápido X) */}
+        <div className="w-full flex items-center justify-between px-2">
           <button
             type="button"
             aria-label="L - Inventário"
@@ -1447,8 +1401,8 @@ export default function App() {
           </button>
         </div>
 
-        {/* Botão de alternar modo de controle: no celular 2 */}
-        <div className="flex justify-center pt-0.5 hidden">
+        {/* Botão de alternar modo de controle */}
+        <div className="flex justify-center pt-0.5">
           <button
             type="button"
             onClick={cyclePadMode}
