@@ -4,6 +4,7 @@
  */
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import QRCode from 'qrcode';
 import {
   ArrowDown,
   ArrowLeft,
@@ -1020,6 +1021,17 @@ export default function App() {
 
   const padModeLabel = padMode === 'both' ? 'SETAS + ANALÓGICO' : padMode === 'dpad' ? 'SÓ SETAS' : 'SÓ ANALÓGICO';
 
+  const [remoteControlUrl, setRemoteControlUrl] = useState<string>('');
+  
+  // Gera QR code para controle remoto
+  useEffect(() => {
+    // URL que o segundo celular vai escanear
+    const controlUrl = `${window.location.origin}/controller`;
+    QRCode.toDataURL(controlUrl).then((url) => {
+      setRemoteControlUrl(url);
+    });
+  }, []);
+
   return (
     <main className="h-dvh w-full bg-[#061a06] flex flex-col items-center justify-center overflow-hidden select-none">
       {/* Nintendo DS Handheld Shell — Tema Zelda */}
@@ -1102,7 +1114,7 @@ export default function App() {
           className="relative bg-[#000000] border-2 border-[#5a5a5a]/70 rounded-lg overflow-hidden flex items-center justify-center min-h-[200px]"
         >
           {/* Esquerda: Analógico / Setas (Movimento) */}
-          <div className="absolute left-0 top-1/2 -translate-y-1/2 z-10">
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 z-10 hidden">
             {padMode === 'dpad' ? (
               <div className="relative w-[160px] h-[160px] shrink-0">
                 <button
@@ -1239,6 +1251,14 @@ export default function App() {
               style={{ aspectRatio: '3 / 2', maxWidth: 240, maxHeight: 160 }}
             />
 
+            {/* QR Code for remote control */}
+            {remoteControlUrl && (
+              <div className="absolute bottom-2 right-2 bg-white p-1 rounded shadow-lg z-50">
+                <img src={remoteControlUrl} alt="QR Code - Escaneie com outro celular" className="w-16 h-16" />
+                <p className="text-[8px] text-gray-700 text-center mt-0.5">Controle Remoto</p>
+              </div>
+            )}
+
             {ui.screen === 'intro' && ui.introPhase === 'logo' && !logoBroken && (
               <img
                 src="/assets/dominic-games.gif"
@@ -1314,7 +1334,7 @@ export default function App() {
           </div>
 
           {/* Direita: Botões de Ação (X / B / A) */}
-          <div className="absolute right-0 top-1/2 -translate-y-1/2 z-10">
+          <div className="absolute right-0 top-1/2 -translate-y-1/2 z-10 hidden">
             <div className="relative w-[170px] h-[160px] shrink-0">
               <button
                 type="button"
