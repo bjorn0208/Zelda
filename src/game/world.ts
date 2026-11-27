@@ -122,6 +122,7 @@ export function createInitialProgress(): ProgressState {
     arrows: 5,
     bombs: 2,
     torches: 2,
+    hasBoomerang: false,
     torchLit: false,
     secondary: 'tocha',
     explored: [51],

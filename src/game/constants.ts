@@ -169,15 +169,15 @@ export const SHIELD_STATS: Record<ShieldTier, { name: string; color: string; tri
 
 export const OUTFIT_COLORS: Record<
   OutfitId,
-  { name: string; dark: string; main: string; light: string; shade: string; cap: string }
+  { name: string; dark: string; main: string; light: string; shade: string }
 > = {
+  // Traje inicial (id 'verde' mantido para não quebrar saves antigos).
   verde: {
-    name: 'TUNICA VERDE',
-    dark: '#14502a',
-    main: '#2fa84a',
-    light: '#52d46a',
-    shade: '#1f7d36',
-    cap: '#3dbb4f',
+    name: 'ARMADURA NEGRA',
+    dark: '#0c0c13',
+    main: '#2a2a36',
+    light: '#565670',
+    shade: '#181821',
   },
   carmesim: {
     name: 'TUNICA CARMESIM',
@@ -185,7 +185,6 @@ export const OUTFIT_COLORS: Record<
     main: '#c8323c',
     light: '#ff6670',
     shade: '#901c26',
-    cap: '#df424c',
   },
   safira: {
     name: 'TUNICA SAFIRA',
@@ -193,7 +192,6 @@ export const OUTFIT_COLORS: Record<
     main: '#2e62c8',
     light: '#68a2ff',
     shade: '#1e4290',
-    cap: '#3c78e0',
   },
   dourada: {
     name: 'ARMADURA REAL',
@@ -201,7 +199,6 @@ export const OUTFIT_COLORS: Record<
     main: '#d49e26',
     light: '#ffe478',
     shade: '#a47214',
-    cap: '#f0bc3a',
   },
   branco: {
     name: 'ROUPA BRANCA',
@@ -209,7 +206,6 @@ export const OUTFIT_COLORS: Record<
     main: '#e8ecf7',
     light: '#ffffff',
     shade: '#c3c9db',
-    cap: '#f4f7ff',
   },
 };
 
@@ -219,6 +215,7 @@ export const SHOPS: Record<ShopId, { title: string; items: ShopItem[] }> = {
     items: [
       { id: 'pot1', name: 'POCAO DE VIDA', desc: 'Restaura toda a energia', price: 20, kind: 'pot', amount: 1 },
       { id: 'arr15', name: '15 FLECHAS', desc: 'Municao para o arco', price: 25, kind: 'arrows', amount: 15 },
+      { id: 'bom1', name: 'BOMERANG', desc: 'Arremessa e atinge inimigos', price: 60, kind: 'boomerang' },
       { id: 'bmb5', name: '5 BOMBAS', desc: 'Explode pedras e monstros', price: 30, kind: 'bombs', amount: 5 },
       { id: 'tch3', name: '3 TOCHAS', desc: 'Ilumina cavernas escuras', price: 18, kind: 'torch', amount: 3 },
     ],

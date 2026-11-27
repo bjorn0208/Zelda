@@ -87,7 +87,7 @@ import {
   saveGame,
 } from './world';
 
-const SECONDARY_ORDER: SecondaryTool[] = ['arco', 'bomba', 'tocha', 'pocao'];
+const SECONDARY_ORDER: SecondaryTool[] = ['arco', 'bomba', 'tocha', 'pocao', 'bomerang'];
 
 /** Os três Dominics, na ordem em que os guardiões são derrotados. */
 const DOMINIC_KINDS: DominicKind[] = ['white', 'blue', 'green'];
@@ -1683,6 +1683,23 @@ export class GameEngine {
       } else {
         this.audio.bp(180, 0.05);
       }
+    } else if (tool === 'bomerang') {
+      if (!this.V.hasBoomerang) {
+        this.V.msg = 'SEM BOMERANG! COMPRE NA VILA';
+        this.V.mt = 80;
+        this.audio.bp(180, 0.06);
+        return;
+      }
+      const d = this.G.dir;
+      this.projectiles.push({
+        x: this.G.x + 8 + DX[d] * 8,
+        y: this.G.y + 8 + DY[d] * 8,
+        vx: DX[d] * 2.4,
+        vy: DY[d] * 2.4,
+        kind: 'boomerang',
+        life: 34,
+      });
+      this.audio.bp(520, 0.07, 'triangle');
     }
   }
 
@@ -1869,7 +1886,7 @@ export class GameEngine {
         continue;
       }
 
-      if (p.kind === 'arrow') {
+      if (p.kind === 'arrow' || p.kind === 'boomerang') {
         let hit = false;
         for (const e of this.G.en) {
           const hr = e.k === 4 ? 16 : 9;
@@ -2606,6 +2623,11 @@ export class GameEngine {
     } else if (it.kind === 'torch') {
       this.V.torches = Math.min(99, this.V.torches + (it.amount || 3));
       this.V.secondary = 'tocha';
+    } else if (it.kind === 'boomerang') {
+      this.V.hasBoomerang = true;
+      this.V.secondary = 'bomerang';
+      this.V.msg = 'BOMERANG COMPRADO!';
+      this.V.mt = 75;
     } else if (it.kind === 'sword') {
       const tier = it.tier as SwordTier;
       this.V.ownedSwords.push(tier);

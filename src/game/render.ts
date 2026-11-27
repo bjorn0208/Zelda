@@ -45,6 +45,14 @@ import {
   invItemStateFromProgress,
   invItemTag,
 } from './items';
+import {
+  drawHeroHead,
+  drawKnightArms,
+  drawKnightBoots,
+  drawKnightTorso,
+  drawMacheteInHand,
+  drawMacheteUpright,
+} from './heroSprite';
 
 export type Star = [number, number, number];
 
@@ -1981,31 +1989,11 @@ function drawHeroSwordSwing(
   g.stroke();
   g.restore();
 
-  // Crisp rotated pixel-art blade extending outward from hero hand
+  // Crisp rotated machete extending outward from the hero's gauntlet
   g.save();
   g.translate(px, py);
   g.rotate(curAng);
-
-  // Hand gripping hilt & metallic pommel
-  g.fillStyle = '#c98b3c';
-  g.fillRect(-1, -1.5, 2, 3);
-  g.fillStyle = '#f5c99a';
-  g.fillRect(1, -1.5, 2.5, 3);
-
-  // Crossguard
-  g.fillStyle = '#ffd84a';
-  g.fillRect(3.5, -3.5, 2, 7);
-  g.fillStyle = '#fff6b8';
-  g.fillRect(3.5, -2.5, 1, 5);
-
-  // Blade body + sharp luminous cutting edge & tip
-  g.fillStyle = swDef.edge;
-  g.fillRect(5.5, -2, 12.5, 4);
-  g.fillStyle = swDef.blade;
-  g.fillRect(5.5, -1.2, 12.5, 2.4);
-  g.fillStyle = '#ffffff';
-  g.fillRect(6.5, -1.5, 11, 1);
-  g.fillRect(18, -1, 2, 2);
+  drawMacheteInHand(g, swDef);
   g.restore();
 }
 
@@ -2032,8 +2020,10 @@ function drawHero(
     if (wt === 0) {
       // Hero tucked horizontally into the corner bed while text plays or waiting for button
       R(g, '#f5c99a', x + 1, y + 5, 6, 6);
-      R(g, oc.dark, x - 1, y + 4, 5, 6);
-      R(g, oc.cap, x, y + 5, 4, 4);
+      R(g, '#c4922a', x - 1, y + 4, 5, 6);
+      R(g, '#f4cf5a', x, y + 5, 4, 4);
+      R(g, '#f4cf5a', x - 2, y + 4, 1, 2);
+      R(g, '#f4cf5a', x - 2, y + 8, 1, 2);
       if (G.dlg) {
         // Closed peaceful eyes + Zzz while opening text plays
         R(g, '#3a2410', x + 3, y + 7, 2, 1);
@@ -2067,16 +2057,9 @@ function drawHero(
       const sy = y - 1 - stretch;
       R(g, oc.dark, x + 2, sy + 6, 12, 6);
       R(g, oc.main, x + 3, sy + 7, 10, 5);
-      R(g, '#f5c99a', x + 0, sy + 3 - stretch, 3, 4); // Stretching left arm up!
-      R(g, '#f5c99a', x + 13, sy + 3 - stretch, 3, 4); // Stretching right arm up!
-      R(g, '#3a2410', x + 3, sy + 1, 10, 7);
-      R(g, '#f5c99a', x + 4, sy + 3, 8, 5);
-      R(g, oc.dark, x + 2, sy - 1, 12, 4);
-      R(g, oc.cap, x + 3, sy, 10, 3);
-      R(g, '#222', x + 5, sy + 5, 2, 2);
-      R(g, '#222', x + 9, sy + 5, 2, 2);
-      R(g, '#fff', x + 5, sy + 5, 1, 1);
-      R(g, '#fff', x + 9, sy + 5, 1, 1);
+      R(g, '#14141c', x + 0, sy + 3 - stretch, 3, 4); // Stretching left arm up!
+      R(g, '#14141c', x + 13, sy + 3 - stretch, 3, 4); // Stretching right arm up!
+      drawHeroHead(g, x, sy, 2, 0);
       tx(g, '!', x + 8, sy - 9, '#ffd84a', 'center', '#1a1230');
       return;
     }
@@ -2088,25 +2071,11 @@ function drawHero(
     // Ground shadow stays on floor level
     R(g, '#0005', x + 3, y + 13, arcLift > 8 ? 10 : 12, 3);
     // Jumping hero pose
-    R(g, '#2a1608', x + 3, jy + 12, 4, 3);
-    R(g, '#2a1608', x + 9, jy + 12, 4, 3);
-    R(g, oc.dark, x + 2, jy + 6, 12, 7);
-    R(g, oc.main, x + 3, jy + 7, 10, 5);
-    R(g, oc.light, x + 3, jy + 7, 10, 1);
-    R(g, '#6b3f1d', x + 3, jy + 10, 10, 1);
-    R(g, '#ffd84a', x + 7, jy + 10, 2, 1);
-    R(g, '#f5c99a', x + 0, jy + 5, 3, 3);
-    R(g, '#f5c99a', x + 13, jy + 5, 3, 3);
-    R(g, '#3a2410', x + 3, jy + 1, 10, 8);
-    R(g, '#f5c99a', x + 4, jy + 3, 8, 5);
-    R(g, oc.dark, x + 2, jy - 1, 12, 5);
-    R(g, oc.cap, x + 3, jy, 10, 3);
-    R(g, oc.dark, x + 12, jy - 3, 5, 4);
-    R(g, oc.cap, x + 13, jy - 2, 3, 3);
-    R(g, '#222', x + 5, jy + 5, 2, 2);
-    R(g, '#222', x + 9, jy + 5, 2, 2);
-    R(g, '#fff', x + 5, jy + 5, 1, 1);
-    R(g, '#fff', x + 9, jy + 5, 1, 1);
+    drawKnightBoots(g, x, jy, 0);
+    drawKnightTorso(g, oc, x, jy);
+    R(g, '#14141c', x + 0, jy + 5, 3, 3);
+    R(g, '#14141c', x + 13, jy + 5, 3, 3);
+    drawHeroHead(g, x, jy, 2, 1);
     return;
   }
 
@@ -2121,51 +2090,10 @@ function drawHero(
   }
 
   R(g, '#0004', x + 2, y + 13, 12, 3);
-  R(g, '#2a1608', x + 3 + l, y + 12, 4, 3);
-  R(g, '#2a1608', x + 9 - l, y + 12, 4, 3);
-  R(g, '#8a5a2a', x + 4 + l, y + 12, 2, 1);
-  R(g, '#8a5a2a', x + 10 - l, y + 12, 2, 1);
-
-  R(g, oc.dark, x + 2, Y + 6, 12, 7);
-  R(g, oc.main, x + 3, Y + 7, 10, 5);
-  R(g, oc.light, x + 3, Y + 7, 10, 1);
-  R(g, oc.shade, x + 3, Y + 11, 10, 1);
-  R(g, '#6b3f1d', x + 3, Y + 10, 10, 1);
-  R(g, '#ffd84a', x + 7, Y + 10, 2, 1);
-
-  if (!(G.sw > 0 && d === 3)) R(g, '#f5c99a', x + 1, Y + 8 + w, 2, 3);
-  if (!(G.sw > 0 && d === 1)) R(g, '#f5c99a', x + 13, Y + 9 - w, 2, 3);
-  R(g, '#3a2410', x + 3, Y + 1, 10, 8);
-  R(g, '#f5c99a', x + 4, Y + 3, 8, 5);
-  R(g, '#d9a441', x + 3, Y + 3, 1, 3);
-  R(g, '#d9a441', x + 12, Y + 3, 1, 3);
-
-  R(g, oc.dark, x + 2, Y - 1, 12, 5);
-  R(g, oc.cap, x + 3, Y, 10, 3);
-  R(g, oc.light, x + 4, Y, 5, 1);
-  if (d === 3) {
-    R(g, oc.dark, x - 1, Y - 3, 5, 4);
-    R(g, oc.cap, x, Y - 2, 3, 3);
-  } else {
-    R(g, oc.dark, x + 12, Y - 3, 5, 4);
-    R(g, oc.cap, x + 13, Y - 2, 3, 3);
-  }
-
-  if (d === 2) {
-    R(g, '#222', x + 5, Y + 5, 2, 2);
-    R(g, '#222', x + 9, Y + 5, 2, 2);
-    R(g, '#fff', x + 5, Y + 5, 1, 1);
-    R(g, '#fff', x + 9, Y + 5, 1, 1);
-    R(g, '#e89', x + 4, Y + 7, 1, 1);
-  } else if (d === 1) {
-    R(g, '#222', x + 10, Y + 5, 2, 2);
-    R(g, '#fff', x + 10, Y + 5, 1, 1);
-  } else if (d === 3) {
-    R(g, '#222', x + 4, Y + 5, 2, 2);
-    R(g, '#fff', x + 4, Y + 5, 1, 1);
-  } else {
-    R(g, '#d9a441', x + 4, Y + 3, 8, 5);
-  }
+  drawKnightBoots(g, x, y, l);
+  drawKnightTorso(g, oc, x, Y);
+  drawKnightArms(g, x, Y, w, G.sw > 0 && d === 3, G.sw > 0 && d === 1);
+  drawHeroHead(g, x, Y, d, w);
 
   // Lit torch in off-hand
   if (V.torchLit) {
@@ -2454,6 +2382,13 @@ function drawProjectiles(g: CanvasRenderingContext2D, projectiles: Projectile[],
         R(g, '#e8f4ff', px - 1, p.vy > 0 ? py + 3 : py - 5, 2, 3);
         R(g, '#fff', px - 2, p.vy > 0 ? py - 5 : py + 4, 4, 2);
       }
+    } else if (p.kind === 'boomerang') {
+      // Boomerang simples: diamante girando
+      const spin = (t >> 1) & 1;
+      R(g, '#0005', px - 3, py + 3, 6, 1);
+      R(g, spin ? '#d8c0a0' : '#b89870', px - 3, py - 3, 6, 6);
+      R(g, spin ? '#fff8e0' : '#e8d8b8', px - 2, py - 2, 4, 4);
+      R(g, '#5a4a30', px - 1, py - 1, 2, 2);
     } else if (p.kind === 'bomb') {
       const fast = p.life < 25 ? ((t >> 1) & 1) : ((t >> 3) & 1);
       R(g, '#0005', px - 4, py + 3, 8, 2);
@@ -3677,66 +3612,17 @@ function drawHeroShowcase(
 
   // Shadow
   R(g, '#0006', 2, 14, 12, 3);
-  // Boots
-  R(g, '#2a1608', 3, 12, 4, 3);
-  R(g, '#2a1608', 9, 12, 4, 3);
-  R(g, '#8a5a2a', 4, 12, 2, 1);
-  R(g, '#8a5a2a', 10, 12, 2, 1);
+  // Knight armor, gauntlets, boots and the viking hair (see heroSprite.ts)
+  drawKnightBoots(g, 0, 0, 0);
+  drawKnightTorso(g, oc, 0, 0);
+  drawKnightArms(g, 0, 0, 0);
+  drawHeroHead(g, 0, 0, dir, 0);
 
-  // Tunic & Belt
-  R(g, oc.dark, 2, 6, 12, 7);
-  R(g, oc.main, 3, 7, 10, 5);
-  R(g, oc.light, 3, 7, 10, 1);
-  R(g, oc.shade, 3, 11, 10, 1);
-  R(g, '#6b3f1d', 3, 10, 10, 1);
-  R(g, '#ffd84a', 7, 10, 2, 1);
-
-  // Arms
-  R(g, '#f5c99a', 1, 8, 2, 3);
-  R(g, '#f5c99a', 13, 8, 2, 3);
-
-  // Head & Hair
-  R(g, '#3a2410', 3, 1, 10, 8);
-  R(g, '#f5c99a', 4, 3, 8, 5);
-  R(g, '#d9a441', 3, 3, 1, 3);
-  R(g, '#d9a441', 12, 3, 1, 3);
-
-  // Cap
-  R(g, oc.dark, 2, -1, 12, 5);
-  R(g, oc.cap, 3, 0, 10, 3);
-  R(g, oc.light, 4, 0, 5, 1);
-  if (dir === 3) {
-    R(g, oc.dark, -1, -3, 5, 4);
-    R(g, oc.cap, 0, -2, 3, 3);
-  } else {
-    R(g, oc.dark, 12, -3, 5, 4);
-    R(g, oc.cap, 13, -2, 3, 3);
-  }
-
-  // Face direction
-  if (dir === 2) {
-    R(g, '#222', 5, 5, 2, 2);
-    R(g, '#222', 9, 5, 2, 2);
-    R(g, '#fff', 5, 5, 1, 1);
-    R(g, '#fff', 9, 5, 1, 1);
-  } else if (dir === 1) {
-    R(g, '#222', 10, 5, 2, 2);
-    R(g, '#fff', 10, 5, 1, 1);
-  } else if (dir === 3) {
-    R(g, '#222', 4, 5, 2, 2);
-    R(g, '#fff', 4, 5, 1, 1);
-  } else {
-    R(g, '#d9a441', 4, 3, 8, 5);
-  }
-
-  // Equipped Sword shown in hand!
+  // Equipped machete shown in hand!
   if (V.sword && V.equipped === 'sword') {
     const sw = SWORD_STATS[V.swordTier] || SWORD_STATS.lendaria;
     const sx = dir === 3 ? 0 : 14;
-    R(g, '#6b3f1d', sx, 8, 2, 3);
-    R(g, '#ffd84a', sx - 1, 7, 4, 1);
-    R(g, sw.blade, sx, 1, 2, 6);
-    R(g, sw.edge, sx + 1, 1, 1, 6);
+    drawMacheteUpright(g, sw, sx, 0, dir === 3);
   }
 
   // Equipped Shield shown on off-arm!

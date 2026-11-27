@@ -33,7 +33,7 @@ export type EnemyKind = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11;
 export type SwordTier = 'none' | 'lendaria' | 'aco' | 'runica' | 'solar';
 export type ShieldTier = 'none' | 'madeira' | 'ferro' | 'real' | 'espelhado';
 export type OutfitId = 'verde' | 'carmesim' | 'safira' | 'dourada' | 'branco';
-export type SecondaryTool = 'arco' | 'bomba' | 'tocha' | 'pocao';
+export type SecondaryTool = 'arco' | 'bomba' | 'tocha' | 'pocao' | 'bomerang';
 
 export interface Door {
   x: number;
@@ -84,7 +84,7 @@ export interface Projectile {
   y: number;
   vx: number;
   vy: number;
-  kind: 'arrow' | 'bomb' | 'orb' | 'fire' | 'beam';
+  kind: 'arrow' | 'bomb' | 'orb' | 'fire' | 'beam' | 'boomerang';
   life: number;
   fromEnemy?: boolean;
   /** Dominic que deu cor ao raio da barra cheia. */
@@ -222,6 +222,7 @@ export interface ProgressState {
   arrows: number;
   bombs: number;
   torches: number;
+  hasBoomerang: boolean;
   torchLit: boolean;
   secondary: SecondaryTool;
   explored: number[];
@@ -272,7 +273,7 @@ export interface ShopItem {
   name: string;
   desc: string;
   price: number;
-  kind: 'pot' | 'arrows' | 'bombs' | 'torch' | 'sword' | 'shield' | 'outfit';
+  kind: 'pot' | 'arrows' | 'bombs' | 'torch' | 'sword' | 'shield' | 'outfit' | 'boomerang';
   tier?: SwordTier | ShieldTier | OutfitId;
   amount?: number;
 }

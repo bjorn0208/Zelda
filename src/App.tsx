@@ -79,6 +79,7 @@ const TOOL_SHORT: Record<EngineUIState['secondary'], string> = {
   bomba: 'BOMBA',
   tocha: 'TOCHA',
   pocao: 'POCAO',
+  bomerang: 'BOMERANG',
 };
 
 interface MapCellMeta {
@@ -431,6 +432,7 @@ function ResponsiveInventoryModal({
     bomba: `Bombas (${ui.bombs} un.)`,
     tocha: `Tocha (${ui.torches} un.)`,
     pocao: `Poção Rápida (${ui.pot} un.)`,
+    bomerang: `Bomerang`,
   };
 
   const slots = [
